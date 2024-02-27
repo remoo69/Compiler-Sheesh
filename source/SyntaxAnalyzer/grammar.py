@@ -1,4 +1,9 @@
-import source.core.constants as const
+import os
+import sys
+
+parent_directory=os.path.abspath(r"C:\Users\anton\Desktop\College Stuff Files\Compiler-Sheesh\source")
+sys.path.append(parent_directory)
+import core.constants as const
 
 class FirstFollowPredict:
     def __init__(self):
@@ -25,7 +30,7 @@ class FirstFollowPredict:
 
     def compute_predict_set_for_production(self, cfg, production, non_terminal):
         if not production:  # Empty production
-            return self.follow(cfg, non_terminal)
+            return self.calculate_follow_set(cfg, non_terminal)
 
         first_symbol = production[0]
 
@@ -84,37 +89,24 @@ class FirstFollowPredict:
     #     for key in cfg.keys():
     #         fs[key] = self.followSet(cfg, key)
     #     return fs
-    def follow(self, cfg, non_terminal):
-        pass
+    def calculate_follow_set(self, cfg, symbol):
+        follow_set = set()
+        for non_terminal, productions in cfg.items():
+            for production in productions:
+                if symbol in production:
+                    index = production.index(symbol)
+                    if index < len(production) - 1:
+                        follow_set |= self.firstSet(cfg, production[index + 1]) 
+                        if 'ε' not in self.firstSet(cfg, production[index + 1]):
+                            continue
+                        if non_terminal != symbol:
+                            follow_set |= self.calculate_follow_set(cfg, non_terminal)
+                            break
+        return follow_set
 
-    def generateFollowSet(self, cfg: dict):
-        self.follow_sets = {key: set() for key in cfg.keys()}
+        # Example usage
+        
 
-        changed = True
-        while changed:
-            changed = False
-            for key in cfg.keys():
-                for production in cfg[key]:
-                    for i, symbol in enumerate(production):
-                        if symbol in cfg.keys():
-                            if i < len(production) - 1:
-                                next_symbol = production[i + 1]
-                                if next_symbol in cfg.keys():
-                                    changed = changed or bool(self.follow_sets[symbol].update(self.firstSet(cfg, next_symbol)))
-                                    if '' in self.firstSet(cfg, next_symbol):
-                                        changed = changed or bool(self.follow_sets[symbol].update(self.follow_sets[key]))
-                                else:
-                                    changed = changed or bool(self.follow_sets[symbol].add(next_symbol))
-                            else:
-                                changed = changed or bool(self.follow_sets[symbol].update(self.follow_sets[key]))
-
-                    if i == len(production) - 1 and '' in self.firstSet(cfg, symbol):
-                        changed = changed or bool(self.follow_sets[symbol].update(self.follow_sets[key]))
-
-        for key in cfg.keys():
-            self.follow_sets[key].add('$')
-
-        return self.follow_sets
         # self.follow_sets = {key: set() for key in cfg.keys()}
 
         # changed = True
@@ -149,6 +141,73 @@ class FirstFollowPredict:
 
     #     return changed
 
+class ParseNonTerminal:
+    # Parser based on recursive descent. Takes a string of tokens and a grammar, returns a parse tree.
+#     Recursive descent parsing is a top-down parsing technique used to analyze the structure of a given input based on a formal grammar. It starts from the top-level rule of the grammar and recursively applies production rules to break down the input into smaller components until it reaches the terminal symbols.
+# Here are the steps involved in the recursive descent parsing algorithm:
+
+# Define the grammar: Start by defining a formal grammar that describes the syntax of the language you want to parse. The grammar consists of a set of production rules that define how the language constructs can be formed.
+
+# Implement the parser functions: Create a set of parsing functions, one for each non-terminal symbol in the grammar. Each parsing function corresponds to a production rule and is responsible for recognizing and parsing the corresponding language construct.
+
+# Start with the top-level rule: Begin the parsing process by calling the parsing function for the top-level rule of the grammar. This function will recursively call other parsing functions to handle the sub-components of the input.
+    def __init__(self, non_terminal, production, index):
+        self.non_terminal = non_terminal
+        self.production = production
+        self.index = index
+
+    def move(self):
+        return self.production[self.index]
+    
+class MathParser():
+    def __init__(self, tokens):
+        self.tokens = tokens
+
+    def parse(self):
+        return self.expression()
+
+    def expression(self):
+        return self.term() + self.expression_prime()
+
+    def expression_prime(self):
+        if self.tokens[self.index] in ["+", "-"]:
+            operator = self.tokens[self.index]
+            self.move()
+            return [operator] + self.term() + self.expression_prime()
+        else:
+            return []
+
+    def term(self):
+        return self.factor() + self.term_prime()
+
+    def term_prime(self):
+        if self.tokens[self.index] in ["*", "/"]:
+            operator = self.tokens[self.index]
+            self.move()
+            return [operator] + self.factor() + self.term_prime()
+        else:
+            return []
+
+    def factor(self):
+        if self.tokens[self.index] == "(":
+            self.move()
+            result = self.expression()
+            if self.tokens[self.index] == ")":
+                self.move()
+                return result
+            else:
+                raise SyntaxError("Missing closing parenthesis")
+        elif self.tokens[self.index].isdigit():
+            result = self.tokens[self.index]
+            self.move()
+            return result
+        else:
+            raise SyntaxError("Invalid expression")
+
+    def move(self):
+        self.index += 1
+
+    # def
 
 
 
@@ -376,4 +435,5 @@ class Grammar:
 
 
 # print(FirstFollow().firstSet(Grammar.cfg, "sheesh_declaration"))
-# print(FirstFollowPredict().predict_set(Grammar.cfg))
+# print(FirstFollowPredict.cfg))
+print(FirstFollowPredict().predict_set(Grammar.cfg)     )

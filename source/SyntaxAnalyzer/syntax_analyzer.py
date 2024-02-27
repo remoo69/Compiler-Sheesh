@@ -1,6 +1,6 @@
 import grammar 
-import source.core.constants as const
-from source.LexicalAnalyzer.tokenclass import Token
+import core.constants as const
+from LexicalAnalyzer.tokenclass import Token
 from grammar import FirstFollowPredict
 
 cfg=grammar.Grammar()
@@ -94,9 +94,41 @@ class SyntaxAnalyzer:
         #     print("Parsing successful")
         # else:
         #     print("Parsing failed")
-class TreeNode:
-    pass
+
 
 class ParseTree:
-    pass
+    pass    
+
+class SyntaxAnalyzer:
+    def parse_expression(self):
+        self.parse_term()
+        while self.current_token.type in ["+", "-"]:
+            self.current_token = self.tokens[self.token_pointer]
+            self.token_pointer += 1
+            self.parse_term()
+
+    def parse_term(self):
+        self.parse_factor()
+        while self.current_token.type in ["*", "/"]:
+            self.current_token = self.tokens[self.token_pointer]
+            self.token_pointer += 1
+            self.parse_factor()
+
+    def parse_factor(self):
+        if self.current_token.type == "Number":
+            self.current_token = self.tokens[self.token_pointer]
+            self.token_pointer += 1
+        elif self.current_token.type == "(":
+            self.current_token = self.tokens[self.token_pointer]
+            self.token_pointer += 1
+            self.parse_expression()
+            if self.current_token.type == ")":
+                self.current_token = self.tokens[self.token_pointer]
+                self.token_pointer += 1
+            else:
+                self.is_error = True
+                self.error_message = f"Syntax error: Expected ')' but found '{self.current_token.value}' at line {self.current_token.line}, column {self.current_token.column}"
+        else:
+            self.is_error = True
+            self.error_message = f"Syntax error: Unexpected token '{self.current_token.value}' at line {self.current_token.line}, column {self.current_token.column}"
 

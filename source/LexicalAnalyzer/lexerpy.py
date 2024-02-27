@@ -1,10 +1,10 @@
 # import re
 # import tokenclass as tk
 # import pandas as pd
-import source.core.constants as const
-import prepare as prep
-import source.core.error_handler as err
-import tokenclass as tkc
+import core.constants as const
+import LexicalAnalyzer.prepare as prep
+import core.error_handler as err
+import LexicalAnalyzer.tokenclass as tkc
 from typing import Tuple, List
 
 # This lexer follows the principle of longest match. It will match the longest possible token at each step.

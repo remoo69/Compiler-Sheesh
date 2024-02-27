@@ -1,15 +1,16 @@
-import constants as const
-import prepare as prep
-import lexerpy as lex
-import tokenclass as tkc 
+import core.constants as const
+import LexicalAnalyzer.prepare as prep
+
+import LexicalAnalyzer.tokenclass as tkc 
 
 class Error:
     errcount=0
-    def __init__(self, errorval=None, remaining=None, line=0, type=None):
+    def __init__(self, errorval=None, remaining=None, line=0, type=None, errclass=None):
         self.errorval = errorval
         self.line=line
         self.remaining=remaining
         self.error_type=type
+        self.error_class=errclass
 
     def __str__(self) -> str:
         return f"Line {self.line}: {self.error_type}"
@@ -22,6 +23,7 @@ class LexError:
         buffer = ''
         i = 0
         errobj=Error()
+        errobj.error_class="Lexical Error"
          #invalid delim error
         buffer += tokencode[i]
         if buffer in const.invalid_symbols:
@@ -76,6 +78,8 @@ class LexError:
         buffer=''
         i=0
         errobj=Error()
+        errobj.error_class="Lexical Error"
+
         if tokencode[0].isdigit():
             return None
         while i<len(tokencode): #invalid delim error
@@ -130,6 +134,8 @@ class LexError:
         buffer=''
         i=0
         errobj=Error()
+        errobj.error_class="Lexical Error"
+
         if tokencode.startswith("0") and len(tokencode)>1:
             if tokencode[1]=="0":
                 buffer=tokencode[0]
@@ -264,6 +270,8 @@ class LexError:
         buffer=''
         i=0
         errobj=Error()
+        errobj.error_class="Lexical Error"
+
         while i<len(tokencode):
             if tokencode.startswith('"'):
                 buffer += tokencode[i]
@@ -322,5 +330,6 @@ class LexError:
             
 # print(LexError.get_error_identifier(test))
         
-class SyntaxError:
-    pass
+class SyntaxError(Error):
+    def __init__(self) -> None:
+        pass

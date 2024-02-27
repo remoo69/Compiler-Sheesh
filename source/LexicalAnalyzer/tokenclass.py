@@ -1,4 +1,4 @@
-import source.core.constants as const
+import core.constants as const
 from dataclasses import dataclass
 
 @dataclass

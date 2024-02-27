@@ -1,9 +1,9 @@
 #Prepares the Input file for tokenization. Removes comments, extra newline characters, and extra spaces.
 #Also splits the code into lines.
-import source.core.constants as const
-import re
-import lexerpy as lex
-import tokenclass as tkc
+import core.constants as const
+# import re
+# import LexicalAnalyzer.lexerpy as lex
+import LexicalAnalyzer.tokenclass as tkc
 #region functions
 
 def file_to_string(file):
