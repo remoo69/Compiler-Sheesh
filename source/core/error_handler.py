@@ -331,5 +331,5 @@ class LexError:
 # print(LexError.get_error_identifier(test))
         
 class SyntaxError(Error):
-    def __init__(self) -> None:
+    def __init__(self, unexpected, line) -> None:
         pass
