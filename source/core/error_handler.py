@@ -1,7 +1,9 @@
-import core.constants as const
-import LexicalAnalyzer.prepare as prep
+import sys
+sys.path.append( '.' )
+import source.core.constants as const
+import source.LexicalAnalyzer.prepare as prep
 
-import LexicalAnalyzer.tokenclass as tkc 
+import source.LexicalAnalyzer.tokenclass as tkc 
 
 class Error:
     errcount=0

@@ -1,0 +1,24 @@
+LICENSE
+README.md
+setup.py
+source/Sheesh# Compiler.py
+source/__init__.py
+source/helper.py
+source.egg-info/PKG-INFO
+source.egg-info/SOURCES.txt
+source.egg-info/dependency_links.txt
+source.egg-info/top_level.txt
+source/LexicalAnalyzer/__init__.py
+source/LexicalAnalyzer/lexerpy.py
+source/LexicalAnalyzer/prepare.py
+source/LexicalAnalyzer/tokenclass.py
+source/SyntaxAnalyzer/__init__.py
+source/SyntaxAnalyzer/fsp.py
+source/SyntaxAnalyzer/grammar.py
+source/SyntaxAnalyzer/parser1.py
+source/SyntaxAnalyzer/parser_sheesh.py
+source/SyntaxAnalyzer/syntax_analyzer.py
+source/SyntaxAnalyzer/test_grammar.py
+source/core/__init__.py
+source/core/constants.py
+source/core/error_handler.py

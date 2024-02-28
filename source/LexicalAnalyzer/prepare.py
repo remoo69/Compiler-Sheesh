@@ -1,9 +1,20 @@
+# import re
 #Prepares the Input file for tokenization. Removes comments, extra newline characters, and extra spaces.
 #Also splits the code into lines.
-import core.constants as const
-# import re
+# import source.core.constants as const
 # import LexicalAnalyzer.lexerpy as lex
-import LexicalAnalyzer.tokenclass as tkc
+# import sys
+# sys.path.append(r"C:\Users\anton\Desktop\College Stuff Files\Compiler-Sheesh\source")
+# print(sys.path)
+import sys
+sys.path.append( '.' )
+# from compiler_sheesh.source.core import constants as const
+import source.core.constants  as const
+# from ..core import constants as const
+import source.LexicalAnalyzer.tokenclass as tkc
+# import source.core.constants as const
+
+
 #region functions
 
 def file_to_string(file):
@@ -186,11 +197,12 @@ def get_keyword(token):
     for char in token:
         if temp_token is None:
             return '',token
-        if temp_token in const.keywords and char in const.keywords_delims[temp_token]:
+        if (temp_token in const.keywords) and (char in const.keywords_delims[temp_token]):
             # token_cpy=re.sub(temp_token, '',token, count=1)
             token_cpy=token.replace(temp_token, '', 1)
             keyword_detected=True
-            return temp_token, token_cpy       
+            return temp_token, token_cpy
+               
         else:
             temp_token+=char
    
@@ -198,7 +210,7 @@ def get_identifier(token):
     token_cpy=''
     temp_token=''
     for char in token:
-        if char in const.delimiters["id_delim"] and tkc.LexerCheck.is_Identifier(temp_token):
+        if char in const.delimiters["id_delim"] and tkc.LexerCheck.is_Identifier(temp_token) and temp_token not in const.keywords:
             # token_cpy=re.sub(temp_token, '',token, count=1)
             token_cpy=token.replace(temp_token, '', 1)
             return temp_token, token_cpy       

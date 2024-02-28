@@ -1,5 +1,9 @@
 {
     "python.analysis.extraPaths": [
-        "./source/LexicalAnalyzer"
-    ]
+        "./source/LexicalAnalyzer",
+        "./source/core"
+    ],
+    // "python.autoComplete.extraPaths": [
+    //     "./source",
+    // ]
 }
