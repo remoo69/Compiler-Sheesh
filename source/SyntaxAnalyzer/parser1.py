@@ -1,5 +1,11 @@
-import grammar
-import source.core.constants as constants
+import os
+import sys
+
+parent_directory=os.path.abspath(r"C:\Users\anton\Desktop\College Stuff Files\Compiler-Sheesh\source")
+sys.path.append(parent_directory)
+
+import SyntaxAnalyzer.grammar as grammar
+import core.constants as constants
  
 def generate_follow(cfg):
     production_stack=[]

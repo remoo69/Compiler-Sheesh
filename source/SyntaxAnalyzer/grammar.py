@@ -47,8 +47,9 @@ class FirstFollowPredict:
     def firstSet(self, cfg: dict, firstOf):
         fs = set()
         visited = set()  # To track visited non-terminals and avoid infinite loops
-        self.computeFirstSet(cfg, firstOf, fs, visited)
+        self.computeFirstSet( cfg, firstOf, fs, visited)
         return list(fs)
+
 
     def computeFirstSet(self, cfg, non_terminal, first_set, visited):
         if non_terminal in const.terminals:
@@ -59,30 +60,33 @@ class FirstFollowPredict:
 
         visited.add(str(non_terminal))  # Convert non-terminal to a hashable type
 
-        def computeFirstSet(self, cfg, non_terminal, first_set, visited):
-            if non_terminal in const.terminals:
-                first_set.add(non_terminal)
-                return
-            if str(non_terminal) in visited:  # Convert non-terminal to a hashable type
-                return
+        for production in cfg[non_terminal]:
+            if not production:  # Empty production
+                continue
 
-            visited.add(str(non_terminal))  # Convert non-terminal to a hashable type
+            ptr = 0
+            while ptr < len(production):
+                current_symbol = production[ptr]
 
-            for production in cfg[non_terminal]:
-                ptr = 0
-                while ptr < len(production):
-                    current_symbol = production[ptr]
-
-                    if current_symbol in const.terminals:
-                        first_set.add(current_symbol)
+                if current_symbol in const.terminals:
+                    first_set.add(current_symbol)
+                    break
+                elif current_symbol in cfg.keys():
+                    self.computeFirstSet(cfg, current_symbol, first_set, visited)
+                    if '' not in first_set:
                         break
-                    elif current_symbol in cfg.keys():
-                        self.computeFirstSet(cfg, current_symbol, first_set, visited)
-                        if '' not in first_set:
-                            break
-                        ptr += 1
-                    else:
-                        ptr += 1
+                    ptr += 1
+                else:
+                    ptr += 1
+        if non_terminal in const.terminals:
+            first_set.add(non_terminal)
+            return
+        if str(non_terminal) in visited:  # Convert non-terminal to a hashable type
+            return
+
+        visited.add(str(non_terminal))  # Convert non-terminal to a hashable type
+
+        
 
     # def generateFollowSet(self, cfg: dict):
     #     fs = {}
@@ -213,227 +217,238 @@ class MathParser():
 
 class Grammar:
     cfg={}
-    cfg["program"]	=	[["import","global_declaration","function_definition","sheesh_declaration","function_definition",]]
-    cfg["import"]	=	[["use","import_prog","import_next","#","more_import",]]
-    cfg["import"].append	(["null"])
-    cfg["import_prog"]	=	[["Identifier","more_importprog",]]
-    cfg["more_importprog"]	=	[[",","import_prog",]]
-    cfg["more_importprog"]	.append	(["null"])
-    cfg["import_next"]	=	[["from","Identifier"]]
-    cfg["import_next"]	.append	(["null"])
-    cfg["more_import"]	=	[["import",]]
-    cfg["more_import"]	.append	(["null"])
-    cfg["global_declaration"]	=	[["global_statement","more_globaldec",]]
-    cfg["global_declaration"]	.append	(["null"])
-    cfg["global_statement"]	=	[["variable_declaration",]]
-    cfg["global_statement"]	.append	(["function_prototype",])
-    cfg["more_globaldec"]	=	[["global_declaration",]]
-    cfg["more_globaldec"]	.append	(["null"])
-    cfg["function_prototype"]	=	[["bruh_type","Identifier","(","parameter",")","#"]]
-    cfg["parameter"]	=	[["data_type","Identifier","more_param",]]
+    cfg["program"]	=	[["import","global_declaration","function_definition","sheesh_declaration","function_definition",""]]
+    cfg["import"]	=	[["use","import_prog","import_next","#","more_import",""]]
+    cfg["import"]	.append	([None])
+    cfg["more_import"]	=	[["import",""]]
+    cfg["more_import"]	.append	([None])
+    cfg["import_prog"]	=	[["identifier","more_importprog",""]]
+    cfg["more_importprog"]	=	[[",","import_prog",""]]
+    cfg["more_importprog"]	.append	([None])
+    cfg["import_next"]	=	[["from","identifier"]]
+    cfg["import_next"]	.append	([None])
+    cfg["global_declaration"]	=	[["global_statement","global_declaration",""]]
+    cfg["global_declaration"]	.append	([None])
+    cfg["global_statement"]	=	[["variable_declaration",""]]
+    cfg["global_statement"]	.append	(["function_prototype",""])
+    cfg["global_statement"]	.append	(["constant_declaration",""])
+    cfg["global_statement"]	.append	(["sequence_declaration",""])
+    cfg["function_prototype"]	=	[["yeet_type","identifier","(","parameter",")","#"]]
+    cfg["parameter"]	=	[["data_type","identifier","more_param",""]]
     cfg["parameter"]	.append	(["blank"])
-    cfg["parameter"]	.append	(["null"])
-    cfg["more_param"]	=	[[",","data_type","Identifier","more_param",]]
-    cfg["more_param"]	.append	(["null"])
-    cfg["bruh_type"]	=	[["data_type",]]
-    cfg["bruh_type"]	.append	(["blank"])
+    cfg["parameter"]	.append	([None])
+    cfg["more_param"]	=	[[",","data_type","identifier","more_param",""]]
+    cfg["more_param"]	.append	([None])
+    cfg["yeet_type"]	=	[["data_type",""]]
+    cfg["yeet_type"]	.append	(["blank"])
     cfg["data_type"]	=	[["whole"]]
     cfg["data_type"]	.append	(["dec"])
     cfg["data_type"]	.append	(["text"])
-    cfg["data_type"]	.append	(["lit"])
+    cfg["data_type"]	.append	(["sus"])
+    cfg["data_type"]	.append	(["charr","text"])
     cfg["literal"]	=	[["text_literal"]]
     cfg["literal"]	.append	(["whole_literal"])
     cfg["literal"]	.append	(["dec_literal"])
-    cfg["literal"]	.append	(["lit_literal"])
-    cfg["numeric_value"]	=	[["Identifier"]]
+    cfg["literal"]	.append	(["sus_literal"])
+    cfg["literal"]	.append	(["charr_literal"])
+    cfg["numeric_value"]	=	[["common_val",""]]
     cfg["numeric_value"]	.append	(["whole_literal"])
     cfg["numeric_value"]	.append	(["dec_literal"])
-    cfg["numeric_value"]	.append	(["function_invocation",])
-    cfg["numeric_value"]	.append	(["seq_use",])
-    cfg["sheesh_declaration"]	=	[["sheesh", "(", ")", "{","statement","}"]]
-    cfg["statement"]	=	[["single_statement","more_statement",]]
-    cfg["single_statement"]	=	[["variable_declaration",]]
+    cfg["numeric_value"]	.append	(["seq_use",""])
+    cfg["sheesh_declaration"]	=	[["sheesh(){","statement","}"]]
+    cfg["statement"]	=	[["single_statement","more_statement",""]]
+    cfg["single_statement"]	=	[["variable_declaration",""]]
+    cfg["single_statement"]	.append	(["sequence_declaration",""])
     cfg["single_statement"]	.append	(["function_invocation","#"])
-    cfg["single_statement"]	.append	(["control_flow_statement",])
-    cfg["single_statement"]	.append	(["bruh_statement",])
-    cfg["single_statement"]	.append	(["io_statement",])
-    cfg["single_statement"]	.append	(["seq_use_assign",])
-    cfg["single_statement"].append(["variable_reassign","#"])
-    cfg["more_statement"] = [["statement",]]
-    cfg["more_statement"].append(["null"])
-    cfg["io_statement"] = [["kuha_statement",]]
-    cfg["io_statement"].append(["bigay_statement",])
-    cfg["kuha_statement"] = [["kuha","(","argument",")","#"]]
-    cfg["bigay_statement"] = [["bigay", "(","argument","more_argument",")","#"]]
-    cfg["variable_declaration"] = [["data_type","vardec_tail","#"]]
-    cfg["variable_declaration"].append(["sequence_declaration",])
-    cfg["variable_declaration"].append(["constant_declaration",])
-    cfg["vardec_tail"] = [["Identifier","variable_assign","more_vardec",]]
-    cfg["more_vardec"] = [[",","vardec_tail",]]
-    cfg["more_vardec"].append(["null"])
-    cfg["variable_assign"] = [["assign_op","assign_value",]]
-    cfg["variable_assign"].append(["null"])
-    cfg["variable_reassign"] = [["Identifier","assign_op","assign_value",]]
-    cfg["assign_value"] = [["function_invocation",]]
-    cfg["assign_value"].append(["Identifier"])
-    cfg["assign_value"].append(["literal",])
-    cfg["assign_value"].append(["expression",])
-    cfg["assign_value"].append(["seq_use",])
-    cfg["constant_declaration"] = [["steady","data_type","const_tail","#"]]
-    cfg["const_tail"] = [["Identifier","assign_op","assign_value","more_const",]]
-    cfg["more_const"] = [[",","const_tail",]]
-    cfg["more_const"].append(["null"])
-    cfg["assign_op"] = [["="]]
-    cfg["assign_op"].append(["+="])
-    cfg["assign_op"].append(["-="])
-    cfg["assign_op"].append(["*="])
-    cfg["assign_op"].append(["/="])
-    cfg["assign_op"].append(["%="])
-    cfg["function_invocation"] = [["Identifier","(","func_argument",")"]]
-    cfg["func_argument"] = [["argument",]]
-    cfg["func_argument"].append(["null"])
-    cfg["argument"] = [["args_value","more_args",]]
-    cfg["args_value"] = [["Identifier"]]
-    cfg["args_value"].append(["literal",])
-    cfg["args_value"].append(["expression",])
-    cfg["args_value"].append(["function_invocation",])
-    cfg["args_value"].append(["seq_use",])
-    cfg["more_args"] = [[",","argument",]]
-    cfg["more_args"].append(["null"])
-    cfg["control_flow_statement"] = [["kung_statement","more_control_flow",]]
-    cfg["control_flow_statement"].append(["choose_statement",])
-    cfg["control_flow_statement"].append(["looping_statement",])
-    cfg["kung_statement"] = [["kung","(","condition",")","{","statement","}"]]
-    cfg["ehkung_statement"] = [["ehkung","(","condition",")","{","statement","}"]]
-    cfg["deins_statement"] = [["deins","{","statement","}"]]
-    cfg["more_control_flow"] = [["ehkung_statement","more_control_flow",]]
-    cfg["more_control_flow"].append(["deins_statement",])
-    cfg["more_control_flow"].append(["null"])
-    cfg["choose_statement"] = [["choose","(","Identifier",")","{","when_statement","choose_default","}"]]
-    cfg["when_statement"] = [["when","literal","::","statement","more_when",]]
-    cfg["more_when"] = [["when_statement",]]
-    cfg["more_when"].append(["null"])
-    cfg["choose_default"] = [["default","::","statement",]]
-    cfg["choose_default"].append(["null"])
-    cfg["looping_statement"] = [["habang_statement",]]
-    cfg["looping_statement"].append(["for_statement",])
-    cfg["habang_statement"] = [["habang","{","within_loop_statement","}","kung","(","condition",")","#"]]
-    cfg["for_statement"] = [["for", "(","Identifier","to","for_expr_value","step_statement",")","{","within_loop_statement","}"]]
-    cfg["for_expr_value"] = [["whole_literal"]]
-    cfg["for_expr_value"].append(["function_invocation",])
-    cfg["for_expr_value"].append(["Identifier"])
-    cfg["for_expr_value"].append(["arithmetic_expression",])
-    cfg["for_expr_value"].append(["seq_use",])
-    cfg["step_statement"] = [["step","for_expr_value",]]
-    cfg["step_statement"].append(["null"])
-    cfg["within_loop_statement"] = [["kung_statement","loop_more_control_flow",]]
-    cfg["within_loop_statement"].append(["ehkung_statement","loop_more_control_flow",])
-    cfg["within_loop_statement"].append(["deins_statement",])
-    cfg["within_loop_statement"].append(["null"])
-    cfg["loop_kung"] = [["kung","(","condition",")","{","has_loop_control","}"]]
-    cfg["loop_ehkung"] = [["ehkung","(","condition",")","{","has_loop_control","}"]]
-    cfg["loop_deins"] = [["deins","{","has_loop_control","}"]]
-    cfg["loop_more_control_flow"] = [["loop_ehkung","more_control_flow",]]
-    cfg["loop_more_control_flow"].append(["loop_deins",])
-    cfg["loop_more_control_flow"].append(["null"])
-    cfg["has_loop_control"] = [["statement",]]
-    cfg["has_loop_control"].append(["loop_control_statement","more_statement",])
-    cfg["loop_control_statement"] = [["termins","#"]]
-    cfg["loop_control_statement"].append(["gg", "#"])
-    cfg["loop_control_statement"].append(["null"])
-    cfg["condition"] = [["relational_expression",]]
-    cfg["condition"].append(["logical_expression",])
-    cfg["condition"].append(["lit_literal"])
-    cfg["condition"].append(["Identifier"])
-    cfg["condition"].append(["function_invocation",])
-    cfg["condition"].append(["seq_use",])
-    cfg["sequence_declaration"] = [["data_type","Identifier","seq_tail","#"]]
-    cfg["seq_tail"] = [["seq_one_dim","seq_assign",]]
-    cfg["seq_tail"].append(["multi_seq",])
-    cfg["seq_assign"] = [["=","seq_init",]]
-    cfg["seq_assign"].append(["null"])
-    cfg["seq_init"] = [["{","seq_elem","}"]]
-    cfg["seq_elem"] = [["seq_elem_value",]]
-    cfg["seq_elem"].append(["seq_init","seq_two-d_init",])
-    cfg["seq_two-d_init"] = [[",","seq_init","seq_three-d_init",]]
-    cfg["seq_three-d_init"] = [[",","seq_init",]]
-    cfg["seq_two-d_init"].append(["null"])
-    cfg["seq_three-d_init"].append(["null"])
-    cfg["seq_elem_value"] = [["literal","next_elem_value",]]
-    cfg["next_elem_value"] = [[",","seq_elem_value",]]
-    cfg["next_elem_value"].append(["null"])
-    cfg["multi_seq"] = [["seq_one_dim","more_seq",]]
-    cfg["more_seq"] = [[",","Identifier","seq_one_dim","more_seq",]]
-    cfg["more_seq"].append(["null"])
-    cfg["seq_one_dim"] = [["index","seq_two_dim",]]
-    cfg["seq_two_dim"] = [["index","seq_three_dim",]]
-    cfg["seq_three_dim"] = [["index",]]
-    cfg["seq_two_dim"].append(["null"])
-    cfg["seq_three_dim"].append(["null"])
-    cfg["index"] = [["[","seq_index_val","]"]]
-    cfg["seq_index_val"] = [["function_invocation","index_arithm_expression",]]
-    cfg["seq_index_val"].append(["Identifier","index_arithm_expression",])
-    cfg["seq_index_val"].append(["whole_literal","index_arithm_expression",])
-    cfg["seq_use"] = [["Identifier","seq_one_dim",]]
-    cfg["seq_use_assign"] = [["seq_use","assign_op","assign_value","#"]]
-    cfg["index_arithm_expression"] = [["arithm_op","seq_index_val",]]
-    cfg["index_arithm_expression"].append(["null"])
-    cfg["expression"] = [["arithmetic_expression",]]
-    cfg["expression"].append(["logical_expression",])
-    cfg["expression"].append(["relational_expression",])
-    cfg["expression"].append(["text_concat",])
-    cfg["arithmetic_expression"] = [["numeric_value","arithm_tail",]]
-    cfg["arithm_tail"] = [["arithm_op","numeric_value","more_arithm",]]
-    cfg["more_arithm"] = [["arithm_tail",]]
-    cfg["more_arithm"].append(["null"])
-    cfg["arithm_op"] = [["+"]]
-    cfg["arithm_op"].append(["-"])
-    cfg["arithm_op"].append(["*"])
-    cfg["arithm_op"].append(["/"])
-    cfg["arithm_op"].append(["%"])
-    cfg["relational_expression"] = [["numeric_value","relop","numeric_value",]]
-    cfg["relop"] = [["=="]]
-    cfg["relop"].append([])
-    cfg["relop"].append(["="])
-    cfg["relop"].append([])
-    cfg["relop"].append(["="])
-    cfg["relop"].append(["!="])
-    cfg["logical_expression"] = [["logic_value","logicexpr_tail",]]
-    cfg["logicexpr_tail"] = [["logic_op","logic_value",]] #"more_logicexpr",
-    cfg["logical_expression"].append(["logical_not_expression",])
-    cfg["more_logical_expr"] = [["logicexpr_tail",]]
-    cfg["more_logical_expr"].append(["null"])
-    cfg["logical_not_expression"] = [["logic_not","more_logic_not","Identifier"]]
-    cfg["more_logic_not"] = [["logic_not","more_logic_not",]]
-    cfg["more_logic_not"].append(["null"])
-    cfg["logic_not"] = [["!"]]
-    cfg["logic_op"] = [["&"]]
-    cfg["logic_op"].append(["|"])
-    cfg["logic_value"] = [["Identifier"]]
-    cfg["logic_value"].append(["lit_literal"])
-    cfg["logic_value"].append(["relational_expression",])
-    cfg["logic_value"].append(["logical_not_expression",])
-    cfg["text_concat"] = [["concat_val","concat_tail",]]
-    cfg["concat_tail"] = [["...","concat_val","more_concat",]]
-    cfg["more_concat"] = [["concat_tail",]]
-    cfg["more_concat"].append(["null"])
-    cfg["concat_val"] = [["text_literal"]]
-    cfg["concat_val"].append(["function_invocation",])
-    cfg["concat_val"].append(["Identifier"])
-    cfg["concat_val"].append(["seq_use",])
-    cfg["function_definition"] = [["func_def","more_funcdef",]]
-    cfg["function_definition"].append(["null"])
-    cfg["func_def"] = [["bruh_type","Identifier","(","parameter","){","statement","}"]]
-    cfg["more_funcdef"] = [["function_definition",]]
-    cfg["more_funcdef"].append(["null"])
-    cfg["bruh_statement"] = [["bruh","return_value","#"]]
-    cfg["bruh_statement"].append(["null"])
-    cfg["return_value"] = [["assign_value",]]
-    cfg["return_value"].append(["null"])
+    cfg["single_statement"]	.append	(["control_flow_statement",""])
+    cfg["single_statement"]	.append	(["yeet_statement",""])
+    cfg["single_statement"]	.append	(["io_statement",""])
+    cfg["single_statement"]	.append	(["seq_use_assign",""])
+    cfg["single_statement"]	.append	(["variable_reassign","#"])
+    cfg["more_statement"]	=	[["statement",""]]
+    cfg["more_statement"]	.append	([None])
+    cfg["io_statement"]	=	[["pa_mine_statement",""]]
+    cfg["io_statement"]	.append	(["up_statement",""])
+    cfg["pa_mine_statement"]	=	[["pa_mine(","argument",")#"]]
+    cfg["up_statement"]	=	[["up(","func_argument",")#"]]
+    cfg["variable_declaration"]	=	[["data_type","vardec_tail","#"]]
+    cfg["vardec_tail"]	=	[["identifier","variable_assign","more_vardec",""]]
+    cfg["more_vardec"]	=	[[",","vardec_tail",""]]
+    cfg["more_vardec"]	.append	([None])
+    cfg["variable_assign"]	=	[[":=","assign_value",""]]
+    cfg["variable_assign"]	.append	([None])
+    cfg["variable_reassign"]	=	[["identifier","assign_op","assign_value",""]]
+    cfg["common_val"]	=	[["identifier"]]
+    cfg["common_val"]	.append	(["function_invocation",""])
+    cfg["assign_value"]	=	[["common_val",""]]
+    cfg["assign_value"]	.append	(["literal",""])
+    cfg["assign_value"]	.append	(["expression",""])
+    cfg["assign_value"]	.append	(["seq_use",""])
+    cfg["charr_declaration"]	=	[["charr","text","identifier","=","assign_value","#"]]
+    cfg["constant_declaration"]	=	[["const_var",""]]
+    cfg["constant_declaration"]	.append	(["const_seq",""])
+    cfg["const_seq"]	=	[["based","data_type","identifier","seq_one_dim","=","seq_init","#"]]
+    cfg["const_var"]	=	[["based","data_type","const_tail","#"]]
+    cfg["const_tail"]	=	[["identifier","=","assign_value","more_const",""]]
+    cfg["more_const"]	=	[[",","const_tail",""]]
+    cfg["more_const"]	.append	([None])
+    cfg["assign_op"]	=	[[":="]]
+    cfg["assign_op"]	.append	([":+="])
+    cfg["assign_op"]	.append	(["-="])
+    cfg["assign_op"]	.append	(["*="])
+    cfg["assign_op"]	.append	(["/="])
+    cfg["assign_op"]	.append	(["%="])
+    cfg["function_invocation"]	=	[["identifier","(","func_argument",")"]]
+    cfg["func_argument"]	=	[["argument",""]]
+    cfg["func_argument"]	.append	([None])
+    cfg["argument"]	=	[["args_value","more_args",""]]
+    cfg["args_value"]	=	[["assign_value",""]]
+    cfg["more_args"]	=	[[",","argument",""]]
+    cfg["more_args"]	.append	([None])
+    cfg["control_flow_statement"]	=	[["kung_statement","more_control_flow",""]]
+    cfg["control_flow_statement"]	.append	(["choose_statement",""])
+    cfg["control_flow_statement"]	.append	(["looping_statement",""])
+    cfg["kung_statement"]	=	[["kung","(","condition",")","{","statement","}"]]
+    cfg["ehkung_statement"]	=	[["ehkung","(","condition",")","{","statement","}"]]
+    cfg["deins_statement"]	=	[["deins","{","statement","}"]]
+    cfg["more_control_flow"]	=	[["ehkung_statement","more_control_flow",""]]
+    cfg["more_control_flow"]	.append	(["deins_statement",""])
+    cfg["more_control_flow"]	.append	([None])
+    cfg["choose_statement"]	=	[["choose","(","identifier",")","{","when_statement","choose_default","}"]]
+    cfg["when_statement"]	=	[["when","literal","::","statement_for_choose","more_when",""]]
+    cfg["statement_for_choose"]	=	[["statement",""]]
+    cfg["statement_for_choose"]	.append	(["felloff#"])
+    cfg["more_when"]	=	[["when_statement",""]]
+    cfg["more_when"]	.append	([None])
+    cfg["choose_default"]	=	[["default","::","statement_for_choose",""]]
+    cfg["choose_default"]	.append	([None])
+    cfg["looping_statement"]	=	[["bet_statement",""]]
+    cfg["looping_statement"]	.append	(["for_statement",""])
+    cfg["habang_statement"]	=	[["bet","{","within_loop_statement","}","kung(","condition",")#"]]
+    cfg["for_statement"]	=	[["for(","identifier","=","for_initial_val","to","end_val","step_statement",")","{","within_loop_statement","}"]]
+    cfg["for_initial_val"]	=	[["whole_literal"]]
+    cfg["for_initial_val"]	.append	(["common_val",""])
+    cfg["for_initial_val"]	.append	(["arithmetic_expression",""])
+    cfg["for_initial_val"]	.append	(["seq_use",""])
+    cfg["step_statement"]	=	[["step","for_initial_val",""]]
+    cfg["step_statement"]	.append	([None])
+    cfg["within_loop_statement"]	=	[["kung_statement","loop_more_control_flow",""]]
+    cfg["within_loop_statement"]	.append	(["ehkung_statement","loop_more_control_flow",""])
+    cfg["within_loop_statement"]	.append	(["deins_statement",""])
+    cfg["within_loop_statement"]	.append	([None])
+    cfg["loop_kung"]	=	[["kung","(","condition",")","{","has_loop_control","}"]]
+    cfg["loop_ehkung"]	=	[["ehkung","(","condition",")","{","has_loop_control","}"]]
+    cfg["loop_deins"]	=	[["deins","{","has_loop_control","}"]]
+    cfg["loop_more_control_flow"]	=	[["loop_ehkung","more_control_flow",""]]
+    cfg["loop_more_control_flow"]	.append	(["loop_deins",""])
+    cfg["loop_more_control_flow"]	.append	([None])
+    cfg["has_loop_control"]	=	[["statement",""]]
+    cfg["has_loop_control"]	.append	(["loop_control_statement","more_statement",""])
+    cfg["loop_control_statement"]	=	[["felloff#"]]
+    cfg["loop_control_statement"]	.append	(["pass#"])
+    cfg["loop_control_statement"]	.append	([None])
+    cfg["condition"]	=	[["relational_expression",""]]
+    cfg["condition"]	.append	(["logical_expression",""])
+    cfg["condition"]	.append	(["lit_literal"])
+    cfg["condition"]	.append	(["common_val",""])
+    cfg["condition"]	.append	(["function_invocation",""])
+    cfg["sequence_declaration"]	=	[["data_type","identifier","seq_tail","#"]]
+    cfg["seq_tail"]	=	[["seq_one_dim","seq_assign",""]]
+    cfg["seq_tail"]	.append	(["multi_seq",""])
+    cfg["seq_assign"]	=	[[":=","seq_init",""]]
+    cfg["seq_assign"]	.append	([None])
+    cfg["seq_init"]	=	[["{","seq_elem","}"]]
+    cfg["seq_elem"]	=	[["seq_elem_value",""]]
+    cfg["seq_elem"]	.append	(["seq_init","seq_two-d_init",""])
+    cfg["seq_two-d_init"]	=	[[",","seq_init","seq_three-d_init",""]]
+    cfg["seq_three-d_init"]	=	[[",","seq_init",""]]
+    cfg["seq_two-d_init"]	.append	([None])
+    cfg["seq_three-d_init"]	.append	([None])
+    cfg["seq_elem_value"]	=	[["literal","next_elem_value",""]]
+    cfg["next_elem_value"]	=	[[",","seq_elem_value",""]]
+    cfg["next_elem_value"]	.append	([None])
+    cfg["multi_seq"]	=	[["seq_one_dim","more_seq",""]]
+    cfg["more_seq"]	=	[[",identifier","seq_one_dim","more_seq",""]]
+    cfg["more_seq"]	.append	([None])
+    cfg["seq_one_dim"]	=	[["index","seq_two_dim",""]]
+    cfg["seq_two_dim"]	=	[["index","seq_three_dim",""]]
+    cfg["seq_three_dim"]	=	[["index",""]]
+    cfg["seq_two_dim"]	.append	([None])
+    cfg["seq_three_dim"]	.append	([None])
+    cfg["index"]	=	[["[","seq_index_val","]"]]
+    cfg["seq_index_val"]	=	[["function_invocation",""]]
+    cfg["seq_index_val"]	.append	(["identifier"])
+    cfg["seq_index_val"]	.append	(["whole_literal"])
+    cfg["seq_index_val"]	.append	(["arithmetic_expression",""])
+    cfg["seq_use"]	=	[["identifier","seq_one_dim",""]]
+    cfg["seq_use_assign"]	=	[["seq_use","assign_op","assign_value","#"]]
+    cfg["expression"]	=	[["arithmetic_expression",""]]
+    cfg["expression"]	.append	(["logical_expression",""])
+    cfg["expression"]	.append	(["relational_expression",""])
+    cfg["expression"]	.append	(["text_concat",""])
+    cfg["arithmetic_expression"]	=	[["arithm_term","arithm_tail",""]]
+    cfg["arithm_term"]	=	[["arithm_factor","arithm_term_tail",""]]
+    cfg["arithm_factor"]	=	[["numerical_value",""]]
+    cfg["arithm_factor"]	.append	(["(","arithmetic_expression",")"])
+    cfg["arithm_tail"]	=	[["add_op","arithm_term","arithm_term_tail",""]]
+    cfg["arithm_tail"]	.append	([None])
+    cfg["arithm_term_tail"]	=	[["mult_op","arithm_factor","arithm_term_tail",""]]
+    cfg["arithm_term_tail"]	.append	([None])
+    cfg["add_op"]	=	[[":+"]]
+    cfg["add_op"]	.append	([":-"])
+    cfg["mult_op"]	=	[[":*"]]
+    cfg["mult_op"]	.append	([":/"])
+    cfg["mult_op"]	.append	([":%"])
+    cfg["relational_expression"]	=	[["numeric_value","relop","numeric_value",""]]
+    cfg["relational_expression"]	.append	(["charr_val","==","charr_val",""])
+    cfg["charr_val"]	=	[["common_val",""]]
+    cfg["charr_val"]	.append	(["charr_literal"])
+    cfg["relop"]	=	[[":=="]]
+    cfg["relop"]	.append	([""])
+    cfg["relop"]	.append	(["="])
+    cfg["relop"]	.append	([""])
+    cfg["relop"]	.append	(["="])
+    cfg["relop"]	.append	(["!="])
+    cfg["logical_expression"]	=	[["logic_term","logic_tail",""]]
+    cfg["logic_term"]	=	[["logic_factor","logic_term_tail",""]]
+    cfg["logic_factor"]	=	[["logic_value",""]]
+    cfg["logic_factor"]	.append	(["logical_not_expression",""])
+    cfg["logic_factor"]	.append	(["(","logical_expression",")"])
+    cfg["logic_tail"]	=	[["|","logic_term","logic_tail",""]]
+    cfg["logic_tail"]	.append	([None])
+    cfg["logic_term_tail"]	=	[["&","logic_factor","logic_term_tail",""]]
+    cfg["logic_term_tail"]	.append	([None])
+    cfg["logical_not_expression"]	=	[["logic_not","logic_not_tail",""]]
+    cfg["logic_not_tail"]	=	[["logical_not_expression",""]]
+    cfg["logic_not_tail"]	.append	(["identifier"])
+    cfg["logic_not"]	=	[["!"]]
+    cfg["logic_value"]	=	[["common_val",""]]
+    cfg["logic_value"]	.append	(["sus_literal"])
+    cfg["logic_value"]	.append	(["relational_expression",""])
+    cfg["logic_value"]	.append	(["seq_use",""])
+    cfg["logic_value"]	.append	(["logical_not_expression",""])
+    cfg["text_concat"]	=	[["concat_val","concat_tail",""]]
+    cfg["concat_tail"]	=	[["...","concat_val","more_concat",""]]
+    cfg["more_concat"]	=	[["concat_tail",""]]
+    cfg["more_concat"]	.append	([None])
+    cfg["concat_val"]	=	[["text_literal"]]
+    cfg["concat_val"]	.append	(["common_val",""])
+    cfg["concat_val"]	.append	(["seq_use",""])
+    cfg["function_definition"]	=	[["func_def","more_funcdef",""]]
+    cfg["function_definition"]	.append	([None])
+    cfg["func_def"]	=	[["yeet_type","identifier","(","parameter","){","statement","}"]]
+    cfg["more_funcdef"]	=	[["function_definition",""]]
+    cfg["more_funcdef"]	.append	([None])
+    cfg["yeet_statement"]	=	[["yeet","return_value","#"]]
+    cfg["yeet_statement"]	.append	([None])
+    cfg["return_value"]	=	[["assign_value",""]]
+    cfg["return_value"]	.append	([None])
+
 
 
 
 
 # print(FirstFollow().firstSet(Grammar.cfg, "sheesh_declaration"))
 # print(FirstFollowPredict.cfg))
-print(FirstFollowPredict().predict_set(Grammar.cfg)     )
+print(FirstFollowPredict().firstSet(Grammar.cfg, 'program')     )
+# print(Grammar.cfg)

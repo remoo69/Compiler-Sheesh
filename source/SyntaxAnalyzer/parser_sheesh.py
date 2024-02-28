@@ -71,10 +71,10 @@ class Parser:
 class Program(Parser):
     #<program>	→	<import><global_declaration><function_definition><sheesh_declaration><function_definition>
 
-    def __init__(self,tokens, imp=None, glob_dec=None, func_def_pre=None, sheesh_dec=None, func_def_post=None ) -> None:
-        self.tokens=tokens
+    def __init__(self, imp=None, glob_dec=None, func_def_pre=None, sheesh_dec=None, func_def_post=None ) -> None:
+        super().__init__(tokens=self.tokens)
         self.imp=None
-        self.glob_dec=None
+        self.glob_dec=None  
         self.func_def_pre=None
         self.sheesh_dec=None
         self.func_def_post=None

@@ -1,4 +1,4 @@
-class Parser:
+class Parser1:
     def __init__(self, tokens):
         self.tokens = tokens
         self.current_token = None
@@ -52,11 +52,22 @@ class Parser:
         else:
             raise SyntaxError('Invalid token')
 
-# Example usage
-tokens = ['5', '+', '2', '+', '3', '*', '2']
-parser = Parser(tokens)
-result = parser.parse()
-print(result)  # Output: ('+', 5, ('*', 3, 2))
+# # Example usage
+# tokens = ['5', '+', '2', '+', '3', '*', '2']
+# parser = Parser(tokens)
+# result = parser.parse()
+# print(result)  # Output: ('+', 5, ('*', 3, 2))
+
+tokens=['5', '+', '2', '+', '3', '*', '2']
+import parser_sheesh as parser
+par=parser.Program(tokens)
+print(par.peek())
+par.move()
+print(par.cur_tok_ptr)
+par2=parser.Import(tokens=tokens, import_prog=None)
+par2.move()
+print(par.cur_tok_ptr)
+print(par2.cur_tok_ptr)
 
 #     def __init__(self, tokens):
 #         self.tokens = tokens

@@ -1,3 +1,9 @@
+import os
+import sys
+
+parent_directory=os.path.abspath(r"C:\Users\anton\Desktop\College Stuff Files\Compiler-Sheesh\source")
+sys.path.append(parent_directory)
+
 from tkinter import *
 from tkinter import constants
 from tkinter import ttk
@@ -5,7 +11,7 @@ import source.LexicalAnalyzer.lexerpy as lex
 import source.LexicalAnalyzer.prepare as prep
 from tkinter import filedialog
 import source.SyntaxAnalyzer.grammar as grammar
-import source.SyntaxAnalyzer.parser1 as parser
+# import source.SyntaxAnalyzer.parser1 as parser
 
 # run error reporting
 def fill_err_table():
@@ -48,7 +54,8 @@ def run_parser():
     try:
         # Call your parser function
         # If there is no syntax error, continue with the rest of the code
-        parser.syntax_analyzer(grammar.Grammar.cfg, code)
+        # parser.syntax_analyzer(grammar.Grammar.cfg, code)
+        print("Parsing")    
     except SyntaxError as e:
         error_pane.config(state="normal")
         error_pane.delete('1.0', constants.END)
