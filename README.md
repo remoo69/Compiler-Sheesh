@@ -15,7 +15,7 @@ ________________________________________________________________________________
 To use the compiler:
 1. Clone or download the repository. Make sure you have a valid python compiler installed.
 2. Open the project folder in an IDE that supports Python like VScode.
-3. Open the Sheesh# Compiler.py file.
+3. Open the Sheesh# Compiler.py file in the source folder.
 4. Run the File.
 5. Congrats! You are now testing the Compiler!
 ___________________________________________________________________________________
