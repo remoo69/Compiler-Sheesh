@@ -1,11 +1,7 @@
 # import re
 # import tokenclass as tk
 # import pandas as pd
-import os
-import sys
-
-parent_directory=os.path.abspath(r"C:\Users\anton\Desktop\College Stuff Files\Compiler-Sheesh\source")
-sys.path.append(parent_directory)
+import helper
 import core.constants as const
 import LexicalAnalyzer.prepare as prep
 import core.error_handler as err

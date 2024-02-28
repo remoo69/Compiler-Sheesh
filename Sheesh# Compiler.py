@@ -1,8 +1,4 @@
-import os
-import sys
-
-parent_directory=os.path.abspath(r"C:\Users\anton\Desktop\College Stuff Files\Compiler-Sheesh\source")
-sys.path.append(parent_directory)
+import helper
 
 from tkinter import *
 from tkinter import constants
