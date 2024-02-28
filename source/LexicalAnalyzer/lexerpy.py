@@ -1,11 +1,12 @@
 # import re
 # import tokenclass as tk
 # import pandas as pd
-import helper
-import core.constants as const
-import LexicalAnalyzer.prepare as prep
-import core.error_handler as err
-import LexicalAnalyzer.tokenclass as tkc
+import sys
+sys.path.append( '.' )
+import source.core.constants as const
+import source.LexicalAnalyzer.prepare as prep
+import source.core.error_handler as err
+import source.LexicalAnalyzer.tokenclass as tkc
 from typing import Tuple, List
 
 # This lexer follows the principle of longest match. It will match the longest possible token at each step.
@@ -253,3 +254,4 @@ class Lexer:
 #     print(tokenized)
 
 # main()
+print(Lexer.gettokens("sheesh("))

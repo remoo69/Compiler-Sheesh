@@ -1,4 +1,6 @@
-import core.constants as const
+import sys
+sys.path.append( '.' )
+import source.core.constants as const
 from dataclasses import dataclass
 
 @dataclass

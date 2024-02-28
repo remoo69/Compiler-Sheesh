@@ -1,6 +1,6 @@
-import helper
+# import source.helper
 
-import SyntaxAnalyzer.grammar as grammar
+import grammar as grammar
 import core.constants as constants
  
 def generate_follow(cfg):

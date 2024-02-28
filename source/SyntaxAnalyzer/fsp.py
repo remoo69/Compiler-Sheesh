@@ -27,7 +27,7 @@ def collect_set(initial_set, items, additional_set, first_sets):
     set_result = initial_set
 
     for index, item in enumerate(items):
-        if is_nonterminal(item):
+        if is_nonterminal(item, first_sets):
             set_result = union(set_result, [set_item for set_item in first_sets[item] if set_item != EMPTY_CHAIN])
 
             if EMPTY_CHAIN in first_sets[item]:
@@ -37,7 +37,7 @@ def collect_set(initial_set, items, additional_set, first_sets):
 
     return set_result
 
-def make_first_sets(rules):
+def make_first_sets(rules, first_sets):
     is_set_changed = True
 
     while is_set_changed:
@@ -45,8 +45,9 @@ def make_first_sets(rules):
 
         for rule in rules:
             left, right = rule['left'], rule['right']
+            first_sets[left]=right
             set_result = first_sets[left]
-            set_result = union(set_result, collect_set(set_result, right, [EMPTY_CHAIN]))
+            set_result = union(set_result, collect_set(set_result, right, [EMPTY_CHAIN], first_sets))
 
             if len(first_sets[left]) != len(set_result):
                 first_sets[left] = set_result
@@ -54,7 +55,7 @@ def make_first_sets(rules):
 
     return first_sets
 
-def make_follow_sets():
+def make_follow_sets(rules, follow_sets):
     follow_sets[rules[0]['left']].append(END_MARKER)
     is_set_changed = True
 
@@ -80,7 +81,7 @@ def make_follow_sets():
 
     return follow_sets
 
-def make_predict_sets():
+def make_predict_sets(rules, follow_sets, predict_sets):
     for rule_index, rule in enumerate(rules):
         left, right = rule['left'], rule['right']
         first_item = right[0]
@@ -320,7 +321,8 @@ productions = [
     {"left": "return_value", "right": [None]}
 ]
 
-first,follow, predict=compute_sets(productions)
+fs = {}  # Define the variable "fs" before using it
+fs = make_first_sets(productions, fs)
 
-print(first["program"])
+print(fs)
 

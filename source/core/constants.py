@@ -62,7 +62,7 @@ delimiters = {
     "concat": concat,
     "delim1": " ",
     "delim2": [" ","#"],
-    "delim3": [" ","("],
+    "delim3": ["("],
     "delim4": [" ","\\","{"],
     "delim5": alph_num+[" ","("],
     "delim6": alph_num+[" "],
@@ -108,7 +108,8 @@ keywords_delims={"text":delimiters["delim1"],
                  "false":delimiters["delim2"],
                  "true":delimiters["delim2"],
                  "bigay":delimiters["delim3"],
-                 "kuha":delimiters["delim3"]}
+                 "kuha":delimiters["delim3"],
+                 "sheesh":delimiters["delim3"],}
 
 symbols_delims={
 #------------------------------------- Operators ------------------------------------------------------    
@@ -166,4 +167,3 @@ WHOLE_MIN=-32768
 WHOLE_MAX=32767
 DEC_MIN=-32768.999999
 DEC_MAX=32767.999999
-

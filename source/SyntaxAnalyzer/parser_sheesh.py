@@ -1,7 +1,6 @@
-
-import helper
-from LexicalAnalyzer.tokenclass import Token
-import core.error_handler as err
+from source import helper
+from source.LexicalAnalyzer.tokenclass import Token
+import source.core.error_handler as err
 
 '''
 General Logic:
