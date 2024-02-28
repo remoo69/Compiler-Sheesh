@@ -62,7 +62,7 @@ delimiters = {
     "concat": concat,
     "delim1": " ",
     "delim2": [" ","#"],
-    "delim3": ["("],
+    "delim3": ["(", " "],
     "delim4": [" ","\\","{"],
     "delim5": alph_num+[" ","("],
     "delim6": alph_num+[" "],
