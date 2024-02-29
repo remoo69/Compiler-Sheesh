@@ -81,7 +81,7 @@ delimiters = {
     "delim21": [" ", ":","::"],
     "txt_delim": comma+[" ", "#", ")", "}", ":"], #removed concat
     "blk_delim": [" ", "\\",None],
-    "id_delim": op+comma+[" ", "#", "(",")", "[", "]", "{", "."],
+    "id_delim": op+comma+[" ", "#", "(",")", "[", "]", "{", ".", ":"],
     "n_delim": op+comma+[" ", "#", "(", ")", ":", "]"],
     "space_delim": alph_num+[" ", "#", "(", ")", ":", "}", "]", ","]
 }   
@@ -98,7 +98,7 @@ keywords_delims={"text":delimiters["delim1"],
                  "ehkung":delimiters["delim3"], 
                  "deins":delimiters["delim4"], 
                  "choice":delimiters["delim3"], 
-                 "when":delimiters["delim21"], 
+                 "when":delimiters["delim1"], 
                  "bet":delimiters["delim3"], 
                  "for":delimiters["delim1"], 
                  "to":delimiters["delim1"], 
