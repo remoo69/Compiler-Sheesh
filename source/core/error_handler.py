@@ -31,6 +31,7 @@ class LexError:
         errobj.error_class="Lexical Error"
          #invalid delim error
         buffer += tokencode[i]
+        
         if buffer in const.invalid_symbols:
             errobj.errorval=buffer
             errobj.remaining=tokencode.replace(buffer, '', 1)
@@ -76,6 +77,30 @@ class LexError:
                 return errobj
         # i += 1
 
+    @staticmethod
+    def get_error_keyword(tokencode):
+        #error types: invalid delim for keyword, invalid keyword
+        buffer = ''
+        i = 0
+        errobj=Error()
+        errobj.error_class="Lexical Error"
+        while i<len(tokencode):
+            if (buffer in const.keywords) and (tokencode[i] not in const.keywords_delims[buffer]):
+                errobj.errorval=buffer
+                errobj.remaining=tokencode.replace(buffer, '', 1)
+                errobj.error_type=f"Invalid Delimiter for Keyword '{buffer}', '{tokencode[i]}' "
+                errobj.line=tkc.Token.line_num
+                return errobj
+
+            else:
+                buffer += tokencode[i]
+                i+=1
+        if buffer in const.keywords:
+            errobj.errorval=buffer
+            errobj.remaining=tokencode.replace(buffer, '', 1)
+            errobj.error_type=f"Invalid Null Delimiter for Keyword '{buffer}' "
+            errobj.line=tkc.Token.line_num
+            return errobj
     
     @staticmethod
     def get_error_identifier(tokencode):
@@ -315,6 +340,8 @@ class LexError:
             return LexError.get_error_symbol(tokencode)
         elif LexError.get_error_text(tokencode):
             return LexError.get_error_text(tokencode)
+        elif LexError.get_error_keyword(tokencode):
+            return LexError.get_error_keyword(tokencode)
         elif LexError.get_error_identifier(tokencode):
             return LexError.get_error_identifier(tokencode)
         

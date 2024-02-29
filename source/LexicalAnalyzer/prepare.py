@@ -194,10 +194,10 @@ def get_keyword(token):
     token_cpy=''
     temp_token=''
     keyword_detected=False
-    for char in token:
+    for i,char in enumerate(token):
         if temp_token is None:
             return '',token
-        if (temp_token in const.keywords) and (char in const.keywords_delims[temp_token]):
+        elif ((temp_token in const.keywords) and (char in const.keywords_delims[temp_token])) or (temp_token=="when" and token[i:i+1]=="::"):
             # token_cpy=re.sub(temp_token, '',token, count=1)
             token_cpy=token.replace(temp_token, '', 1)
             keyword_detected=True
@@ -268,7 +268,7 @@ def get_symbol(token):
         elif token[i] in const.all_symbols_nonop and token[i+1] in const.symbols_delims[token[i]]:
             symbol_buffer+=token[i]
             return token[i], token.replace(token[i], '', 1)
-        elif token[i:i+2]=="::" and token[i+2] in const.symbols_delims["::"]: 
+        elif token[i:2]=="::" and len(token)==2: 
                 return "::", token.replace("::", '', 1)
         
     except IndexError:
@@ -336,3 +336,4 @@ def prepare(code):
         #     continue
         lines.append(templines[i])
     return lines
+

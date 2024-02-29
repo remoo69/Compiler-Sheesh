@@ -38,18 +38,18 @@ alph_all = abc_cap+abc_small
 alph_num = alph_all+digits+zero
 alph_id = alph_num+['_']
 comments = alph_num+symbols
-text = alph_num+esc_seq+op+comma+space+['#', '_', '.', '@', '^', '&', '(', ')', '`', '~', ':', '?', '$', ';', '[', ']', '{', '}', '/', '`', '^']
+text = alph_num+esc_seq+op+comma+space+['#', '_', '.', '@', '^', '&', '(', ')', '`', '~', '::', '?', '$', ';', '[', ']', '{', '}', '/', '`', '^']
 single_symbols=aop+rop2+lop
 compound_symbols=['+=', '-=', '*=', '/=', '%=','==', '!=','<=', '>=']
 all_op=op+asop+rop1+lop+comma+concat+rop2
-non_op=comma+['#', '_', '.', '@', '^', '&', '(', ')', '`', '~', ':', '?', '$', ';', '[', ']', '{', '}', '/', '`', '^']
+non_op=comma+['#', '_', '.', '@', '^', '&', '(', ')', '`', '~', '::', '?', '$', ';', '[', ']', '{', '}', '/', '`', '^']
 whitespace=space+['\n', '\t']
 grouping_symbols=["{","}", "(", ")", "[", "]" ]
 other_symbols=["#", "::", ]
 all_symbols_nonop=grouping_symbols+other_symbols+[",", "."]
 invalid_id_char=op+comma+['#', '.', '@', '^', '&', '(', ')', '`', '~', ':', '?', '$', ';', '[', ']', '{', '}', '/', '\\', '`', '^', "'", '"']
 invalid_text_char=['"', "\\"]
-invalid_symbols=["@", "^", "&", "`", "~", "?", "$", ";", "'", '`',]
+invalid_symbols=["@", "^", "&", "`", "~", "?", "$", ";", "'", '`',":"]
 #Delimiters used in the Transition Diagram/DFA
 
 
@@ -67,17 +67,18 @@ delimiters = {
     "delim5": alph_num+[" ","("],
     "delim6": alph_num+[" "],
     "delim7": [" ","\\","}", ""],
-    "delim8": [" ","\\", ":"],
+    "delim8": [" ","\\", ""],
     "delim9": alph_num+[" ","(","{", "!", '"'],#added "
     "delim10": alph_all+[" ","(","!"],
     "delim11": alph_num+[" ","(","!"],
     "delim12": op+comma+[" ","#","[",")" ],
     "delim13": alph_num+[" ","\\","(", None],
     "delim14": alph_all+[" ","#",None],
-    "delim15": alph_num+[" ", "!","(", ")", '"'],#added ); removed -; added "
+    "delim15": alph_num+[" ", "!","(", ")", '"', "-"],#added ); added -; added "
     "delim16": op+comma+[" ", "#", ")", "{","}", ":"],#added {
     "delim17": alph_num+[" ", '"', "\\"],
     "delim20": '"',
+    "delim21": [" ", ":","::"],
     "txt_delim": comma+[" ", "#", ")", "}", ":"], #removed concat
     "blk_delim": [" ", "\\",None],
     "id_delim": op+comma+[" ", "#", "(",")", "[", "]", "{", "."],
@@ -97,7 +98,7 @@ keywords_delims={"text":delimiters["delim1"],
                  "ehkung":delimiters["delim3"], 
                  "deins":delimiters["delim4"], 
                  "choice":delimiters["delim3"], 
-                 "when":delimiters["delim1"], 
+                 "when":delimiters["delim21"], 
                  "bet":delimiters["delim3"], 
                  "for":delimiters["delim1"], 
                  "to":delimiters["delim1"], 
@@ -144,7 +145,8 @@ symbols_delims={
                 ")":delimiters["delim16"],
                 ",":delimiters["delim6"],
                 "#":delimiters["delim7"],
-                ":":delimiters["delim8"],
+                # ":":delimiters["delim8"],
+                "::":delimiters["delim8"],
                 r"\n":delimiters["delim17"],
                 r"\"":delimiters["delim17"],
                 r"\t":delimiters["delim17"],
