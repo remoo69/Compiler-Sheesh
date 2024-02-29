@@ -254,4 +254,3 @@ class Lexer:
 #     print(tokenized)
 
 # main()
-print(Lexer.gettokens("sheesh("))

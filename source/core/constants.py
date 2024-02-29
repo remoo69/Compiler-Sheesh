@@ -1,12 +1,12 @@
 # Description: Contains the constants used in the compiler
 #List of Keywords
-keywords = ["text", "whole", "dec", "lit", "blank", "sheesh", "bruh", "steady",
-            "kung", "ehkung", "deins", "choice", "when", "habang", "choose","for", "to", 
-            "step", "termins", "gg", "use", "from", "true", "false", "default"]     #added choose, default
-DATA_TYPES=["text", "whole", "dec", "lit", "blank"]
-valid_tokens=["Keyword", "Identifier", "Dec", "Whole", "Symbol", "Operator", "Text", "Lit", "Whitespace"]
-valid_cfg_terminals=[ "Identifier", "Dec", "Whole", "Text", "Lit", "null", "sheesh", "text_literal", "dec_literal", "whole_literal", "lit_literal",
-                     "kuha", "bigay"]
+keywords = ["text", "charr","whole", "dec", "sus", "blank", "sheesh", "yeet", "based",#added charr, lit->sus, bruh->yeet, steady->based
+            "kung", "ehkung", "deins", "choice", "when", "bet", "choose","for", "to", #habang->bet
+            "step", "felloff", "pass", "use", "from", "true", "false", "default", "up", "pa_mine"]     #added choose, default, termins->felloff, gg->pass
+DATA_TYPES=["text","charr", "whole", "dec", "lit", "blank"]
+valid_tokens=["Keyword", "Identifier", "Dec", "Whole", "Symbol", "Operator", "Text","Charr", "Lit", "Whitespace"]
+valid_cfg_terminals=[ "Identifier", "Dec", "Whole", "Text","Charr", "Lit", "null", "sheesh", "text_literal", "dec_literal", "whole_literal", "lit_literal",
+                     "pa_mine", "up"]#bigay->up, kuha->pa_mine
 operators_and_symbols = ['=', '+=', '-=', '*=', '/=', '%=', '==', '>', '>=', '<', '<=', '!=', '!', '&', 
                          '|', '+', '-', '*', '/', '%', '…', '#', '[',']', '{','}', '(',')', '/*', '*/', '//', '“', 
                          '”', '.', '::', ',', '$', '\n', '\t', '\"', '\\', '\\$']
@@ -85,30 +85,31 @@ delimiters = {
     "space_delim": alph_num+[" ", "#", "(", ")", ":", "}", "]", ","]
 }   
 keywords_delims={"text":delimiters["delim1"], 
+                 "charr":delimiters["delim1"], #added
                  "whole":delimiters["delim1"], 
                  "dec": delimiters["delim1"], 
                  "lit":delimiters["delim1"], 
                  "blank":delimiters["delim1"], 
                  "sheesh":delimiters["delim3"], 
-                 "bruh":delimiters["delim2"], 
-                 "steady":delimiters["delim1"],
+                 "yeet":delimiters["delim2"], 
+                 "based":delimiters["delim1"],
                  "kung":delimiters["delim3"], 
                  "ehkung":delimiters["delim3"], 
                  "deins":delimiters["delim4"], 
                  "choice":delimiters["delim3"], 
                  "when":delimiters["delim1"], 
-                 "habang":delimiters["delim3"], 
+                 "bet":delimiters["delim3"], 
                  "for":delimiters["delim1"], 
                  "to":delimiters["delim1"], 
                  "step":delimiters["delim1"], 
-                 "termins":delimiters["delim2"], 
-                 "gg":delimiters["delim2"], 
+                 "felloff":delimiters["delim2"], 
+                 "pass":delimiters["delim2"], 
                  "use":delimiters["delim1"], 
                  "from":delimiters["delim1"],
                  "false":delimiters["delim2"],
                  "true":delimiters["delim2"],
-                 "bigay":delimiters["delim3"],
-                 "kuha":delimiters["delim3"],
+                 "up":delimiters["delim3"],
+                 "pa_mine":delimiters["delim3"],
                  "sheesh":delimiters["delim3"],}
 
 symbols_delims={
@@ -162,7 +163,7 @@ RE_Identifier=r'[a-zA-Z][a-zA-Z0-9_]*$' #removed {0,8}
 RE_BlockComment=r'/\*.*?\*/'
 RE_InlineComment=r'//.*?\n'
 
-MAX_IDEN_LENGTH=9
+MAX_IDEN_LENGTH=30
 WHOLE_MIN=-32768
 WHOLE_MAX=32767
 DEC_MIN=-32768.999999

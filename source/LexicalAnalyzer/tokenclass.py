@@ -107,7 +107,7 @@ class LexerCheck:
     def is_Identifier(Token): #rewritten
         try:
             if Token[0].isalpha() and all(char.isalnum() or char == '_' for char in Token[1:]):
-                if len(Token)<10:
+                if len(Token)<=const.MAX_IDEN_LENGTH:
                     return True
                 else: return False
             else:
@@ -197,7 +197,7 @@ class LexerCheck:
         #Takes a list of tokenized lines
         if LexerCheck.is_Keyword(lexeme):
             return "Keyword"
-        elif LexerCheck.is_Identifier(lexeme) and len(lexeme)<=9:
+        elif LexerCheck.is_Identifier(lexeme) and len(lexeme)<=const.MAX_IDEN_LENGTH:
             return "Identifier"
         elif LexerCheck.is_Operator(lexeme):
             return "Operator"

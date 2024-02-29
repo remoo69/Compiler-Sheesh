@@ -5,6 +5,9 @@ import source.LexicalAnalyzer.prepare as prep
 
 import source.LexicalAnalyzer.tokenclass as tkc 
 
+
+#urgent todo: add kw errors, error for ::
+
 class Error:
     errcount=0
     def __init__(self, errorval=None, remaining=None, line=0, type=None, errclass=None):
@@ -332,6 +335,11 @@ class LexError:
             
 # print(LexError.get_error_identifier(test))
         
-class SyntaxError(Error):
-    def __init__(self, unexpected, line) -> None:
-        pass
+class SyntaxError:
+    def __init__(self, unexpected, line, expected) -> None:
+        self.unexpected=unexpected
+        self.line=line
+        self.expected=expected
+
+    def __repr__(self) -> str:
+        return f"Unexpected {self.unexpected} at line {self.line}, expected {self.expected}"
