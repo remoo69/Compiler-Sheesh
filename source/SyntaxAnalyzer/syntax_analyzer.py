@@ -1,4 +1,5 @@
-import source.helper as helper
+import sys
+sys.path.append( '.' )
 
 import grammar 
 import core.constants as const

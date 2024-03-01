@@ -1,5 +1,7 @@
 # import source.helper as helper
 import sys
+
+from source.SyntaxAnalyzer import parser2
 sys.path.append( '.' )
 from tkinter import *
 from tkinter import constants
@@ -22,6 +24,11 @@ def on_scroll(*args):
     line_numbers.yview_moveto(args[0])
     txt_editor_pane.yview_moveto(args[0])
 
+def remove_whitespace_type(tokens):
+    for token in tokens:
+        if token.type == "Whitespace" or token.type == "Block Comment" or token.type == "Inline Comment":
+            tokens.remove(token)
+    return tokens
 
 def run_lex():
     print("Button pressed")
@@ -37,10 +44,11 @@ def run_parser():
     print("Button pressed")
     code = txt_editor_pane.get("1.0", END)
     tokens, error = lex.Lexer.tokenize(code)
+    tokens = remove_whitespace_type(tokens)
     if error:
         error_pane.config(state="normal")
         error_pane.delete('1.0', constants.END)
-        error_pane.insert(constants.END, "Lexical Errors:\n")
+        error_pane.insert(constants.END, "Can't Parse, Resolve Lexical Errors:\n")
         for err in error:
             error_pane.insert(constants.END, f'{err}\n')
     else:
@@ -48,17 +56,26 @@ def run_parser():
         # Continue with the rest of the code
     # Call your parser function here
     # If there is a syntax error, display it in the error pane
-    try:
+   
         # Call your parser function
-        # If there is no syntax error, continue with the rest of the code
-        # parser.syntax_analyzer(grammar.Grammar.cfg, code)
-        print("Parsing")    
-    except SyntaxError as e:
+    # If there is no syntax error, continue with the rest of the code
+    # parser.syntax_analyzer(grammar.Grammar.cfg, code)
+        parse=parser2.SyntaxAnalyzer(tokens)
+        result, errors=parse.parse()  
+
         error_pane.config(state="normal")
         error_pane.delete('1.0', constants.END)
-        error_pane.insert(constants.END, f'Syntax Error: {str(e)}\n')
-    lex_table_pane.config(state="disabled")
-    error_pane.config(state="disabled")
+        error_pane.insert(constants.END, f'Syntax Error:\n')
+        for error in errors:
+            error_pane.insert(constants.END, f"{error}\n")
+        error_pane.config(state="disabled")
+
+        if len(errors) == 0:
+            print("No errors")
+            # print()
+
+        lex_table_pane.config(state="disabled")
+        error_pane.config(state="disabled")
 
 def print_lex(tokenlist):                      # Print Text to Lexical Pane
     print("Printing lex")

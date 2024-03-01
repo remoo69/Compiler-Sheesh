@@ -4,7 +4,7 @@ keywords = ["text", "charr","whole", "dec", "sus", "blank", "sheesh", "yeet", "b
             "kung", "ehkung", "deins", "choice", "when", "bet", "choose","for", "to", #habang->bet
             "step", "felloff", "pass", "use", "from", "true", "false", "default", "up", "pa_mine"]     #added choose, default, termins->felloff, gg->pass
 DATA_TYPES=["text","charr", "whole", "dec", "lit", "blank"]
-valid_tokens=["Keyword", "Identifier", "Dec", "Whole", "Symbol", "Operator", "Text","Charr", "Lit", "Whitespace"]
+valid_tokens=["Keyword", "Identifier", "Dec", "Whole", "Symbol", "Operator", "Text", "Charr", "Lit", "Whitespace"]
 valid_cfg_terminals=[ "Identifier", "Dec", "Whole", "Text","Charr", "Lit", "null", "sheesh", "text_literal", "dec_literal", "whole_literal", "lit_literal",
                      "pa_mine", "up"]#bigay->up, kuha->pa_mine
 operators_and_symbols = ['=', '+=', '-=', '*=', '/=', '%=', '==', '>', '>=', '<', '<=', '!=', '!', '&', 

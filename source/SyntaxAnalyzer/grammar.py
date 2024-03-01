@@ -1,6 +1,8 @@
 
-import source.helper as helper
-import core.constants as const
+# import source.helper as helper
+import sys
+sys.path.append( '.' )
+import source.core.constants as const
 
 class FirstFollowPredict:
     def __init__(self):

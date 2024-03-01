@@ -87,7 +87,7 @@ class Lexer:
                         tktype=tkc.Token.id_dict[current_token]
                         print("tktype is ", tktype)
 
-                    token = tkc.Token(value=current_token, type=tktype, line=tkc.Token.line_num)
+                    token = tkc.Token(value=current_token, type="Identifier", attribute=tktype, line=tkc.Token.line_num)
                 else:
                     token = tkc.Token(value=current_token, type=category, line=tkc.Token.line_num)
                 tokens.append(token)
