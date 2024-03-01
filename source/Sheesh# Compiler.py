@@ -71,7 +71,7 @@ def run_parser():
         error_pane.config(state="disabled")
 
         if len(errors) == 0:
-            print("No errors")
+            error_pane.insert("No errors")
             # print()
 
         lex_table_pane.config(state="disabled")
