@@ -62,7 +62,7 @@ delimiters = {
     "concat": concat,
     "delim1": " ",
     "delim2": [" ","#"],
-    "delim3": ["(", " "],
+    "delim3": ["(", " ", '{', None],
     "delim4": [" ","\\","{"],
     "delim5": alph_num+[" ","("],
     "delim6": alph_num+[" "],
@@ -74,7 +74,7 @@ delimiters = {
     "delim12": op+comma+[" ","#","[",")" ],
     "delim13": alph_num+[" ","\\","(", None],
     "delim14": alph_all+[" ","#",None],
-    "delim15": alph_num+[" ", "!","(", ")", '"', "-"],#added ); added -; added "
+    "delim15": alph_num+[" ", "!","(", ")", '"', "-", ],#added ); added -; added "
     "delim16": op+comma+[" ", "#", ")", "{","}", ":"],#added {
     "delim17": alph_num+[" ", '"', "\\"],
     "delim20": '"',

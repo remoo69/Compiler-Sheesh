@@ -95,7 +95,7 @@ class LexError:
             else:
                 buffer += tokencode[i]
                 i+=1
-        if buffer in const.keywords:
+        if buffer in const.keywords and buffer not in ["bet", "deins"]:
             errobj.errorval=buffer
             errobj.remaining=tokencode.replace(buffer, '', 1)
             errobj.error_type=f"Invalid Null Delimiter for Keyword '{buffer}' "
@@ -113,49 +113,48 @@ class LexError:
         if tokencode[0].isdigit():
             return None
         while i<len(tokencode): #invalid delim error
-            print(buffer)
-            if tokencode[i] not in const.delimiters["id_delim"] and tokencode[i] not in const.invalid_id_char: 
-                buffer+=tokencode[i]
-                if len(buffer)>const.MAX_IDEN_LENGTH: #size too long
-                    errobj.errorval=buffer
-                    errobj.remaining=tokencode.replace(buffer, '', 1)
-                    errobj.error_type=f"Invalid Identifier Length. Only '{buffer}' is considered an Identifier"
-                    errobj.line=tkc.Token.line_num
-                    return errobj
-                elif len(buffer)==len(tokencode):
-                    errobj.errorval=buffer
-                    errobj.remaining=tokencode.replace(buffer, '', 1)
-                    errobj.error_type=f"Invalid Null Delimiter for Identifier '{buffer}'"
-                    errobj.line=tkc.Token.line_num
-                    return errobj
-                
-                else: 
-                    i+=1
-                
-                
-            else: 
-                if tokencode[i] not in const.invalid_id_char:
-                    if not tokencode[0].isalpha(): #invalid first char
+                if tokencode[i] not in const.delimiters["id_delim"] and tokencode[i] not in const.invalid_id_char: 
+                    buffer+=tokencode[i]
+                    if len(buffer)>const.MAX_IDEN_LENGTH: #size too long
                         errobj.errorval=buffer
                         errobj.remaining=tokencode.replace(buffer, '', 1)
-                        errobj.error_type=f"Invalid First Character for Identifier"
+                        errobj.error_type=f"Invalid Identifier Length. Only '{buffer}' is considered an Identifier"
                         errobj.line=tkc.Token.line_num
                         return errobj
-                    #delim as invalid char; invalid delim
-                elif tokencode[i] in const.invalid_id_char:
-                    errobj.errorval=buffer
-                    errobj.remaining=tokencode.replace(buffer, '', 1)
-                    errobj.error_type=f"Invalid Delimiter \" {tokencode[i]} \" for Identifier \"{buffer}\""
-                    errobj.line=tkc.Token.line_num
-                    return errobj
-                elif tokencode[i] in const.delimiters["id_delim"]:
-                    return None
+                    elif len(buffer)==len(tokencode):
+                        errobj.errorval=buffer
+                        errobj.remaining=tokencode.replace(buffer, '', 1)
+                        errobj.error_type=f"Invalid Null Delimiter for Identifier '{buffer}'"
+                        errobj.line=tkc.Token.line_num
+                        return errobj
+                    
+                    else: 
+                        i+=1
+                    
+                    
+                else: 
+                    if tokencode[i] not in const.invalid_id_char:
+                        if not tokencode[0].isalpha(): #invalid first char
+                            errobj.errorval=buffer
+                            errobj.remaining=tokencode.replace(buffer, '', 1)
+                            errobj.error_type=f"Invalid First Character for Identifier"
+                            errobj.line=tkc.Token.line_num
+                            return errobj
+                        #delim as invalid char; invalid delim
+                    elif tokencode[i] in const.invalid_id_char:
+                        errobj.errorval=buffer
+                        errobj.remaining=tokencode.replace(buffer, '', 1)
+                        errobj.error_type=f"Invalid Delimiter \" {tokencode[i]} \" for Identifier \"{buffer}\""
+                        errobj.line=tkc.Token.line_num
+                        return errobj
+                    elif tokencode[i] in const.delimiters["id_delim"]:
+                        return None
             
-        if len(buffer)==len(tokencode):
-            errobj.errorval=buffer
-            errobj.remaining=tokencode.replace(buffer, '', 1)
-            errobj.error_type=f"Invalid Null Delimiter for Identifier '{buffer}'"
-            errobj.line=tkc.Token.line_num
+        # if len(buffer)==len(tokencode) :
+        #     errobj.errorval=buffer
+        #     errobj.remaining=tokencode.replace(buffer, '', 1)
+        #     errobj.error_type=f"Invalid Null Delimiter for Identifier '{buffer}'"
+        #     errobj.line=tkc.Token.line_num
         # return buffer, tokencode.replace(buffer, '', 1)
 
     @staticmethod

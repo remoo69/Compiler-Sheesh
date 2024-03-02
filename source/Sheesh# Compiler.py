@@ -1,8 +1,8 @@
 # import source.helper as helper
 import sys
-
-from source.SyntaxAnalyzer import parser2
 sys.path.append( '.' )
+from source.SyntaxAnalyzer import parser2
+
 from tkinter import *
 from tkinter import constants
 from tkinter import ttk
@@ -66,7 +66,7 @@ def run_parser():
     # If there is no syntax error, continue with the rest of the code
     # parser.syntax_analyzer(grammar.Grammar.cfg, code)
         parse=parser2.SyntaxAnalyzer(tokens)
-        result, errors=parse.parse()  
+        errors=parse.parse()  
 
         error_pane.config(state="normal")
         error_pane.delete('1.0', constants.END)
