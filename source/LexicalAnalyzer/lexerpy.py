@@ -74,7 +74,7 @@ class Lexer:
             if current_token:
                 category=tkc.LexerCheck.categorize(current_token)
                 if category == "Keyword" or category =="Operator" or category=="Symbol":
-                    token = tkc.Token(value=current_token, type=current_token, attribute=current_token, line=tkc.Token.line_num)
+                    token = tkc.Token(value=current_token, type=current_token, attribute=current_token, line=tkc.Token.line_num, position=tkc.Token.tok_num)
                 elif category=="Identifier":
                     try:
                         if current_token in tkc.Token.id_dict:
@@ -87,9 +87,10 @@ class Lexer:
                         tktype=tkc.Token.id_dict[current_token]
                         print("tktype is ", tktype)
 
-                    token = tkc.Token(value=current_token, type="Identifier", attribute=tktype, line=tkc.Token.line_num)
+                    token = tkc.Token(value=current_token, type="Identifier", attribute=tktype, line=tkc.Token.line_num, position=tkc.Token.tok_num)
                 else:
-                    token = tkc.Token(value=current_token, type=category, line=tkc.Token.line_num)
+                    token = tkc.Token(value=current_token, type=category, line=tkc.Token.line_num, position=tkc.Token.tok_num)
+                tkc.Token.tok_num+=1    
                 tokens.append(token)
                 current_token=''
 
@@ -145,6 +146,7 @@ class Lexer:
 
     @staticmethod    
     def tokenize(codes):
+        tkc.Token.tok_num=1
         tkc.Token.idnum=1
         tkc.Token.id_dict={}
         tkc.Token.block_comment_buffer=''
@@ -164,7 +166,7 @@ class Lexer:
                     if tkc.Token.in_comment:
                         continue
                     else:
-                        block_token=tkc.Token(value=tkc.Token.block_comment_buffer, type="Block Comment", line=tkc.Token.line_num)
+                        block_token=tkc.Token(value=tkc.Token.block_comment_buffer, type="Block Comment", line=tkc.Token.line_num, position=tkc.Token.tok_num)
                         tokens.append(block_token)
                         tkc.Token.in_comment=False
                         tkc.Token.block_comment_buffer=''

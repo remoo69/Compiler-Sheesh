@@ -246,12 +246,20 @@ from source.SyntaxAnalyzer import parser2 as parser
 sample=[Token("sheesh", "sheesh", 1, 5), Token("(", "(" , 1, 6), Token(")", ")", 1, 9), Token("{", "{", 1, 4), Token("statement1", "text", 2, 1), Token("statement2", "text", 2, 2),  Token("}", "}", 3, 5)]           
 q=[Token("sheesh", "from", 1, 5), Token("(", "(" , 1, 6), Token(")", ")", 1, 9), Token("{", "{", 1, 4), Token("statement1", "text", 2, 1), Token("statement2", "text", 2, 2),  Token("}", "}", 3, 5)]           
 
-sample2=[Token("sheesh", "use", 1, 1), Token("ewan", "Identifier" , 1, 1), Token(" fro", "from", 1, 1), Token("{", "Identifier", 1, 1), Token("statement1", "#", 2, 1), Token("sheesh", "use", 1, 2), Token("ewan", "Identifier" , 1, 2), Token(" from", "from", 1, 2), Token("{", "Identifier", 1, 2), Token("statement1", "#", 2, 2),]           
+sample2=[Token("sheesh", "use", 1, 1), Token("ewan", "Identifier" , 1, 1), Token(" from", "from", 1, 1), Token("{", "Identifier", 1, 1), Token("statement1", "#", 2, 1), Token("sheesh", "use", 1, 2), Token("ewan", "Identifier" , 1, 2), Token(" from", "from", 1, 2), Token("{", "Identifier", 1, 2), Token("statement1", "#", 2, 2),]           
 sample3=[Token("sheesh", "sheesh", 1, 1), Token("(", "(", 2, 1), Token(")", ")", 3, 1), Token("{", "{", 4, 1), Token("whole", "whole", 1, 2), Token("y", "Identifier", 2, 2), Token("=", "=", 3, 2),   Token("5", "Dec", 4, 2), Token("#", "#", 5, 2), Token("}", "}", 1, 3),  ]
 
 sample4=[ Token("whole", "whole", 1, 2), Token("y", "Identifier", 2, 2), Token("=", "=", 3, 2),   Token("5", "Dec", 4, 2), Token("#", "#", 5, 2),   ]
+sample5=[]
 
-pars=parser.SyntaxAnalyzer(sample4)
+# inp=input("Enter a string: ")
+inp="whole whole a=5#"
+from source.LexicalAnalyzer.lexerpy import Lexer
+tokens,error=Lexer.tokenize(inp)
+print(tokens)
+tokens= [x for x in tokens if x.type!="Whitespace" and x.type!="Block Comment" and x.type!="Inline Comment"]
+print(tokens)
+pars=parser.SyntaxAnalyzer(tokens)
 print(pars.variable_declaration())
 print(pars.buffer)
 print(pars.syntax_errors)

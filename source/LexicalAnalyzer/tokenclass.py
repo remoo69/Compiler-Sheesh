@@ -12,6 +12,7 @@ class Token:
     position: int= 0
 
     idnum=1
+    tok_num=1
     line_num=1
     in_comment=False
     block_comment_buffer=''

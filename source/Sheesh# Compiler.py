@@ -25,19 +25,23 @@ def on_scroll(*args):
     txt_editor_pane.yview_moveto(args[0])
 
 def remove_whitespace_type(tokens):
+    new_tokens = []
     for token in tokens:
-        if token.type == "Whitespace" or token.type == "Block Comment" or token.type == "Inline Comment":
-            tokens.remove(token)
-    return tokens
+        if token.type != "Whitespace" and token.type != "Block Comment" and token.type != "Inline Comment":
+            new_tokens.append(token)
+    return new_tokens
 
 def run_lex():
+    
     print("Button pressed")
     code=txt_editor_pane.get("1.0", END)
     tokens,error=lex.Lexer.tokenize(code)
+    tokens=remove_whitespace_type(tokens)
     print_lex(tokens)
     print_error(error)
     lex_table_pane.config(state="disabled")
     error_pane.config(state="disabled")
+
 
 def run_parser():
     
@@ -45,6 +49,7 @@ def run_parser():
     code = txt_editor_pane.get("1.0", END)
     tokens, error = lex.Lexer.tokenize(code)
     tokens = remove_whitespace_type(tokens)
+    print_lex(tokens)
     if error:
         error_pane.config(state="normal")
         error_pane.delete('1.0', constants.END)
@@ -65,15 +70,18 @@ def run_parser():
 
         error_pane.config(state="normal")
         error_pane.delete('1.0', constants.END)
-        error_pane.insert(constants.END, f'Syntax Error:\n')
-        for error in errors:
-            error_pane.insert(constants.END, f"{error}\n")
-        error_pane.config(state="disabled")
 
-        if len(errors) == 0:
-            error_pane.insert("No errors")
+        if errors==[]:
+            error_pane.insert(constants.END,"No errors")
+        else:
+            error_pane.insert(constants.END, f'Syntax Error:\n')
+            for error in errors:
+                error_pane.insert(constants.END, f"{error}\n")
+            error_pane.config(state="disabled")
+
+       
             # print()
-
+    
         lex_table_pane.config(state="disabled")
         error_pane.config(state="disabled")
 
@@ -91,9 +99,9 @@ def print_lex(tokenlist):                      # Print Text to Lexical Pane
         # if type[i] == 'Error Category' or type[i] == 'Whitespace' or type[i] == 'None':
         #     continue
         # else:  
-        if tokenlist[i].type=="Whitespace":
-            continue
-        else:
+        # if tokenlist[i].type=="Whitespace":
+        #     continue
+        # else:
             lex_table_pane.insert(
                 constants.END, f'{str(tokenlist[i].value) if len(str(tokenlist[i].value))<=15 else str(tokenlist[i].value)[:10] + "..."}\t\t\t{str(tokenlist[i].type)}\n')
 
