@@ -326,6 +326,46 @@ class LexError:
             
             else: return None
 
+    @staticmethod
+    def get_error_charr(tokencode):
+        #error types: no closing quote, invalid escape sequence, invalid delim, illegal character
+        buffer=''
+        i=0
+        errobj=Error()
+        errobj.error_class="Lexical Error"
+
+        while i<len(tokencode):
+            if tokencode.startswith("'"):
+                buffer += tokencode[i]
+                if tokencode[-1]=="'":
+                    if len(tokencode)>3:
+                        errobj.errorval=tokencode[0:len(tokencode)-1]
+                        errobj.remaining=tokencode.replace(buffer, '', 1)
+                        errobj.error_type=f"Invalid Length for Charr,'{buffer}'"
+                        errobj.line=tkc.Token.line_num
+                        return errobj
+                    else:
+                        errobj.errorval=tokencode[0:len(tokencode)-1]
+                        errobj.remaining=tokencode.replace(buffer, '', 1)
+                        errobj.error_type=f"Invalid Null Delimiter for Charr '{buffer}'"
+                        errobj.line=tkc.Token.line_num
+                        return errobj
+                
+                elif tokencode[i] not in const.delimiters["txt_delim"]:
+                    errobj.errorval=buffer
+                    errobj.remaining=tokencode.replace(buffer, '', 1)
+                    errobj.error_type=f"Invalid Charr Delimiter for {buffer}"
+                    errobj.line=tkc.Token.line_num
+                    return errobj
+                elif len(buffer)==len(tokencode):
+                    errobj.errorval=buffer
+                    errobj.remaining=tokencode.replace(buffer, '', 1)
+                    errobj.error_type=f"No Closing Quote for {buffer}"
+                    errobj.line=tkc.Token.line_num
+                    return errobj
+                i += 1
+            
+            else: return None
             
         # return buffer, tokencode.replace(buffer, '', 1)
 
@@ -337,6 +377,8 @@ class LexError:
             return LexError.get_error_numeric(tokencode)
         elif LexError.get_error_symbol(tokencode):
             return LexError.get_error_symbol(tokencode)
+        elif LexError.get_error_char(tokencode):
+            return LexError.get_error_char(tokencode)
         elif LexError.get_error_text(tokencode):
             return LexError.get_error_text(tokencode)
         elif LexError.get_error_keyword(tokencode):

@@ -192,6 +192,13 @@ class LexerCheck:
         if Token.startswith("//"):
             return True
         else: return False
+
+    @staticmethod
+    def is_Charr(Token):
+        if Token.startswith("'") and Token.endswith("'") and ((len(Token)==3 and ((Token[1:-1] not in const.invalid_text_char ) or Token[1:-1].isspace())) or (len(Token)==2 and Token=="''")):
+            return True
+        else: return False
+
     @staticmethod    
     def categorize(lexeme:str):
         #Categorizes each token based on their type and attribute
@@ -206,6 +213,8 @@ class LexerCheck:
             return "Symbol"
         elif LexerCheck.is_Text(lexeme):
             return "Text"
+        elif LexerCheck.is_Charr(lexeme):
+            return "Charr"
         elif LexerCheck.is_Whole(lexeme):
             return "Whole"
         elif LexerCheck.is_Dec(lexeme):
@@ -228,3 +237,5 @@ class LexerCheck:
         if LexerCheck.is_Numeric(Token) or (LexerCheck.is_Identifier(Token) and len(Token)<=10) or LexerCheck.is_Keyword(Token) or LexerCheck.is_Literal(Token) or LexerCheck.is_Symbol(Token) or LexerCheck.is_Operator(Token):
             return True
         else: return False
+
+

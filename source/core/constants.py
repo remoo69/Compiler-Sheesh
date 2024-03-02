@@ -43,7 +43,7 @@ single_symbols=aop+rop2+lop
 compound_symbols=['+=', '-=', '*=', '/=', '%=','==', '!=','<=', '>=']
 all_op=op+asop+rop1+lop+comma+concat+rop2
 non_op=comma+['#', '_', '.', '@', '^', '&', '(', ')', '`', '~', '::', '?', '$', ';', '[', ']', '{', '}', '/', '`', '^']
-whitespace=space+['\n', '\t', '\t\t']
+whitespace=space+['\n', '\t', '\t']
 grouping_symbols=["{","}", "(", ")", "[", "]" ]
 other_symbols=["#", "::", ]
 all_symbols_nonop=grouping_symbols+other_symbols+[",", "."]
@@ -68,16 +68,16 @@ delimiters = {
     "delim6": alph_num+[" "],
     "delim7": [" ","\\","}", ""],
     "delim8": [" ","\\", ""],
-    "delim9": alph_num+[" ","(","{", "!", '"'],#added "
+    "delim9": alph_num+[" ","(","{", "!", '"', "'"],#added "
     "delim10": alph_all+[" ","(","!"],
     "delim11": alph_num+[" ","(","!"],
     "delim12": op+comma+[" ","#","[",")" ],
     "delim13": alph_num+[" ","\\","(", None],
     "delim14": alph_all+[" ","#",None],
-    "delim15": alph_num+[" ", "!","(", ")", '"', "-", ],#added ); added -; added "
+    "delim15": alph_num+[" ", "!","(", ")", '"', "-", "'"],#added ); added -; added "
     "delim16": op+comma+[" ", "#", ")", "{","}", ":"],#added {
-    "delim17": alph_num+[" ", '"', "\\"],
-    "delim20": '"',
+    "delim17": alph_num+[" ", '"', "\\", "'"],
+    "delim20": ['"', "'"],
     "delim21": [" ", ":","::"],
     "txt_delim": comma+[" ", "#", ")", "}", ":"], #removed concat
     "blk_delim": [" ", "\\",None],

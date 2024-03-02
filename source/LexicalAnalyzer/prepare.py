@@ -26,6 +26,16 @@ def file_to_string(file):
         print("File not found.")
         return None
 
+def get_charr(token):
+    token_cpy=''
+    temp_token=''
+    for char in token:
+        if char in const.delimiters["txt_delim"] and tkc.LexerCheck.is_Charr(temp_token):
+            token_cpy=token.replace(temp_token, '', 1)
+            return temp_token, token_cpy       
+        else:
+            temp_token+=char
+
 def remove_comments(code):
     output_code = ""
     in_block_comment = False

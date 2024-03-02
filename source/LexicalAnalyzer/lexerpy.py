@@ -48,6 +48,9 @@ class Lexer:
             elif result := prep.get_identifier(code): 
                 current_token, code = result
                 tktype = "identifier"
+            elif result:=prep.get_charr(code):
+                current_token, code = result
+                tktype = "charr"
             elif result := prep.get_text(code):
                 current_token, code = result
                 tktype = "text"
