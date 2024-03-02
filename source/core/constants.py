@@ -43,7 +43,7 @@ single_symbols=aop+rop2+lop
 compound_symbols=['+=', '-=', '*=', '/=', '%=','==', '!=','<=', '>=']
 all_op=op+asop+rop1+lop+comma+concat+rop2
 non_op=comma+['#', '_', '.', '@', '^', '&', '(', ')', '`', '~', '::', '?', '$', ';', '[', ']', '{', '}', '/', '`', '^']
-whitespace=space+['\n', '\t']
+whitespace=space+['\n', '\t', '\t\t']
 grouping_symbols=["{","}", "(", ")", "[", "]" ]
 other_symbols=["#", "::", ]
 all_symbols_nonop=grouping_symbols+other_symbols+[",", "."]

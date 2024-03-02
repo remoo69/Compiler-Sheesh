@@ -198,7 +198,7 @@ class SyntaxAnalyzer:
         
 
     # #
-    # @nullable
+    @nullable
     def more_import(self):
         # self.nullable=True
         if self.import_():
@@ -214,7 +214,7 @@ class SyntaxAnalyzer:
         else: return self.failed()
 
     # 
-    # @nullable
+    @nullable
     def more_importprog(self):
         # self.nullable=True
 
@@ -232,7 +232,7 @@ class SyntaxAnalyzer:
     #         self.match("}")
     # 
         
-    # @nullable
+    @nullable
     def import_next(self):
         # self.nullable=True
         if self.match("from"):
@@ -253,7 +253,7 @@ class SyntaxAnalyzer:
         
 
     # 
-    # @nullable
+    @nullable
     def more_globaldec(self):
        if self.global_declaration():
            return self.success
@@ -283,7 +283,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def parameter(self):
         if self.all_dtype()==self.success:
             self.match("Identifier")
@@ -404,7 +404,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def more_statement(self):
         # nullable=True
         # if len(self.tokens)>0 and self.tokens[0]!="}":
@@ -456,7 +456,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def more_vardec(self):
         # nullable=True ; self.isnullable
         if self.match(",", True):
@@ -464,7 +464,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def variable_assign(self):
         # nullable=True
         if self.match("="):
@@ -632,7 +632,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def cond_tail(self):
         if self.ehkung_statement()==self.success:
             self.more_condtail()
@@ -742,7 +742,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def step_statement(self):
         if self.match("step"):
             self.for_initial_val()
@@ -760,7 +760,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def more_loop_body(self):
         if self.loop_body()==self.success:
             return self.success
@@ -796,7 +796,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def in_loop_condtail(self):
         if self.loop_ehkung()==self.success:
             self.more_inloop_condtail()
@@ -831,13 +831,13 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def in_loop_when(self):
         if self.loop_when()==self.success:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def loop_default(self):
         if self.match("default"):
             self.match("::")
@@ -875,7 +875,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def seq_assign(self):
         if self.match("="):
             self.seq_init()
@@ -897,7 +897,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def seq_two_d_init(self):
         if self.match(","):
             self.seq_init()
@@ -905,7 +905,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def seq_three_d_init(self):
         if self.match(","):
             self.seq_init()
@@ -918,7 +918,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def next_elem_value(self):
         if self.match(","):
             self.seq_elem_value()
@@ -931,7 +931,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def more_seq(self):
         if self.match(","):
             self.match("Identifier")
@@ -951,14 +951,14 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def seq_two_dim(self):
         if (self.index()==self.success):
             self.seq_three_dim()
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def seq_three_dim(self):
         if self.index()==self.success:
             return self.success
@@ -1023,7 +1023,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def arithm_addtail(self):
         # nullable=True
         if self.arithm_tail()==self.success:
@@ -1037,7 +1037,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def arithm_mult_term(self):
         # nullable=True
         if self.arithm_term_tail()==self.success:
@@ -1116,7 +1116,7 @@ class SyntaxAnalyzer:
             return self.success 
         else: return self.failed()
 
-    # @nullable
+    @nullable
     def logic_ortail(self):
         if self.logic_tail()==self.success:
             return self.success
@@ -1129,44 +1129,93 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
+    @nullable
     def logic_andterm(self):
-        pass
+        if self.logic_term_tail()==self.success:
+            return self.success
+        else: return self.failed()
+        
 
     def logical_not_expression(self):
-        pass
+        if self.logic_not()==self.success:
+            self.logic_not_tail()
+            return self.success
+        else: return self.failed()
 
     def logic_not_tail(self):
-        pass
+        if (self.logical_not_expression()==self.success) or (self.logic_value()==self.success):
+            return self.success
+        else: return self.failed()
 
     def logic_not(self):
-        pass
+        if self.match("!"):
+            return self.success
+        else: return self.failed()
 
     def logic_value(self):
-        pass
+        if (self.common_val()==self.success) or self.match("Sus") or (self.relational_expression()==self.success) or (self.seq_use()==self.success) or (self.logical_not_expression()==self.success):
+            return self.success
+        else: return self.failed()
 
     def text_concat(self):
-        pass
+        if self.concat_val()==self.success:
+            self.concat_tail()
+            return self.success
+        else: return self.failed()
 
     def concat_tail(self):
-        pass
+        if self.match("..."):
+            self.concat_val()
+            self.more_concat()
+            return self.success
+        else: return self.failed()
 
+    @nullable
     def more_concat(self):
-        pass
+        if self.concat_tail()==self.success:
+            return self.success
+        else: return self.failed()
 
     def concat_val(self):
-        pass
+        if self.match("Text") or (self.common_val()==self.success) or (self.seq_use()==self.success):
+            return self.success
+        else: return self.failed()
 
+    @nullable
     def function_definition(self):
-        pass
+        if self.func_def()==self.success:
+            self.more_funcdef()
+            return self.success
+        else: return self.failed()
 
     def func_def(self):
-        pass
+        if self.yeet_type()==self.success:
+            self.match("Identifier")
+            self.match("(")
+            self.parameter()
+            self.match(")")
+            self.match("{")
+            self.statement()
+            self.match("}")
+            return self.success
+        else: return self.failed()
 
+    @nullable
     def more_funcdef(self):
-        pass
+        if self.function_definition()==self.success:
+            return self.success
+        else: return self.failed()
 
+    @nullable
     def yeet_statement(self):
-        pass
+        if self.match("yeet"):
+            self.return_value()
+            self.match("#")
+            return self.success
+        else: return self.failed()
 
+    @nullable
     def return_value(self):
-        pass
+        if self.assign_value()==self.success:
+            return self.success
+        else: return self.failed()

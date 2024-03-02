@@ -9,6 +9,7 @@ from tkinter import ttk
 import source.LexicalAnalyzer.lexerpy as lex
 # import source.LexicalAnalyzer.prepare as prep
 from tkinter import filedialog
+from tkinter import Event
 # import source.SyntaxAnalyzer.grammar as grammar
 # import source.SyntaxAnalyzer.parser1 as parser
 
