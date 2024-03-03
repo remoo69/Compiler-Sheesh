@@ -254,18 +254,19 @@ sample5=[]
 
 # inp=input("Enter a string: ")
 # inp="sheesh(){dec a=5# dec b=2, c=5# whole a=6#}"
-inp=" whole whole d=5# "
-# inp="whole whole a=6# dec d=5#}"
+# inp="up(\"I love ninjas\")# }"
+# inp=" whole a=6# dec d=5#"/z
 # inp="sheesh(){ }"
-# inp=""
+inp="whole a=5, b=2, g=3#"
+# inp="}"
 from source.LexicalAnalyzer.lexerpy import Lexer
 tokens,error=Lexer.tokenize(inp)
 print(tokens)
 tokens= [x for x in tokens if x.type!="Whitespace" and x.type!="Block Comment" and x.type!="Inline Comment"]
 print(tokens)
 pars=parser.SyntaxAnalyzer(tokens)
-print(pars.parse())
-# print(pars.statement())
+# print(pars.var_or_seq_dec())
+print(pars.statement())
 print(pars.buffer)
 print(pars.syntax_errors)
 

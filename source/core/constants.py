@@ -2,7 +2,7 @@
 #List of Keywords
 keywords = ["text", "charr","whole", "dec", "sus", "blank", "sheesh", "yeet", "based",#added charr, lit->sus, bruh->yeet, steady->based
             "kung", "ehkung", "deins", "choice", "when", "bet", "choose","for", "to", #habang->bet
-            "step", "felloff", "pass", "use", "from", "true", "false", "default", "up", "pa_mine"]     #added choose, default, termins->felloff, gg->pass
+            "step", "felloff", "pass", "use", "from", "nocap", "cap", "default", "up", "pa_mine"]     #added choose, default, termins->felloff, gg->pass
 DATA_TYPES=["text","charr", "whole", "dec", "lit", "blank"]
 valid_tokens=["Keyword", "Identifier", "Dec", "Whole", "Symbol", "Operator", "Text", "Charr", "Lit", "Whitespace"]
 valid_cfg_terminals=[ "Identifier", "Dec", "Whole", "Text","Charr", "Lit", "null", "sheesh", "text_literal", "dec_literal", "whole_literal", "lit_literal",
@@ -21,7 +21,7 @@ digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 abc_small = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
 abc_cap = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 nums = zero+digits
-boolean = ['true', 'false']
+boolean = ['nocap', 'cap']
 aop = ['+', '-', '*', '/', '%']
 asop = ['=', '+=', '-=', '*=', '/=', '%=']
 rop1 = ['==', '!=', '<', '>', '<=', '>=']
@@ -107,8 +107,8 @@ keywords_delims={"text":delimiters["delim1"],
                  "pass":delimiters["delim2"], 
                  "use":delimiters["delim1"], 
                  "from":delimiters["delim1"],
-                 "false":delimiters["delim2"],
-                 "true":delimiters["delim2"],
+                 "cap":delimiters["delim2"],
+                 "nocap":delimiters["delim2"],
                  "up":delimiters["delim3"],
                  "pa_mine":delimiters["delim3"],
                  "sheesh":delimiters["delim3"],}
