@@ -514,15 +514,15 @@ class SyntaxAnalyzer:
     #         pass
     #@require
     def const_tail(self):
-        if self.seq_dtype()==self.success:
+        if self.all_dtype()==self.success:
+            self.const_var_tail()
+            self.match("#")
+            return self.success
+        elif self.seq_dtype()==self.success:
             self.match("Identifier")
             self.seq_one_dim()
             self.match("=")
             self.seq_init()
-            self.match("#")
-            return self.success
-        elif self.all_dtype()==self.success:
-            self.const_var_tail()
             self.match("#")
             return self.success
         else: return self.failed()

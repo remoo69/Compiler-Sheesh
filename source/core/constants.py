@@ -49,7 +49,7 @@ other_symbols=["#", "::", ]
 all_symbols_nonop=grouping_symbols+other_symbols+[",", "."]
 invalid_id_char=op+comma+['#', '.', '@', '^', '&', '(', ')', '`', '~', ':', '?', '$', ';', '[', ']', '{', '}', '/', '\\', '`', '^', "'", '"']
 invalid_text_char=['"', "\\"]
-invalid_symbols=["@", "^", "&", "`", "~", "?", "$", ";", "'", '`',":"]
+invalid_symbols=["@", "^", "&", "`", "~", "?", "$", ";", "'", '`',":", "\\"]
 #Delimiters used in the Transition Diagram/DFA
 
 
@@ -82,7 +82,7 @@ delimiters = {
     "txt_delim": comma+[" ", "#", ")", "}", ":"], #removed concat
     "blk_delim": [" ", "\\",None],
     "id_delim": op+comma+[" ", "#", "(",")", "[", "]", "{", ".", ":"],
-    "n_delim": op+comma+[" ", "#", "(", ")", ":", "]"],
+    "n_delim": op+comma+[" ", "#", "(", ")", ":", "]", "}",","],
     "space_delim": alph_num+[" ", "#", "(", ")", ":", "}", "]", ","]
 }   
 keywords_delims={"text":delimiters["delim1"], 

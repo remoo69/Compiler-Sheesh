@@ -37,7 +37,7 @@ def run_lex():
     print("Button pressed")
     code=txt_editor_pane.get("1.0", END)
     tokens,error=lex.Lexer.tokenize(code)
-    tokens=remove_whitespace_type(tokens)
+    # tokens=remove_whitespace_type(tokens)
     print_lex(tokens)
     print_error(error)
     lex_table_pane.config(state="disabled")
