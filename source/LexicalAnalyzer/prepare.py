@@ -279,7 +279,7 @@ def get_symbol(token):
         elif token[i] in const.all_symbols_nonop and token[i+1] in const.symbols_delims[token[i]]:
             symbol_buffer+=token[i]
             return token[i], token.replace(token[i], '', 1)
-        elif token[i:2]=="::" and len(token)==2: 
+        elif token[i:2]=="::" and (len(token)==2 or token[i+2] in const.symbols_delims["::"]): 
                 return "::", token.replace("::", '', 1)
         
     except IndexError:
@@ -348,3 +348,6 @@ def prepare(code):
         lines.append(templines[i])
     return lines
 
+
+test="::"
+print(get_symbol(test))

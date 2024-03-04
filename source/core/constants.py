@@ -65,15 +65,15 @@ delimiters = {
     "delim3": ["(", " ", '{', None],
     "delim4": [" ","\\","{"],
     "delim5": alph_num+[" ","("],
-    "delim6": alph_num+[" "],
+    "delim6": alph_num+[" ", "{"],
     "delim7": [" ","}", ""],
-    "delim8": [" ","\\", ""],
+    "delim8": [" ", ""],
     "delim9": alph_num+[" ","(","{", "!", '"', "'"],#added "
     "delim10": alph_all+[" ","(","!"],
     "delim11": alph_num+[" ","(","!"],
     "delim12": op+comma+[" ","#","[",")" ],
-    "delim13": alph_num+[" ","\\","(", None],
-    "delim14": alph_all+[" ","#",None],
+    "delim13": alph_num+[" ","\\","(", "{",None],
+    "delim14": alph_all+[" ","#","}",",",None],
     "delim15": alph_num+[" ", "!","(", ")", '"', "-", "'"],#added ); added -; added "
     "delim16": op+comma+[" ", "#", ")", "{","}", ":"],#added {
     "delim17": alph_num+[" ", '"', "\\", "'"],
@@ -81,7 +81,7 @@ delimiters = {
     "delim21": [" ", ":","::"],
     "txt_delim": comma+[" ", "#", ")", "}", ":"], #removed concat
     "blk_delim": [" ", "\\",None],
-    "id_delim": op+comma+[" ", "#", "(",")", "[", "]", "{", ".", ":"],
+    "id_delim": op+comma+[" ", "#", "(",")", "[", "]", "{", "}",".", ":"],
     "n_delim": op+comma+[" ", "#", "(", ")", ":", "]", "}",","],
     "space_delim": alph_num+[" ", "#", "(", ")", ":", "}", "]", ","]
 }   
