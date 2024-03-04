@@ -172,7 +172,7 @@ class SyntaxAnalyzer:
                 print(f"No {consumable} detected. Skipping.")
                 self.expectset.append(self.expected)
                 self.expected=None
-                self.isnullable=True
+                # self.isnullable=True
             # self.skip()
                 return 
 
@@ -233,7 +233,7 @@ class SyntaxAnalyzer:
     def var_or_seq_dec(self):
         if self.seq_dtype()==self.success:
             self.enforce()
-            if self.match("Identifier"):
+            if self.match("Identifier"): #ambiguity
                 self.var_seq_tail()
                 self.match("#")
                 return self.success
@@ -361,15 +361,18 @@ class SyntaxAnalyzer:
     @nullable
     def parameter(self):
         if self.all_dtype()==self.success:
+            # self.enforce
             self.match("Identifier")
             self.more_paramtail()
             return self.success
         elif self.match("blank"):
             return self.success
         else: return self.failed()
-
+#
+    @nullable
     def more_param(self):
         if self.match(",", True):
+            self.enforce()
             self.all_dtype()
             self.match("Identifier")
             self.more_paramtail()
@@ -390,13 +393,15 @@ class SyntaxAnalyzer:
 
     
     def all_dtype(self):
+        # self.enforce()
         if self.seq_dtype()==self.success:
             return self.success
-        else:
-            if self.match("charr", True): #issue?
-                if self.match("text"): #issue
+        elif self.match("charr"):
+            self.enforce()
+            if self.match("text"): #issue
                     return self.success
             else: return self.failed() 
+        else:
             return self.failed()
         
     
@@ -408,7 +413,13 @@ class SyntaxAnalyzer:
         
         return self.failed()
 
-    
+    @nullable
+    def all_literal_arg(self):
+        if (self.all_literal()==self.success) or (self.match("blank", True)):
+            return self.success
+        else: return self.failed()
+
+
     def all_literal(self):
         if (self.seq_literal()==self.success):
             return self.success
@@ -543,7 +554,7 @@ class SyntaxAnalyzer:
             else: return self.failed()
         else: return self.failed()
 
-    
+    @nullable
     def vardec_tail(self):
         if self.variable_assign()==self.success:
             self.more_vardec()
@@ -581,7 +592,7 @@ class SyntaxAnalyzer:
 
     
     def common_val(self):
-        if (self.function_invocation()==self.success): #self.match("Identifier") or 
+        if self.match("Identifier") or (self.function_invocation()==self.success): #self.match("Identifier") or 
             return self.success
         else: return self.failed()
 
@@ -590,7 +601,7 @@ class SyntaxAnalyzer:
     def assign_value(self):
         # self.isnullable=False
         
-        if (self.all_literal() == self.success):
+        if (self.all_literal_arg() == self.success):
             return self.success
         elif (self.common_val() == self.success):
             return self.success 
