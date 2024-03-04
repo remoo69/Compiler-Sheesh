@@ -229,14 +229,25 @@ class SyntaxAnalyzer:
             return self.failed()    
     
     # 
+    def inside_func_invocation(self):
+        if self.argument()==self.success:
+            if self.match(")"):
+                return self.success
+        else: return self.failed()
 
-    def var_or_seq_dec(self):
+    def var_or_seq_or_funcinvoc_dec(self):
         if self.seq_dtype()==self.success:
             self.enforce()
             if self.match("Identifier"): #ambiguity
-                self.var_seq_tail()
-                self.match("#")
-                return self.success
+                if self.var_seq_tail()==self.success:
+                    self.match("#")
+                    return self.success
+                elif self.match("("):
+                    self.inside_func_invocation()
+                    self.match("#")
+                    return self.success
+                else: return self.failed()
+
             
             else: return self.failed()
         elif self.match("charr", True):
@@ -338,7 +349,7 @@ class SyntaxAnalyzer:
 
     
     def global_statement(self):
-        if self.var_or_seq_dec()==self.success:
+        if self.var_or_seq_or_funcinvoc_dec()==self.success:
             return self.success
         elif self.function_prototype()==self.success:
             return self.success
@@ -491,7 +502,7 @@ class SyntaxAnalyzer:
         #         if statement == self.variable_reassign or statement == self.function_invocation:
         #             self.match("#")
         #         return self.success
-        if (self.var_or_seq_dec()==self.success) or (self.looping_statement()==self.success) or (self.yeet_statement()==self.success) or (self.io_statement()==self.success) or (self.seq_use_assign()==self.success):
+        if (self.var_or_seq_or_funcinvoc_dec()==self.success) or (self.looping_statement()==self.success) or (self.yeet_statement()==self.success) or (self.io_statement()==self.success) or (self.seq_use_assign()==self.success):
             return self.success
         elif (self.variable_reassign()==self.success) or (self.function_invocation()==self.success):
             self.enforce()
@@ -538,8 +549,8 @@ class SyntaxAnalyzer:
         if self.match("up", True):
             self.enforce()
             if self.match("("):
-                if self.argument():
-                    self.enforce()
+                if self.func_argument():
+                    # self.enforce()
                     if self.match(")"):
                         if self.match("#"):
                             return self.success
@@ -594,8 +605,14 @@ class SyntaxAnalyzer:
 
     
     def common_val(self):
-        if self.match("Identifier") or (self.function_invocation()==self.success): #self.match("Identifier") or 
-            return self.success
+        if self.match("Identifier"):
+            if self.match("("):
+                self.func_argument()
+                self.match(")")
+                return self.success
+            else:
+                self.isnullable=True 
+                return self.failed() #self.match("Identifier") or 
         else: return self.failed()
 
 
