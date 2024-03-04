@@ -148,6 +148,7 @@ class SyntaxAnalyzer:
                 # self.skip()
                 self.expectset.append(self.expected)
                 self.expected=None
+                self.failed()
                 
                 return False
             else:
@@ -217,11 +218,13 @@ class SyntaxAnalyzer:
             
             else: return self.failed()
         elif self.match("charr", True):
-            self.match("text")
-            self.match("Identifier")
-            self.vardec_tail()
-            self.match("#")
-            return self.success
+            self.isnullable=False
+            if self.match("text"):
+                self.match("Identifier")
+                self.vardec_tail()
+                self.match("#")
+                return self.success
+            else: return self.failed()
         else: return self.failed()
 
     def var_seq_tail(self):
@@ -320,12 +323,13 @@ class SyntaxAnalyzer:
 
     def function_prototype(self):
         if self.yeet_type()==self.success:
-            self.match("Identifier")
-            self.match("(")
-            self.parameter()
-            self.match(")")
-            self.match("#")
-            return self.success
+            if self.match("Identifier"):
+                if self.match("("):
+                    if self.parameter():
+                        if self.match(")"):
+                            if self.match("#"):
+                                return self.success
+                            else: return self.failed()
         else: return self.failed()
 
     @nullable
@@ -382,7 +386,7 @@ class SyntaxAnalyzer:
     def all_literal(self):
         if (self.seq_literal()==self.success):
             return self.success
-        if self.match("Charr", True):
+        elif self.match("Charr", True):
             return self.success
         else: return self.failed()
         
@@ -497,7 +501,6 @@ class SyntaxAnalyzer:
                 self.match("#")
                 return self.success
             else: return self.failed()
-            return self.success
         else: return self.failed()
 
     
@@ -516,10 +519,11 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    @nullable
+    # @nullable
     def variable_assign(self):
         # nullable=True
-        if self.match("=", True):
+        self.isnullable=False
+        if self.match("="):     
             self.assign_value()
             return self.success
         else: 
@@ -616,7 +620,7 @@ class SyntaxAnalyzer:
             if self.match("("):
                 self.func_argument()
                 self.match(")")
-            else: return self.success
+            else: return self.failed()
             return self.success
         else: return self.failed()
 
