@@ -377,8 +377,8 @@ class LexError:
             return LexError.get_error_numeric(tokencode)
         elif LexError.get_error_symbol(tokencode):
             return LexError.get_error_symbol(tokencode)
-        # elif LexError.get_error_charr(tokencode):
-        #     return LexError.get_error_charr(tokencode)
+        elif LexError.get_error_charr(tokencode):
+            return LexError.get_error_charr(tokencode)
         elif LexError.get_error_text(tokencode):
             return LexError.get_error_text(tokencode)
         elif LexError.get_error_keyword(tokencode):

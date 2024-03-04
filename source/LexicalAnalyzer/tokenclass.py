@@ -195,7 +195,7 @@ class LexerCheck:
 
     @staticmethod
     def is_Charr(Token):
-        if Token.startswith("'") and Token.endswith("'") and ((len(Token)==3 and ((Token[1:-1] not in const.invalid_text_char ) or Token[1:-1].isspace())) or (len(Token)==2 and Token=="''")):
+        if Token.startswith("'") and Token.endswith("'") and ((len(Token)==3 and ((Token[1:-1] ) or Token[1:-1].isalpha())) or (len(Token)==2 and Token=="''")):
             return True
         else: return False
 
