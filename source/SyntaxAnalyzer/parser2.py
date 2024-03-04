@@ -18,28 +18,40 @@ class SyntaxAnalyzer:
         # self.failed="Failed Parsing"
         self.expected=None
         self.isnullable=False
-        
-    def require(func):
-        def wrapper(self, *args, **kwargs):
-            self.isnullable=False
-            func(self,*args, **kwargs)
+        self.expectset=[]
 
-        return wrapper
+#___________________________WRAPPERS____________________________________________________________________________________________________________
+              
+    def require(func):
+        def wrapper2(self, *args, **kwargs):
+            self.isnullable=False
+            result=func(self,*args, **kwargs)
+            # self.isnullable=True
+            if result==None:
+                self.failed()
+            else:
+                # self.isnullable=True
+                return result
+        return wrapper2
 
     def nullable(func):
         def wrapper(self, *args, **kwargs):
             self.isnullable=True
             result=func(self,*args, **kwargs)
             if result==None:
+                # self.isnullable=False
                 return
+            else:
+                return result
             # print(func)
             # print(self.isnullable)
             # self.isnullable=False  
     
         return wrapper
     
+# _______________________________________________FUNCTIONS_____________________
 
-    # 
+    
     def parse(self):
         if len(self.tokens)==0:
             self.syntax_errors.append("No tokens to parse fool")
@@ -92,16 +104,19 @@ class SyntaxAnalyzer:
     def error(self):
         print(len(self.tokens))
         if len(self.tokens)<=0:
-            self.syntax_errors.append(Error(expected=self.expected, unexpected="EOF", line="EOF"))
+            self.expectset=list(set(self.expectset))
+            self.syntax_errors.append(Error(expected=self.expectset, unexpected="EOF", line="EOF"))
             return "EOF"        
         else:
-            self.syntax_errors.append(Error(expected=self.expected, unexpected=self.tokens[0].type, line=self.tokens[0].line))
+            self.expectset=list(set(self.expectset))
+            self.syntax_errors.append(Error(expected=self.expectset, unexpected=self.tokens[0].type, line=self.tokens[0].line))
             self.stop()
 
     def failed(self):
         if self.isnullable:
             # self.skip()
             # raise Exception("No Items for this Production")
+            # self.isnullable=False
             return
         else:
             if self.error()=="EOF":
@@ -118,7 +133,9 @@ class SyntaxAnalyzer:
     def match(self, consumable, skippable=False):
         self.expected=consumable
         if len(self.tokens)==0:
+            self.expectset.append(self.expected)
             print(f"EOF, nothing to match {consumable} with.")
+            self.expected=None
             return False
         consumed=self.see(consumable)  
         if consumed==None  : #and not nullable:
@@ -129,9 +146,16 @@ class SyntaxAnalyzer:
                 except IndexError:
                     print(f"Failed Match: {consumable}, got EOF" )
                 # self.skip()
+                self.expectset.append(self.expected)
+                self.expected=None
+                self.failed()
+                
                 return False
             else:
                 print(f"No {consumable} detected. Skipping.")
+                self.expectset.append(self.expected)
+                self.expected=None
+                self.isnullable=True
             # self.skip()
                 return 
 
@@ -143,6 +167,8 @@ class SyntaxAnalyzer:
             
         else: 
             self.consume(consumable)
+            self.expected=None
+            self.expectset=[]
             print("Matched:",consumed)
             return True
             # print(f"Expected {consumable} but found {self.tokens[0].type} at line {self.tokens[0].line}")
@@ -156,7 +182,7 @@ class SyntaxAnalyzer:
 
 #GRAMMAR____________________________________________________________________________________________      
 
-    @require      
+    # @require
     def program(self):
         #implement a way to assess if nothing is parsed
 
@@ -181,6 +207,32 @@ class SyntaxAnalyzer:
         return self.success
     
     # 
+
+    def var_or_seq_dec(self):
+        if self.seq_dtype()==self.success:
+            self.isnullable=False
+            if self.match("Identifier"):
+                self.var_seq_tail()
+                self.match("#")
+                return self.success
+            
+            else: return self.failed()
+        elif self.match("charr", True):
+            self.isnullable=False
+            if self.match("text"):
+                self.match("Identifier")
+                self.vardec_tail()
+                self.match("#")
+                return self.success
+            else: return self.failed()
+        else: return self.failed()
+
+    def var_seq_tail(self):
+        if (self.vardec_tail()==self.success) or (self.seq_tail()==self.success):
+            return self.success
+        else:
+            return self.failed()
+
     @nullable
     def import_(self):
         # self.nullable=True
@@ -196,7 +248,6 @@ class SyntaxAnalyzer:
         else: self.failed()
 
         
-
     # #
     @nullable
     def more_import(self):
@@ -206,9 +257,9 @@ class SyntaxAnalyzer:
         else:
             return self.failed()
         
-    #@require
-    def import_prog(self):
-        if self.match("Identifier"):
+    
+    def import_prog(self): #sussy
+        if self.match("Identifier", True):
             self.more_importprog()
             return self.success
         else: return self.failed()
@@ -235,7 +286,7 @@ class SyntaxAnalyzer:
     @nullable
     def import_next(self):
         # self.nullable=True
-        if self.match("from"):
+        if self.match("from", True):
             self.match("Identifier")
             return self.success
         else: return self.failed()
@@ -259,28 +310,26 @@ class SyntaxAnalyzer:
            return self.success
        else: return self.failed()
 
-    #@require
+    
     def global_statement(self):
-        if self.variable_declaration()==self.success:
+        if self.var_or_seq_dec()==self.success:
             return self.success
         elif self.function_prototype()==self.success:
             return self.success
         elif self.constant_declaration()==self.success:
             return self.success
-        elif self.sequence_declaration()==self.success:
-            return self.success
         else: return self.failed()
     
 
-    #@require
     def function_prototype(self):
         if self.yeet_type()==self.success:
-            self.match("Identifier")
-            self.match("(")
-            self.parameter()
-            self.match(")")
-            self.match("#")
-            return self.success
+            if self.match("Identifier"):
+                if self.match("("):
+                    if self.parameter():
+                        if self.match(")"):
+                            if self.match("#"):
+                                return self.success
+                            else: return self.failed()
         else: return self.failed()
 
     @nullable
@@ -293,9 +342,8 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    #@require
     def more_param(self):
-        if self.match(","):
+        if self.match(",", True):
             self.all_dtype()
             self.match("Identifier")
             self.more_paramtail()
@@ -307,50 +355,51 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def yeet_type(self):
-        if self.all_dtype()==self.success or self.match("blank"):
+        if self.all_dtype()==self.success or self.match("blank", True):
             return self.success
         else:
             return self.failed()
 
-    #@require
+    
     def all_dtype(self):
         if self.seq_dtype()==self.success:
             return self.success
         else:
-            if self.match("charr"): #issue?
+            if self.match("charr", True): #issue?
                 if self.match("text"): #issue
                     return self.success
             else: return self.failed() 
             return self.failed()
         
-    #@require
+    
     def seq_dtype(self):
         dtypes=["whole", "dec", "text", "sus"]
         for type in dtypes:
             if self.match(type, True):
                 return self.success
+        
         return self.failed()
 
-    #@require
+    
     def all_literal(self):
         if (self.seq_literal()==self.success):
             return self.success
-        if self.match("Charr", True):
+        elif self.match("Charr", True):
             return self.success
         else: return self.failed()
         
-    #@require
+    
     def seq_literal(self):
         seqlits=["Text", "Whole", "Dec", "Sus"]
         if self.match("Text", True) or self.match("Whole", True) or self.match("Dec",True) or self.match("Sus", True):
             return self.success
         else:
             return self.failed()
-    #@require
+    
     def numeric_value(self):
-        if (self.common_val()==self.success) or self.match("Whole") or self.match("Dec") or (self.seq_use()==self.success):
+        if (self.common_val()==self.success) or self.match("Whole", True) or self.match("Dec", True) or (self.seq_use()==self.success):
             return self.success
         else: return self.failed()
 
@@ -367,52 +416,55 @@ class SyntaxAnalyzer:
         
         else: return self.failed()
 
-    #@require
+    @require
     def statement(self):
+        # self.isnullable=False
         if self.single_statement()==self.success:
             self.more_statement()
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def single_statement(self):
         if self.allowed_in_loop()==self.success:
             return self.success
         elif self.control_flow_statement()==self.success:
             return self.success
-        else: return self.failed()
+        else: 
+            # self.isnullable=False
+            return self.failed()
 
-    #@require
+    
+    @nullable
     def allowed_in_loop(self):
-        if self.variable_declaration()==self.success:
-            return self.success
-        elif self.sequence_declaration()==self.success:
-            return self.success
-        elif self.function_invocation()==self.success:
-            self.match("#")  
-            return self.success
-        elif self.looping_statement()==self.success:
-            return self.success
-        elif self.yeet_statement()==self.success:
-            return self.success
-        elif self.io_statement()==self.success:
-            return self.success
-        elif self.seq_use_assign()==self.success:
-            return self.success
-        elif self.variable_reassign()==self.success:
-            self.match("#")
-            return self.success
-        else: return self.failed()
+        allowed_statements = [
+            self.var_or_seq_dec,
+            self.looping_statement,
+            self.yeet_statement,
+            self.io_statement,
+            self.seq_use_assign,
+            self.variable_reassign,
+            self.function_invocation
+        ]
+        
+        for statement in allowed_statements:
+            if statement() == self.success:
+                if statement == self.variable_reassign or statement == self.function_invocation:
+                    self.match("#")
+                return self.success
+        
+        return self.failed()
 
     @nullable
     def more_statement(self):
         # nullable=True
         # if len(self.tokens)>0 and self.tokens[0]!="}":
-            if self.statement()==self.success:
+            if self.single_statement()==self.success:
+                self.more_statement()
                 return self.success
             else: return self.failed()
 
-    #@require
+    
     def io_statement(self):
         if self.pa_mine_statement()==self.success:
             return self.success
@@ -420,9 +472,9 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def pa_mine_statement(self):
-        if self.match("pa_mine"):
+        if self.match("pa_mine", True):
             self.match("(")
             self.argument()
             self.match(")")
@@ -430,9 +482,9 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def up_statement(self):
-        if self.match("up"):
+        if self.match("up", True):
             self.match("(")
             self.argument()
             self.match(")")
@@ -440,18 +492,20 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    #@require
+    
+    
     def variable_declaration(self):
         if self.all_dtype()==self.success:
-            self.vardec_tail()
-            self.match("#")
-            return self.success
+            if self.match("Identifier"):
+                self.vardec_tail()
+                self.match("#")
+                return self.success
+            else: return self.failed()
         else: return self.failed()
 
-    #@require
+    
     def vardec_tail(self):
-        if self.match("Identifier"):
-            self.variable_assign()
+        if self.variable_assign()==self.success:
             self.more_vardec()
             return self.success
         else: return self.failed()
@@ -460,35 +514,37 @@ class SyntaxAnalyzer:
     def more_vardec(self):
         # nullable=True ; self.isnullable
         if self.match(",", True):
+            self.match("Identifier")
             self.vardec_tail()
             return self.success
         else: return self.failed()
 
-    @nullable
+    # @nullable
     def variable_assign(self):
         # nullable=True
-        if self.match("="):
+        self.isnullable=False
+        if self.match("="):     
             self.assign_value()
             return self.success
         else: 
             return self.failed()
 
-    #@require
+    
     def variable_reassign(self):
-        if self.match("Identifier"):
+        if self.match("Identifier", True):
             self.assign_op()
             self.assign_value()
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def common_val(self):
         if (self.function_invocation()==self.success): #self.match("Identifier") or 
             return self.success
         else: return self.failed()
 
 
-    #@require
+    
     def assign_value(self):
         # self.isnullable=False
         
@@ -503,34 +559,41 @@ class SyntaxAnalyzer:
         else: 
             return self.failed()
 
-    #@require
+    
     def constant_declaration(self):
-        if self.match("based"):
-            self.const_tail()
+        if self.match("based", True):
+            self.const_type()
         else: return self.failed()
 
+    def const_type(self):
+        if self.seq_dtype()==self.success:
+            self.match("Identifier")
+            self.const_tail()
+            return self.success
+        elif self.match("charr", True):
+            self.match("text")
+            self.match("Identifier")
+            self.const_var_tail()
+            return self.success
+        else: return self.failed()
     # def const_seq(self):
     #     if self.match("based"):
     #         pass
-    #@require
+    
     def const_tail(self):
-        if self.all_dtype()==self.success:
-            self.const_var_tail()
+        if self.const_var_tail()==self.success:
             self.match("#")
             return self.success
-        elif self.seq_dtype()==self.success:
-            self.match("Identifier")
-            self.seq_one_dim()
+        if self.seq_one_dim()==self.success:
             self.match("=")
             self.seq_init()
             self.match("#")
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def const_var_tail(self):
-        if self.match("Identifier"):
-            self.match("=")
+        if self.match("=", True):
             self.assign_value()
             self.more_const()
             return self.success
@@ -538,12 +601,12 @@ class SyntaxAnalyzer:
 
     @nullable
     def more_const(self):
-        if self.match(","):
+        if self.match(",", True):
             self.const_var_tail()
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def assign_op(self): #issue
         aops=["=","+=","-=","*=","/=", "%="]
         for op in aops:
@@ -551,13 +614,13 @@ class SyntaxAnalyzer:
                 return self.success
         return self.failed()
 
-    #@require
+    
     def function_invocation(self):
-        if self.match("Identifier"):
+        if self.match("Identifier", True):
             if self.match("("):
                 self.func_argument()
                 self.match(")")
-            else: return self.success
+            else: return self.failed()
             return self.success
         else: return self.failed()
 
@@ -568,14 +631,14 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def argument(self):
         if self.args_value()==self.success:
             self.more_args()
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def args_value(self):
         if self.assign_value()==self.success:
             return self.success
@@ -588,7 +651,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()    
 
-    #@require
+    
     def control_flow_statement(self):
         if self.kung_statement()==self.success:
             self.cond_tail()
@@ -597,7 +660,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def kung_statement(self):
         if self.match("kung"):
             self.match("(")
@@ -610,7 +673,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def ehkung_statement(self):
         if self.match("ehkung"):
             self.match("(")
@@ -623,7 +686,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def deins_statement(self):
         if self.match("deins"):
             self.match("{")
@@ -641,13 +704,13 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def more_condtail(self):
         if self.cond_tail()==self.success:
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def choose_statement(self):
         if self.match("choose"):
             self.match("(")
@@ -660,7 +723,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def when_statement(self):
         if self.match("when"):
             self.all_literal()
@@ -670,7 +733,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def statement_for_choose(self):
         if self.statement()==self.success:
             return self.success
@@ -693,15 +756,15 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def looping_statement(self):
         if (self.bet_statement()==self.success) or (self.for_statement()==self.success):
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def bet_statement(self):
-        if self.match("bet"):
+        if self.match("bet", True):
             self.match("{")
             self.loop_body()
             self.match("}")
@@ -714,9 +777,9 @@ class SyntaxAnalyzer:
         else: return self.failed()
         
 
-    #@require
+    
     def for_statement(self):
-        if self.match("for"):
+        if self.match("for", True):
             self.match("(")
             self.match("Identifier")
             self.match("=")
@@ -731,7 +794,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
-    #@require
+    
     def end_val(self):
         if self.for_initial_val==self.success:
             return self.success
@@ -859,6 +922,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
+    
     def sequence_declaration(self):
         if (self.seq_dtype()==self.success):
             self.match("Identifier")
@@ -1188,6 +1252,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
 
+    
     def func_def(self):
         if self.yeet_type()==self.success:
             self.match("Identifier")
