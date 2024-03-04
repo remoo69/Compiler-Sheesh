@@ -48,8 +48,8 @@ grouping_symbols=["{","}", "(", ")", "[", "]" ]
 other_symbols=["#", "::", ]
 all_symbols_nonop=grouping_symbols+other_symbols+[",", "."]
 invalid_id_char=op+comma+['#', '.', '@', '^', '&', '(', ')', '`', '~', ':', '?', '$', ';', '[', ']', '{', '}', '/', '\\', '`', '^', "'", '"']
-invalid_text_char=['"', "\\"]
-invalid_symbols=["@", "^", "&", "`", "~", "?", "$", ";", "'", '`',":", "\\"]
+invalid_text_char=['"', ]
+invalid_symbols=["@", "^", "&", "`", "~", "?", "$", ";", "'", '`',":", "\\" ]
 #Delimiters used in the Transition Diagram/DFA
 
 
@@ -66,7 +66,7 @@ delimiters = {
     "delim4": [" ","\\","{"],
     "delim5": alph_num+[" ","("],
     "delim6": alph_num+[" "],
-    "delim7": [" ","\\","}", ""],
+    "delim7": [" ","}", ""],
     "delim8": [" ","\\", ""],
     "delim9": alph_num+[" ","(","{", "!", '"', "'"],#added "
     "delim10": alph_all+[" ","(","!"],
