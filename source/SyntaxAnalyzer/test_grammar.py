@@ -260,8 +260,8 @@ sample5=[]
 # inp="whole whole a=1, b=2, g=3# dec d=5#"
 # inp="up  (\"fds\") idididd #"
 # inp="whole add()#"
-# inp="whole a, dec b, text s, sukl l, whole d "
-inp="sukl l, "
+# inp="kung(x>5){up(\"\$w is greater than 5\",x)#} deins{up(\"\$w is less than 5\",x)#}"
+inp=" "
 from source.LexicalAnalyzer.lexerpy import Lexer
 tokens,error=Lexer.tokenize(inp)
 print(tokens)
@@ -270,7 +270,7 @@ print(tokens)
 pars=parser.SyntaxAnalyzer(tokens)
 # print(pars.parse())
 # print(pars.parameter())
-print(pars.assign_value())
+print(pars.statement())
 print(pars.buffer)
 print(pars.syntax_errors)
 

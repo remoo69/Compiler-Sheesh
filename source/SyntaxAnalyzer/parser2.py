@@ -446,7 +446,9 @@ class SyntaxAnalyzer:
             self.match('(')
             self.match(')')
             self.match("{")
-            self.statement()
+            if self.statement()!=self.success:
+                self.enforce()
+                self.failed()
             # self.variable_declaration()
             self.match("}")
             return self.success
@@ -472,7 +474,7 @@ class SyntaxAnalyzer:
             return self.failed()
 
     
-    # @nullable
+    @nullable
     def allowed_in_loop(self):
         # allowed_statements = [
         #     self.var_or_seq_dec,
