@@ -75,6 +75,7 @@ def run_parser():
         if errors==[]:
             error_pane.insert(constants.END,"No errors")
         else:
+            error_pane.delete('1.0', constants.END)
             error_pane.insert(constants.END, f'Syntax Error:\n')
             for error in errors:
                 error_pane.insert(constants.END, f"{error}\n")
