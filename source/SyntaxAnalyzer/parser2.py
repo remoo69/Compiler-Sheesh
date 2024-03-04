@@ -51,19 +51,36 @@ class SyntaxAnalyzer:
     
 # _______________________________________________FUNCTIONS_____________________
 
-    
+    def reset(self):
+        self.pointer=0
+        self.production_stack=[]
+        self.current_prod=[]
+        self.buffer=[]
+        self.syntax_errors=[]
+        self.toklen=len(self.tokens)
+        self.success="Success"
+        # self.failed="Failed Parsing"
+        self.expected=None
+        self.isnullable=False
+        self.expectset=[]
+
+
     def parse(self):
+        self.reset()
         if len(self.tokens)==0:
             self.syntax_errors.append("No tokens to parse fool")
             return self.syntax_errors
         else:
             try:
                 self.program()
+                print(self.tokens)
                 return self.syntax_errors
             except SyntaxError as e:
                     print(e)
                     return self.syntax_errors
                 
+    def enforce(self):
+        self.isnullable=False
 
     # 
     def see(self, consumable):
@@ -96,7 +113,7 @@ class SyntaxAnalyzer:
     
     # 
     def stop(self):
-        raise SyntaxError("Syntax Error")
+            raise SyntaxError("Syntax Error")
 
     def move(self):
         self.pointer+=1
@@ -204,13 +221,18 @@ class SyntaxAnalyzer:
         self.function_definition()
         print("Func Def Post:",self.buffer)
 
-        return self.success
+        self.isnullable=False
+        if self.tokens==[]:
+            return self.success
+        else:
+            print("failed")
+            return self.failed()    
     
     # 
 
     def var_or_seq_dec(self):
         if self.seq_dtype()==self.success:
-            self.isnullable=False
+            self.enforce()
             if self.match("Identifier"):
                 self.var_seq_tail()
                 self.match("#")
@@ -218,7 +240,7 @@ class SyntaxAnalyzer:
             
             else: return self.failed()
         elif self.match("charr", True):
-            self.isnullable=False
+            self.enforce()
             if self.match("text"):
                 self.match("Identifier")
                 self.vardec_tail()
@@ -260,7 +282,11 @@ class SyntaxAnalyzer:
     
     def import_prog(self): #sussy
         if self.match("Identifier", True):
-            self.more_importprog()
+            if self.match("("):
+                if self.match(")"):
+                    return self.success
+            else:
+                self.more_importprog()
             return self.success
         else: return self.failed()
 
@@ -325,11 +351,11 @@ class SyntaxAnalyzer:
         if self.yeet_type()==self.success:
             if self.match("Identifier"):
                 if self.match("("):
-                    if self.parameter():
-                        if self.match(")"):
-                            if self.match("#"):
-                                return self.success
-                            else: return self.failed()
+                    self.parameter()
+                    if self.match(")"):
+                        if self.match("#"):
+                            return self.success
+                        else: return self.failed()
         else: return self.failed()
 
     @nullable
@@ -435,25 +461,32 @@ class SyntaxAnalyzer:
             return self.failed()
 
     
-    @nullable
+    # @nullable
     def allowed_in_loop(self):
-        allowed_statements = [
-            self.var_or_seq_dec,
-            self.looping_statement,
-            self.yeet_statement,
-            self.io_statement,
-            self.seq_use_assign,
-            self.variable_reassign,
-            self.function_invocation
-        ]
+        # allowed_statements = [
+        #     self.var_or_seq_dec,
+        #     self.looping_statement,
+        #     self.yeet_statement,
+        #     self.io_statement,
+        #     self.seq_use_assign,
+        #     self.variable_reassign,
+        #     self.function_invocation
+        # ]
         
-        for statement in allowed_statements:
-            if statement() == self.success:
-                if statement == self.variable_reassign or statement == self.function_invocation:
-                    self.match("#")
+        # for statement in allowed_statements:
+        #     if statement() == self.success:
+        #         if statement == self.variable_reassign or statement == self.function_invocation:
+        #             self.match("#")
+        #         return self.success
+        if (self.var_or_seq_dec()==self.success) or (self.looping_statement()==self.success) or (self.yeet_statement()==self.success) or (self.io_statement()==self.success) or (self.seq_use_assign()==self.success):
+            return self.success
+        elif (self.variable_reassign()==self.success) or (self.function_invocation()==self.success):
+            self.enforce()
+            if self.match("#"):
                 return self.success
+        else: return self.failed()
         
-        return self.failed()
+        # return self.failed()
 
     @nullable
     def more_statement(self):
@@ -475,21 +508,28 @@ class SyntaxAnalyzer:
     
     def pa_mine_statement(self):
         if self.match("pa_mine", True):
-            self.match("(")
-            self.argument()
-            self.match(")")
-            self.match("#")
-            return self.success
+            self.enforce()
+            if self.match("("):
+                if self.argument():
+                    if self.match(")"):
+                        if self.match("#"):
+                            return self.success
+                        else: return self.failed()
+                    else: return self.failed()
+                else: return self.failed()
+            else: return self.failed()
         else: return self.failed()
 
     
     def up_statement(self):
         if self.match("up", True):
-            self.match("(")
-            self.argument()
-            self.match(")")
-            self.match("#")
-            return self.success
+            self.enforce()
+            if self.match("("):
+                if self.argument():
+                    self.enforce()
+                    if self.match(")"):
+                        if self.match("#"):
+                            return self.success
         else: return self.failed()
 
     
@@ -522,8 +562,9 @@ class SyntaxAnalyzer:
     # @nullable
     def variable_assign(self):
         # nullable=True
-        self.isnullable=False
+        # self.isnullable=False
         if self.match("="):     
+            self.enforce()
             self.assign_value()
             return self.success
         else: 
@@ -532,6 +573,7 @@ class SyntaxAnalyzer:
     
     def variable_reassign(self):
         if self.match("Identifier", True):
+            self.enforce()
             self.assign_op()
             self.assign_value()
             return self.success
@@ -998,10 +1040,12 @@ class SyntaxAnalyzer:
     @nullable
     def more_seq(self):
         if self.match(","):
-            self.match("Identifier")
-            self.seq_one_dim()
-            self.more_seqtail()
-            return self.success
+            self.enforce()
+            if self.match("Identifier"):
+                self.seq_one_dim()
+                self.more_seqtail()
+                return self.success
+            else: return self.failed()
         else: return self.failed()
 
     def more_seqtail(self):
@@ -1050,8 +1094,8 @@ class SyntaxAnalyzer:
         if self.seq_use()==self.success:
             self.assign_op()
             self.assign_value()
-            self.match("#")
-            return self.success
+            if self.match("#"):
+                return self.success
         else: return self.failed()
 
     def expression(self): #issue, sus
