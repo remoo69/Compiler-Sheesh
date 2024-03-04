@@ -35,6 +35,7 @@ def get_charr(token):
             return temp_token, token_cpy       
         else:
             temp_token+=char
+    
 
 def remove_comments(code):
     output_code = ""
