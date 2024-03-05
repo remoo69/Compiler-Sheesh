@@ -615,7 +615,7 @@ class SyntaxAnalyzer:
                 return self.failed() #self.match("Identifier") or 
         else: return self.failed()
 
-
+    # def assign_value_tail(self):
     
     def assign_value(self):
         # self.isnullable=False
@@ -1115,7 +1115,7 @@ class SyntaxAnalyzer:
         else: return self.failed()
 
     def seq_use(self):
-        if self.match("Identifier"):
+        if self.match("Identifier") and self.tokens[1]=="[":
             self.seq_one_dim()
             return self.success
         else: return self.failed()
