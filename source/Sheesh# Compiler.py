@@ -1,3 +1,6 @@
+keywords = ["text", "charr","whole", "dec", "sus", "blank", "sheesh", "yeet", "based",#added charr, lit->sus, bruh->yeet, steady->based
+            "kung", "ehkung", "deins", "choose", "when", "bet","for", "to", #habang->bet
+            "step", "felloff", "pass", "use", "from", "nocap", "cap", "default", "up", "pa_mine"] 
 # import source.helper as helper
 import sys
 sys.path.append( '.' )
@@ -23,6 +26,23 @@ def fill_err_table():
 # run lexer function
 def fill_lex_table():
     pass
+
+def highlight_reserve_word(*args):
+    txt_editor_pane.tag_remove('found', '1.0',END)
+    for word in keywords:
+        idx = '1.0'
+        while idx:
+            idx = txt_editor_pane.search(word, idx, nocase=1, stopindex=END)
+            if idx:
+                lastidx = '%s+%dc' % (idx, len(word))
+                if txt_editor_pane.get(idx,lastidx).islower():
+                    txt_editor_pane.tag_add('found', idx, lastidx)
+                else:
+                    txt_editor_pane.tag_add('reserveidenti', idx, lastidx)
+                idx = lastidx
+
+    txt_editor_pane.tag_config('found', foreground='yellow')
+    txt_editor_pane.tag_config('reserveidenti', foreground='white')
 
 def on_scroll(*args):
     line_numbers.yview_moveto(args[0])
@@ -287,6 +307,7 @@ txt_editor_pane.configure(yscrollcommand=scrollbar.set)
 
 
 def update_line_numbers(*args):
+    highlight_reserve_word(*args)
     line_numbers.config(state="normal")
     line_numbers.delete("1.0", "end")
     lines = txt_editor_pane.get("1.0", "end").count("\n")
