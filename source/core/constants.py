@@ -79,6 +79,7 @@ delimiters = {
     "delim17": alph_num+[" ", '"', "\\", "'"],
     "delim20": ['"', "'"],
     "delim21": [" ", ":","::"],
+    "delim22": [" ","("],
     "txt_delim": comma+[" ", "#", ")", "}", ":"], #removed concat
     "blk_delim": [" ", "\\",None],
     "id_delim": op+comma+[" ", "#", "(",")", "[", "]", "{", "}",".", ":"],
@@ -101,7 +102,7 @@ keywords_delims={"text":delimiters["delim1"],
                  "choose":delimiters["delim3"], #from choice to choose
                  "when":delimiters["delim1"], 
                  "bet":delimiters["delim3"], 
-                 "for":delimiters["delim1"], 
+                 "for":delimiters["delim22"], 
                  "to":delimiters["delim1"], 
                  "step":delimiters["delim1"], 
                  "felloff":delimiters["delim2"], 
