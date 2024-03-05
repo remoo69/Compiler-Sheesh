@@ -19,6 +19,23 @@ from tkinter import Event
 # import source.SyntaxAnalyzer.grammar as grammar
 # import source.SyntaxAnalyzer.parser1 as parser
 
+def highlight_reserve_word(*args):
+    txt_editor_pane.tag_remove('found', '1.0',END)
+    for word in keywords:
+        idx = '1.0'
+        while idx:
+            idx = txt_editor_pane.search(word, idx, nocase=1, stopindex=END)
+            if idx:
+                lastidx = '%s+%dc' % (idx, len(word))
+                if txt_editor_pane.get(idx,lastidx).islower():
+                    txt_editor_pane.tag_add('found', idx, lastidx)
+                else:
+                    txt_editor_pane.tag_add('reserveidenti', idx, lastidx)
+                idx = lastidx
+
+    txt_editor_pane.tag_config('found', foreground='yellow')
+    txt_editor_pane.tag_config('reserveidenti', foreground='white')
+
 # run error reporting
 def fill_err_table():
     pass
