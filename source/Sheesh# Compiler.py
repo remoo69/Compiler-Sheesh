@@ -1,25 +1,22 @@
-keywords = ["text", "charr","whole", "dec", "sus", "blank", "sheesh", "yeet", "based",#added charr, lit->sus, bruh->yeet, steady->based
-            "kung", "ehkung", "deins", "choose", "when", "bet","for", "to", #habang->bet
-            "step", "felloff", "pass", "use", "from", "nocap", "cap", "default", "up", "pa_mine"] 
-
-# import source.helper as helper
 import sys
 sys.path.append( '.' )
-from source.SyntaxAnalyzer import parser2
+import source.LexicalAnalyzer.lexerpy as lex
+import customtkinter as ctk
+import tkinter as tk
+from tkextrafont import Font
 
 from tkinter import *
+from PIL import Image, ImageTk
 from tkinter import constants
 from tkinter import ttk
-import source.LexicalAnalyzer.lexerpy as lex
-# import source.LexicalAnalyzer.prepare as prep
 from tkinter import filedialog
 from tkinter import Event
-# import source.SyntaxAnalyzer.grammar as grammar
-# import source.SyntaxAnalyzer.parser1 as parser
+from source.core.constants import keywords
+from source.SyntaxAnalyzer import parser2
 
 def highlight_reserve_word(*args):
     txt_editor_pane.tag_remove('found', '1.0',END)
-    for word in keywords:
+    for word in keywords:   
         idx = '1.0'
         while idx:
             idx = txt_editor_pane.search(word, idx, nocase=1, stopindex=END)
@@ -33,14 +30,6 @@ def highlight_reserve_word(*args):
 
     txt_editor_pane.tag_config('found', foreground='yellow')
     txt_editor_pane.tag_config('reserveidenti', foreground='white')
-
-# run error reporting
-def fill_err_table():
-    pass
-
-# run lexer function
-def fill_lex_table():
-    pass
 
 def on_scroll(*args):
     line_numbers.yview_moveto(args[0])
@@ -96,7 +85,6 @@ def run_parser():
         if errors==[]:
             error_pane.insert(constants.END,"No errors")
         else:
-            error_pane.delete('1.0', constants.END)
             error_pane.insert(constants.END, f'Syntax Error:\n')
             for error in errors:
                 error_pane.insert(constants.END, f"{error}\n")
@@ -159,9 +147,11 @@ def tab_pressed(event:Event) -> str:
 
 root = Tk()
 
-root.geometry("939x634")
+root.geometry("1200x700")
 root.resizable(False,False)
+root.iconbitmap("source/assets/img/sheesh_logo1.ico")
 root.title("Sheesh Compiler")
+victor_mono = Font(file = f"source/assets/font/VictorMono-Regular.ttf", family = "Victor Mono")
 
 # config color collection
 clr_bg = "#2D2D2D"
@@ -181,45 +171,57 @@ style.configure("Vertical.TScrollbar", troughcolor=clr_black, background=clr_bla
 mainpane = Canvas(
     root,
     bg=clr_black,
-    height=634,
-    width=939,
+    height=700,
+    width=1200,
     bd=0,
     highlightthickness=0,
-    relief="ridge")
+    relief="ridge",
+)
 
 mainpane.place(x=0,y=0)
 
+header_img_tk = ImageTk.PhotoImage(file = f'source/assets/img/header_img.png')
 
-line_numbers = Text(root, bd=0, bg=clr_black, fg="#FFFFFF", font=('Open Sans', 11), width=4, wrap="none", state="disabled")
-line_numbers.place(x=5,y=50,width=20,height=390)
+header_label = ctk.CTkLabel(root, image=header_img_tk, text='')
+header_label.pack(side="top", fill="x")
+
+
+line_numbers = Text(
+                root, 
+                bd=0, 
+                bg=clr_black, 
+                fg="#FFFFFF", 
+                font=(victor_mono, 12), 
+                width=4, 
+                wrap="none", 
+                state="disabled"
+)
+
+line_numbers.place(
+                x=10,y=50,
+                width=20,
+                height=390,
+)
 
 # setting editor section
 txt_editor_pane = Text(
     bd=0,
-    bg=clr_gray,
-    # highlightcolor=
+    bg="#282822",
     highlightthickness=0,
     fg="#FFFFFF",
     insertbackground="white",
     padx=10,
     pady=10,
-    font=('Open Sans', 11,),) 
+    font=(victor_mono, 12,),
+) 
 
 
-txt_editor_pane.place(x=30,y=40,
-                      width=600,height=390)
+txt_editor_pane.place(x=30, y=40, width=870, height=400)
 txt_editor_pane.bind("<Tab>", tab_pressed)
-# txt_editor_pane.pack(side="left", fill="both", expand=True)
 
-# scrollbar = Scrollbar(root, command=on_scroll)
-# scrollbar.pack(side="right", fill="y")
-# line_numbers.configure(yscrollcommand=scrollbar.set)
-# txt_editor_pane.configure(yscrollcommand=scrollbar.set)
-
-# setting lexer output section
 lex_table_pane = Text(
     bd=0,
-    bg=clr_gray,
+    bg="#323232",
     highlightthickness=0,
     fg="#FFFFFF",
     padx=10,
@@ -228,56 +230,33 @@ lex_table_pane = Text(
     state = "disabled",)
 
 lex_table_pane.place(
-    x=640,
+    x=900,
     y=40,
     width=300,
-    height=565)
+    height=660)
 
-# header section
-header_pane = Text(
-    bd = 0,
-    bg = clr_gray,
-    padx = 10,
-    pady = 10,
-    font = ('Open Sans', 10),
-)
-
-header_pane.place(
-    x=0,
-    y=10,
-    width=939,
-    height=25,
-)
-
-# title = mainpane.create_text(
-#     10, 20,
-#     text="Sheesh",
-#     font=('Open Sans ExtraBold', 20),
-#     fill="#211B36",
-# )
-
-# setting lexer output section
 error_pane = Text(
     bd=0,
-    bg=clr_gray,
+    bg="#323232",
     highlightthickness=0,
-    fg="#FFFFFF",
+    fg="red",
     padx=10,
     pady=10,
     font=('Open Sans', 10),
     state = "disabled",)
 
-error_pane.place(x=30,y=435,
-               width=600,height=170)
+error_pane.place(x=0,y=440,width=900,height=260)
 
 
 # run lexer function button
-run_img = PhotoImage(file="source/assets/run.png") 
-load_img=PhotoImage(file="source/assets/load.png")
+run_lex_img = PhotoImage(file="source/assets/img/run_lex.png") 
+run_syn_img = PhotoImage(file="source/assets/img/run_syntax.png") 
+load_img=PhotoImage(file="source/assets/img/load.png")
+
 lex_btn = Button(
-        image=run_img,
+        image=run_lex_img,
         compound=LEFT,
-        bg=clr_gray,
+        bg="#282822",
         borderwidth=0,
         highlightthickness=0,
         activebackground="#AAAAAA",
@@ -286,11 +265,13 @@ lex_btn = Button(
         justify="center",
         command=run_lex,
 )
-lex_btn.place(x=15,y=10,width=25,height=25)
+
+lex_btn.place(x=750,y=40,width=50,height=50)
+
 load_btn=Button(
     image=load_img,
         compound=LEFT,
-        bg=clr_gray,
+        bg="#282822",
         borderwidth=0,
         highlightthickness=0,
         activebackground="#AAAAAA",
@@ -300,13 +281,14 @@ load_btn=Button(
         command=load_file,
 
 )
-load_btn.place(x=50,y=10,width=25,height=25)
+
+load_btn.place(x=850,y=40,width=50,height=50)
 
 
 parse_btn = Button(
-        image=run_img,
+        image=run_syn_img,
         compound=LEFT,
-        bg=clr_gray,
+        bg="#282822",
         borderwidth=0,
         highlightthickness=0,
         activebackground="#AAAAAA",
@@ -315,7 +297,7 @@ parse_btn = Button(
         justify="center",
         command=run_parser,
 )
-parse_btn.place(x=80,y=10,width=25,height=25)
+parse_btn.place(x=800,y=40,width=50,height=50)
 
 scrollbar = ttk.Scrollbar(
     txt_editor_pane, 
