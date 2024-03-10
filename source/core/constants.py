@@ -1,12 +1,16 @@
 # Description: Contains the constants used in the compiler
-#List of Keywords
-keywords = ["text", "charr","whole", "dec", "sus", "blank", "sheesh", "yeet", "based",#added charr, lit->sus, bruh->yeet, steady->based
-            "kung", "ehkung", "deins", "choose", "when", "bet","for", "to", #habang->bet
-            "step", "felloff", "pass", "use", "from", "nocap", "cap", "default", "up", "pa_mine"]     #added choose->choice, default, termins->felloff, gg->pass
-DATA_TYPES=["text","charr", "whole", "dec", "lit", "blank"]
-valid_tokens=["Keyword", "Identifier", "Dec", "Whole", "Symbol", "Operator", "Text", "Charr", "Lit", "Whitespace"]
-valid_cfg_terminals=[ "Identifier", "Dec", "Whole", "Text","Charr", "Lit", "null", "sheesh", "text_literal", "dec_literal", "whole_literal", "lit_literal",
-                     "pa_mine", "up"]#bigay->up, kuha->pa_mine
+# List of Keywords
+
+keywords = ["text", "charr","whole", "dec", "sus", "blank", "sheesh", "yeet", "based",
+            "kung", "ehkung", "deins", "choice", "when", "bet", "choose","for", "to", 
+            "step", "felloff", "pass", "use", "from", "nocap", "cap", "default", "up", "pa_mine", "def", "whilst"] # added def and whilst     
+
+DATA_TYPES = ["text","charr", "whole", "dec", "sus", "blank"]
+valid_tokens = ["Keyword", "Identifier", "Dec", "Whole", "Symbol", "Operator", "Text", "Charr", "Sus", "Whitespace"]
+
+valid_cfg_terminals = ["Identifier", "Dec", "Whole", "Text", "Charr", "Sus", "null", "sheesh", "text_literal", "dec_literal", "whole_literal", "sus_literal",
+                     "pa_mine", "up"]
+
 operators_and_symbols = ['=', '+=', '-=', '*=', '/=', '%=', '==', '>', '>=', '<', '<=', '!=', '!', '&', 
                          '|', '+', '-', '*', '/', '%', '…', '#', '[',']', '{','}', '(',')', '/*', '*/', '//', '“', 
                          '”', '.', '::', ',', '$', '\n', '\t', '\"', '\\', '\\$']
@@ -43,16 +47,15 @@ single_symbols=aop+rop2+lop
 compound_symbols=['+=', '-=', '*=', '/=', '%=','==', '!=','<=', '>=']
 all_op=op+asop+rop1+lop+comma+concat+rop2
 non_op=comma+['#', '_', '.', '@', '^', '&', '(', ')', '`', '~', '::', '?', '$', ';', '[', ']', '{', '}', '/', '`', '^']
-whitespace=space+['\n', '\t', '\t']
+whitespace=space+['\n', '\t']
 grouping_symbols=["{","}", "(", ")", "[", "]" ]
 other_symbols=["#", "::", ]
 all_symbols_nonop=grouping_symbols+other_symbols+[",", "."]
 invalid_id_char=op+comma+['#', '.', '@', '^', '&', '(', ')', '`', '~', ':', '?', '$', ';', '[', ']', '{', '}', '/', '\\', '`', '^', "'", '"']
-invalid_text_char=['"', ]
-invalid_symbols=["@", "^", "&", "`", "~", "?", "$", ";", "'", '`',":", "\\" ]
-#Delimiters used in the Transition Diagram/DFA
+invalid_text_char=['"', "\\"]
+invalid_symbols=["@", "^", "&", "`", "~", "?", "$", ";", "'", '`',":"]
 
-
+# Delimiters used in the Transition Diagram/DFA
 
 delimiters = {
     "op": op,
@@ -61,59 +64,65 @@ delimiters = {
     "alph_all": alph_all,
     "concat": concat,
     "delim1": " ",
-    "delim2": [" ","#", ")", "|"],
-    "delim3": ["(", " ", '{', None],
+    "delim2": [" ","#"],
+    "delim3": ["(", " "],
     "delim4": [" ","\\","{"],
     "delim5": alph_num+[" ","("],
-    "delim6": alph_num+[" ", "{"],
-    "delim7": [" ","}", ""],
-    "delim8": [" ", ""],
-    "delim9": alph_num+[" ","(","{", "!", '"', "'"],#added "
+    "delim6": alph_num+[" ", "(", "{", "\"", "\'"],             # added: (,{,",'}
+    "delim7": [" ","\\","}", ""],
+    "delim8": [" ","\\", ""],
+    "delim9": alph_num+[" ","(","{", "!", '"', "\'"],           # added '
     "delim10": alph_all+[" ","(","!"],
-    "delim11": alph_num+[" ","(","!"],
-    "delim12": op+comma+[" ","#","[",")" ],
-    "delim13": alph_num+[" ","\\","(", "{",None],
-    "delim14": alph_all+[" ","#","}",",",None],
-    "delim15": alph_num+[" ", "!","(", ")", '"', "-", "'"],#added ); added -; added "
-    "delim16": op+comma+[" ", "#", ")", "{","}", ":"],#added {
-    "delim17": alph_num+[" ", '"', "\\", "'"],
-    "delim20": ['"', "'"],
-    "delim21": [" ", ":","::"],
-    "txt_delim": comma+[" ", "#", ")", "}", ":"], #removed concat
+    "delim11": alph_num+[" ","(","!", "\'"],
+    "delim12": all_op+comma+[" ","#","[","]",")" ],
+    "delim13": alph_num+[" ","\\","(", "{", "\"", None],
+    "delim14": alph_all+comma+[" ","#", "}",None],
+    "delim15": alph_num+[" ", "!","(", ")", '"', "-", "\'"],    # added '
+    "delim16": op+comma+[" ", "#", ")", "}", "{", ":"], 
+    "delim17": alph_num+[" ", '"', "\\"],
+    "delim18": comma+[" ","#",")","|", "&","}"],                 # added delim18 for nocap and cap
+    "delim19": alph_num+[" ", "(", "\'"],
+    "delim20": alph_num+[" ","\""],     
+    "delim21": alph_num+op+comma+[" ","#","(",")","{","}","\"","\'"],
+    "delim22": [" ", ":","::"],                                 # added delim22 for default
+    "charr_delim": comma+[" ","#","=",")",":","::"],
+    "txt_delim": comma+[" ", "#", ")", "}", ":"], 
     "blk_delim": [" ", "\\",None],
-    "id_delim": op+comma+[" ", "#", "(",")", "[", "]", "{", "}",".", ":"],
-    "n_delim": op+comma+[" ", "#", "(", ")", ":", "]", "}",","],
+    "id_delim": op+comma+[" ", "#", "(",")", "[", "]", "{", ".", ":"],
+    "n_delim": op+comma+[" ", "#", "(", ")", ":", "]", "}"],
     "space_delim": alph_num+[" ", "#", "(", ")", ":", "}", "]", ","]
 }   
-keywords_delims={"text":delimiters["delim1"], 
-                 "charr":delimiters["delim1"], #added
-                 "whole":delimiters["delim1"], 
-                 "dec": delimiters["delim1"], 
-                 "sus":delimiters["delim1"], #added "
-                 "lit":delimiters["delim1"], 
-                 "blank":delimiters["delim1"], 
-                 "sheesh":delimiters["delim3"], 
-                 "yeet":delimiters["delim2"], 
-                 "based":delimiters["delim1"],
-                 "kung":delimiters["delim3"], 
-                 "ehkung":delimiters["delim3"], 
-                 "deins":delimiters["delim4"], 
-                 "choose":delimiters["delim3"], #from choice to choose
-                 "when":delimiters["delim1"], 
-                 "bet":delimiters["delim3"], 
-                 "for":delimiters["delim1"], 
-                 "to":delimiters["delim1"], 
-                 "step":delimiters["delim1"], 
-                 "felloff":delimiters["delim2"], 
-                 "pass":delimiters["delim2"], 
-                 "use":delimiters["delim1"], 
-                 "from":delimiters["delim1"],
-                 "cap":delimiters["delim2"],
-                 "nocap":delimiters["delim2"],
-                 "up":delimiters["delim3"],
-                 "pa_mine":delimiters["delim3"],
-                 "sheesh":delimiters["delim3"],
-                 "default":delimiters["delim21"]}
+keywords_delims={
+                "based":delimiters["delim1"],
+                "bet":delimiters["delim4"],   
+                "blank":delimiters["delim1"], 
+                "cap":delimiters["delim18"],   
+                "charr":delimiters["delim1"], 
+                "choose":delimiters["delim3"],
+                "dec":delimiters["delim1"],   
+                "def": delimiters["delim1"],
+                "deins":delimiters["delim4"], 
+                "default":delimiters["delim22"], 
+                "ehkung":delimiters["delim3"],
+                "fellof":delimiters["delim2"],
+                "for":delimiters["delim3"],       
+                "from":delimiters["delim1"],  
+                "kung":delimiters["delim3"],  
+                "nocap":delimiters["delim18"], 
+                "pa_mine":delimiters["delim3"],
+                "pass":delimiters["delim2"],  
+                "sheesh":delimiters["delim3"],
+                "step":delimiters["delim1"],  
+                "sus":delimiters["delim1"],   
+                "text":delimiters["delim1"],  
+                "to":delimiters["delim1"],    
+                "up":delimiters["delim3"],    
+                "use":delimiters["delim1"],   
+                "when":delimiters["delim1"],  
+                "whole":delimiters["delim1"],
+                "whilst": delimiters["delim3"], 
+                "yeet":delimiters["delim2"],
+}
 
 symbols_delims={
 #------------------------------------- Operators ------------------------------------------------------    
@@ -161,7 +170,7 @@ RE_Literals={"text": r'^\"(?:(?!(?<!\\)").|\\")*\"$',
               "whole": r"^(0|([1-9]\d{0,4})|\(-[1-9]\d{0,4}\))$", 
               "pos_dec":   r'^(?:[0-9]\d{0,4}|0)\.\d{1,6}$', 
               "neg_dec": r'^\(-(?!0+(\.0+)?)\d{1,5}\.\d{1,6}\)$',
-              "lit": boolean}
+              "sus": boolean}
 
 RE_Identifier=r'[a-zA-Z][a-zA-Z0-9_]*$' #removed {0,8}
 RE_BlockComment=r'/\*.*?\*/'

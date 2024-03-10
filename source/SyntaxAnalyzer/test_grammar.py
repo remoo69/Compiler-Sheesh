@@ -240,6 +240,9 @@ class LL1Parser:
                 return production
         return None
 
+import sys
+sys.path.append( '.' )
+
 from source.LexicalAnalyzer.tokenclass import Token
 from source.SyntaxAnalyzer import parser2 as parser
 
@@ -261,7 +264,10 @@ sample5=[]
 # inp="up  (\"fds\") idididd #"
 # inp="whole add()#"
 # inp="kung(x>5){up(\"\$w is greater than 5\",x)#} deins{up(\"\$w is less than 5\",x)#}"
-inp="usp(3,4,5)#"
+# inp="(1*5+2-3+4)+ 1+2# "
+# inp="(a|b|c&d)|f#"
+inp="up(a)# "
+# inp="a)"
 from source.LexicalAnalyzer.lexerpy import Lexer
 tokens,error=Lexer.tokenize(inp)
 print(tokens)
@@ -270,7 +276,7 @@ print(tokens)
 pars=parser.SyntaxAnalyzer(tokens)
 # print(pars.parse())
 # print(pars.parameter())
-print(pars.single_statement())
+print(pars.up_statement())
 print(pars.buffer)
 print(pars.syntax_errors)
 
