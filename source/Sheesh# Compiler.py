@@ -19,23 +19,6 @@ from tkinter import Event
 # import source.SyntaxAnalyzer.grammar as grammar
 # import source.SyntaxAnalyzer.parser1 as parser
 
-def highlight_reserve_word(*args):
-    txt_editor_pane.tag_remove('found', '1.0',END)
-    for word in keywords:
-        idx = '1.0'
-        while idx:
-            idx = txt_editor_pane.search(word, idx, nocase=1, stopindex=END)
-            if idx:
-                lastidx = '%s+%dc' % (idx, len(word))
-                if txt_editor_pane.get(idx,lastidx).islower():
-                    txt_editor_pane.tag_add('found', idx, lastidx)
-                else:
-                    txt_editor_pane.tag_add('reserveidenti', idx, lastidx)
-                idx = lastidx
-
-    txt_editor_pane.tag_config('found', foreground='yellow')
-    txt_editor_pane.tag_config('reserveidenti', foreground='white')
-
 # run error reporting
 def fill_err_table():
     pass
@@ -45,22 +28,28 @@ def fill_lex_table():
     pass
 
 def highlight_reserve_word(*args):
-    txt_editor_pane.tag_remove('found', '1.0',END)
-    for word in keywords:
-        idx = '1.0'
-        while idx:
-            idx = txt_editor_pane.search(word, idx, nocase=1, stopindex=END)
-            if idx:
-                lastidx = '%s+%dc' % (idx, len(word))
-                if txt_editor_pane.get(idx,lastidx).islower():
-                    txt_editor_pane.tag_add('found', idx, lastidx)
-                else:
-                    txt_editor_pane.tag_add('reserveidenti', idx, lastidx)
-                idx = lastidx
+    txt_editor_pane.tag_remove('found', '1.0', tk.END)
+    txt_editor_pane.tag_remove('reserveidenti', '1.0', tk.END)
+    
+    text = txt_editor_pane.get('1.0', tk.END)
+
+    in_quotes = False
+    for i, char in enumerate(text):
+        if char == '"':
+            in_quotes = not in_quotes
+        elif not in_quotes:
+            for word in keywords:
+                if text[i:i+len(word)] == word:
+                    if i + len(word) == len(text) or not text[i+len(word)].isalnum() and text[i+len(word)] != '_':
+                        start_index = f'1.0+{i}c'
+                        end_index = f'1.0+{i+len(word)}c'
+                        if text[i:i+len(word)].islower():
+                            txt_editor_pane.tag_add('found', start_index, end_index)
+                        else:
+                            txt_editor_pane.tag_add('reserveidenti', start_index, end_index)
 
     txt_editor_pane.tag_config('found', foreground='yellow')
     txt_editor_pane.tag_config('reserveidenti', foreground='white')
-
 def on_scroll(*args):
     line_numbers.yview_moveto(args[0])
     txt_editor_pane.yview_moveto(args[0])
