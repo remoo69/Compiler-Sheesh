@@ -2,7 +2,7 @@
 # List of Keywords
 
 keywords = ["text", "charr","whole", "dec", "sus", "blank", "sheesh", "yeet", "based",
-            "kung", "ehkung", "deins", "choice", "when", "bet", "choose","for", "to", 
+            "kung", "ehkung", "deins", "when", "bet", "choose","for", "to", #removed choice
             "step", "felloff", "pass", "use", "from", "nocap", "cap", "default", "up", "pa_mine", "def", "whilst"] # added def and whilst     
 
 DATA_TYPES = ["text","charr", "whole", "dec", "sus", "blank"]
@@ -85,6 +85,7 @@ delimiters = {
     "delim20": alph_num+[" ","\""],     
     "delim21": alph_num+op+comma+[" ","#","(",")","{","}","\"","\'"],
     "delim22": [" ", ":","::"],                                 # added delim22 for default
+    "delim23": [" ", ")"],             # added delim23 for whole
     "charr_delim": comma+[" ","#","=",")",":","::"],
     "txt_delim": comma+[" ", "#", ")", "}", ":"], 
     "blk_delim": [" ", "\\",None],
@@ -95,7 +96,7 @@ delimiters = {
 keywords_delims={
                 "based":delimiters["delim1"],
                 "bet":delimiters["delim4"],   
-                "blank":delimiters["delim1"], 
+                "blank":delimiters["delim23"], 
                 "cap":delimiters["delim18"],   
                 "charr":delimiters["delim1"], 
                 "choose":delimiters["delim3"],
@@ -104,7 +105,7 @@ keywords_delims={
                 "deins":delimiters["delim4"], 
                 "default":delimiters["delim22"], 
                 "ehkung":delimiters["delim3"],
-                "fellof":delimiters["delim2"],
+                "felloff":delimiters["delim2"],
                 "for":delimiters["delim3"],       
                 "from":delimiters["delim1"],  
                 "kung":delimiters["delim3"],  

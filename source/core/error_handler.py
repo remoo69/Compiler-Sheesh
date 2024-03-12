@@ -354,7 +354,7 @@ class LexError:
                 elif tokencode[i] not in const.delimiters["txt_delim"]:
                     errobj.errorval=buffer
                     errobj.remaining=tokencode.replace(buffer, '', 1)
-                    errobj.error_type=f"Invalid Charr Delimiter for {buffer}"
+                    errobj.error_type=f"Invalid Delimiter for Charr, {buffer}"
                     errobj.line=tkc.Token.line_num
                     return errobj
                 elif len(buffer)==len(tokencode):
@@ -375,10 +375,11 @@ class LexError:
             return None
         elif LexError.get_error_numeric(tokencode):
             return LexError.get_error_numeric(tokencode)
-        elif LexError.get_error_symbol(tokencode):
-            return LexError.get_error_symbol(tokencode)
         elif LexError.get_error_charr(tokencode):
             return LexError.get_error_charr(tokencode)
+        elif LexError.get_error_symbol(tokencode):
+            return LexError.get_error_symbol(tokencode)
+        
         elif LexError.get_error_text(tokencode):
             return LexError.get_error_text(tokencode)
         elif LexError.get_error_keyword(tokencode):
@@ -411,3 +412,7 @@ class SyntaxError:
 
     def __repr__(self) -> str:
         return f"Unexpected {self.unexpected} at line {self.line}, expected {self.expected}"
+    
+
+test="'\\n'#"
+print(LexError.get_errors(test))

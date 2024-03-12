@@ -1,5 +1,5 @@
 keywords = ["text", "charr","whole", "dec", "sus", "blank", "sheesh", "yeet", "based",
-            "kung", "ehkung", "deins", "choice", "when", "bet", "choose","for", "to", 
+            "kung", "ehkung", "deins", "when", "bet", "choose","for", "to", 
             "step", "felloff", "pass", "use", "from", "nocap", "cap", "default", "up", "pa_mine", "def", "whilst"]
 # import source.helper as helper
 import sys

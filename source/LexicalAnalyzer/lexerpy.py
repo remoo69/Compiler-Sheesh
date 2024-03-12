@@ -42,6 +42,8 @@ class Lexer:
                     break
             elif result:=prep.get_inline_comments(code):
                 current_token, code=result
+            # elif result:=prep.get_sus(code):
+            #     current_token, code=result
             elif result := prep.get_keyword(code):
                 current_token, code = result
                 tktype = "keyword"
@@ -77,7 +79,10 @@ class Lexer:
             if current_token:
                 category=tkc.LexerCheck.categorize(current_token)
                 if category == "Keyword" or category =="Operator" or category=="Symbol":
-                    token = tkc.Token(value=current_token, type=current_token, attribute=current_token, line=tkc.Token.line_num, position=tkc.Token.tok_num)
+                    if current_token=="cap" or current_token=="nocap":
+                        token=tkc.Token(value=current_token, type="Sus", attribute=current_token, line=tkc.Token.line_num, position=tkc.Token.tok_num)
+                    else:
+                        token = tkc.Token(value=current_token, type=current_token, attribute=current_token, line=tkc.Token.line_num, position=tkc.Token.tok_num)
                 elif category=="Identifier":
                     try:
                         if current_token in tkc.Token.id_dict:

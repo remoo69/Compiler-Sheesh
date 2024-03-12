@@ -201,6 +201,8 @@ def get_dec(token):
 #     if get_keyword(token)==const.boolean:
 #         return 
 
+
+
 def get_keyword(token):
     token_cpy=''
     temp_token=''
@@ -349,5 +351,5 @@ def prepare(code):
     return lines
 
 
-test="::"
-print(get_symbol(test))
+# test="'\n'"
+# print(get_charr(test))

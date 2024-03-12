@@ -260,13 +260,17 @@ sample5=[]
 # inp="up(\"I love ninjas\")# }"
 # inp=" use add() from h#"
 # inp="sheesh(){ up(\"I love ninjas\")#} sheesh(){ up(\"I love ninjas2\")#}"
+# inp="float result= func(3,4)#"
+inp="2 "
+
+
 # inp="whole whole a=1, b=2, g=3# dec d=5#"
 # inp="up  (\"fds\") idididd #"
 # inp="whole add()#"
 # inp="kung(x>5){up(\"\$w is greater than 5\",x)#} deins{up(\"\$w is less than 5\",x)#}"
 # inp="(1*5+2-3+4)+ 1+2# "
 # inp="(a|b|c&d)|f#"
-inp="up(a)# "
+# inp="def add(whole a){ }} "
 # inp="a)"
 from source.LexicalAnalyzer.lexerpy import Lexer
 tokens,error=Lexer.tokenize(inp)
@@ -274,13 +278,13 @@ print(tokens)
 tokens= [x for x in tokens if x.type!="Whitespace" and x.type!="Block Comment" and x.type!="Inline Comment"]
 print(tokens)
 pars=parser.SyntaxAnalyzer(tokens)
-# print(pars.parse())
+# print(pars.sheesh_declaration())
 # print(pars.parameter())
-print(pars.up_statement())
+print(pars.concat_val())
 print(pars.buffer)
 print(pars.syntax_errors)
 
 
-# pars=parser.SyntaxAnalyzer(q)
+# pars=parser.SyntaxAnalyzer(q5)
 # print(pars.match("from"))
 # print(pars.tokens)
