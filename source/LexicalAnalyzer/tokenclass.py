@@ -91,19 +91,22 @@ class Token:
 class LexerCheck:
     @staticmethod    
     def is_Text(Token: str) -> bool: #rewritten with gpt
-        if not Token.startswith('"') or not Token.endswith('"'):
+        if not Token.startswith('"') and not Token.endswith('"'):
             return False
 
-        escaped = False
-        for char in Token[1:-1]:
-            if escaped:
-                escaped = False
-            elif char == '\\':
-                escaped = True
-            elif char == '"':
-                return False
+        if any(invalid in Token[1:-1] for invalid in const.invalid_text_char):
+            return False
+        else: return True
+        # escaped = False
+        # for char in Token[1:-1]:
+        #     if escaped:
+        #         escaped = False
+        #     elif char == '\\':
+        #         escaped = True
+        #     elif char == '"':
+        #         return False
 
-        return not escaped
+        # return not escaped
     @staticmethod    
     def is_Identifier(Token): #rewritten
         try:
@@ -239,3 +242,5 @@ class LexerCheck:
         else: return False
 
 
+test='"'
+print(LexerCheck.is_Text(test))

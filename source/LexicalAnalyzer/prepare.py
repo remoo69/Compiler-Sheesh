@@ -351,5 +351,5 @@ def prepare(code):
     return lines
 
 
-# test="'\n'"
-# print(get_charr(test))
+test='\" hello\"#'
+print(get_text(test))
