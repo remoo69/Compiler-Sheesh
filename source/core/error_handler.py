@@ -334,49 +334,93 @@ class LexError:
         errobj=Error()
         errobj.error_class="Lexical Error"
 
+        # while i<len(tokencode):
+        #     if tokencode.startswith("'"):
+        #         buffer += tokencode[i]
+        #         if tokencode[i] in const.invalid_text_char:
+        #             errobj.errorval=buffer
+        #             errobj.remaining=tokencode.replace(buffer, '', 1)
+        #             errobj.error_type=f"Invalid Charr Delimiter, {buffer}"
+        #             errobj.line=tkc.Token.line_num
+        #             return errobj
+        #         elif tokencode[-1]=="'":
+        #             buffer=tokencode[0:len(tokencode)-1]
+        #             errobj.errorval=buffer
+        #             errobj.remaining=tokencode.replace(buffer, '', 1)
+        #             errobj.error_type=f"Invalid Null Delimiter for Charr"
+        #             errobj.line=tkc.Token.line_num
+        #             return errobj
+        #         elif tokencode[i]
+                # if tokencode[-1]=="'":
+                #     if len(tokencode)>3:
+                #         errobj.errorval=tokencode[0:len(tokencode)-1]
+                #         errobj.remaining=tokencode.replace(buffer, '', 1)
+                #         errobj.error_type=f"Invalid Length for Charr,'{buffer}'"
+                #         errobj.line=tkc.Token.line_num
+                #         return errobj
+                #     else:
+                #         errobj.errorval=tokencode[0:len(tokencode)-1]
+                #         errobj.remaining=tokencode.replace(buffer, '', 1)
+                #         errobj.error_type=f"Invalid Null Delimiter for Charr '{buffer}'"
+                #         errobj.line=tkc.Token.line_num
+                #         return errobj
+                
+                # elif tokencode[i] not in const.delimiters["txt_delim"]:
+                #     errobj.errorval=buffer
+                #     errobj.remaining=tokencode.replace(buffer, '', 1)
+                #     errobj.error_type=f"Invalid Delimiter for Charr, {buffer}"
+                #     errobj.line=tkc.Token.line_num
+                #     return errobj
+                # elif len(buffer)==len(tokencode):
+                #     errobj.errorval=buffer
+                #     errobj.remaining=tokencode.replace(buffer, '', 1)
+                #     errobj.error_type=f"No Closing Quote for {buffer}"
+                #     errobj.line=tkc.Token.line_num
+                #     return errobj
+            #     i += 1
+            
+            # else: return None
         while i<len(tokencode):
             if tokencode.startswith("'"):
                 buffer += tokencode[i]
-                if tokencode[-1]=="'":
-                    if len(tokencode)>3:
-                        errobj.errorval=tokencode[0:len(tokencode)-1]
-                        errobj.remaining=tokencode.replace(buffer, '', 1)
-                        errobj.error_type=f"Invalid Length for Charr,'{buffer}'"
-                        errobj.line=tkc.Token.line_num
-                        return errobj
-                    else:
-                        errobj.errorval=tokencode[0:len(tokencode)-1]
-                        errobj.remaining=tokencode.replace(buffer, '', 1)
-                        errobj.error_type=f"Invalid Null Delimiter for Charr '{buffer}'"
-                        errobj.line=tkc.Token.line_num
-                        return errobj
-                
-                elif tokencode[i] not in const.delimiters["txt_delim"]:
-                    errobj.errorval=buffer
+                if tokencode[len(tokencode)-1]=="'":
+                    errobj.errorval=tokencode[0:len(tokencode)-1]
                     errobj.remaining=tokencode.replace(buffer, '', 1)
-                    errobj.error_type=f"Invalid Delimiter for Charr, {buffer}"
+                    errobj.error_type=f"Invalid Null Delimiter for Charr '{buffer}'"
                     errobj.line=tkc.Token.line_num
                     return errobj
+                # elif tokencode[i] not in const.delimiters["txt_delim"]:
+                #     errobj.errorval=buffer
+                #     errobj.remaining=tokencode.replace(buffer, '', 1)
+                #     errobj.error_type=f"Invalid Charr Delimiter for {buffer}"
+                #     errobj.line=tkc.Token.line_num
+                #     return errobj
                 elif len(buffer)==len(tokencode):
                     errobj.errorval=buffer
                     errobj.remaining=tokencode.replace(buffer, '', 1)
                     errobj.error_type=f"No Closing Quote for {buffer}"
                     errobj.line=tkc.Token.line_num
                     return errobj
+                elif len(buffer)>3 and buffer[-1]=="'":
+                    errobj.errorval=buffer
+                    errobj.remaining=tokencode.replace(buffer, '', 1)
+                    errobj.error_type=f"Invalid Charr Length"
+                    errobj.line=tkc.Token.line_num
+                    return errobj
                 i += 1
             
             else: return None
-            
         # return buffer, tokencode.replace(buffer, '', 1)
 
     @staticmethod
     def get_errors(tokencode): #this should return the errotype as well
         if tokencode is None:
             return None
-        elif LexError.get_error_numeric(tokencode):
-            return LexError.get_error_numeric(tokencode)
         elif LexError.get_error_charr(tokencode):
             return LexError.get_error_charr(tokencode)
+        elif LexError.get_error_numeric(tokencode):
+            return LexError.get_error_numeric(tokencode)
+        
         elif LexError.get_error_symbol(tokencode):
             return LexError.get_error_symbol(tokencode)
         
@@ -415,4 +459,4 @@ class SyntaxError:
     
 
 test="'\\n'#"
-print(LexError.get_errors(test))
+print(LexError.get_error_charr(test))

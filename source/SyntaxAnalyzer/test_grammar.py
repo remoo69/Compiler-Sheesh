@@ -261,7 +261,7 @@ sample5=[]
 # inp=" use add() from h#"
 # inp="sheesh(){ up(\"I love ninjas\")#} sheesh(){ up(\"I love ninjas2\")#}"
 # inp="float result= func(3,4)#"
-inp=",2 "
+inp="1>2 "
 
 
 # inp="whole whole a=1, b=2, g=3# dec d=5#"
@@ -280,7 +280,7 @@ print(tokens)
 pars=parser.SyntaxAnalyzer(tokens)
 # print(pars.sheesh_declaration())
 # print(pars.parameter())
-print(pars.concat_val())
+print(pars.condition())
 print(pars.buffer)
 print(pars.syntax_errors)
 

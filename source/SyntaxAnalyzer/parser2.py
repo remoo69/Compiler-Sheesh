@@ -725,22 +725,93 @@ class SyntaxAnalyzer:
                             return self.success
         else: return self.failed()
 
-    
-    
+    # @nullable
+    def more(self, type):
+        if type in ["Whole", "Text", "Charr", "Dec", "Sus"]:
+            self.isnullable=True
+            if self.match(","):
+                self.enforce()
+                self.match("Identifier")
+                self.match("=")
+                self.match(type)
+                if self.more_more(type)==self.success:
+                    return self.success
+            else: return self.success
+
+    # @nullable
+    def more_more(self, type):
+        if self.more(type)==self.success:
+            return self.success
+        
+        else: return self.success
+
     def var_or_seq_dec(self):
+        
+        if self.match("whole"):
+            # self.var_seq_tail()
+            self.enforce()
+            self.match("Identifier")
+            self.match("=")
+            self.match("Whole")
+            self.enforce()
+            self.more("Whole")
+            self.match("#")
+            return self.success
+        elif self.match("dec"):
+            # self.var_seq_tail()
+            self.enforce()
+            self.match("Identifier")
+            self.match("=")
+            self.match("Dec")
+            self.enforce()
+            self.more("Dec")
+            self.match("#")
+            return self.success
+        elif self.match("text"):
+            # self.var_seq_tail()
+            self.enforce()
+            self.match("Identifier")
+            self.match("=")
+            self.match("Text")
+            self.enforce()
+            self.more("Text")
+            self.match("#")
+            return self.success
+        elif self.match("charr"):
+            # self.var_seq_tail()
+
+            self.enforce()
+            self.match("text")
+            self.match("Identifier")
+            self.match("=")
+            self.match("Charr")
+            self.enforce()
+            self.more("Charr")
+            self.match("#")
+            return self.success
+        if self.match("sus"):
+            # self.var_seq_tail()
+            self.enforce()
+            self.match("Identifier")
+            self.match("=")
+            self.match("Sus")
+            self.enforce()
+            self.more("Sus")
+            self.match("#")
+            return self.success
         if self.var_seq_common()==self.success:
             self.var_seq_tail()
             self.enforce()
             self.match("#")
             return self.success
-        elif self.match("charr"):
-            self.enforce()
-            self.match("text")
-            self.match("Identifier")
-            self.vardec_tail()
-            self.enforce()
-            self.match("#")
-            return self.success
+        # elif self.match("charr"):
+        #     self.enforce()
+        #     self.match("text")
+        #     self.match("Identifier")
+        #     self.vardec_tail()
+        #     self.enforce()
+        #     self.match("#")
+        #     return self.success
         else: return self.failed()
 
     def var_seq_common(self):
@@ -840,7 +911,7 @@ class SyntaxAnalyzer:
             return self.successa
         else: return self.failed()  
 
-    @nullable
+    # @nullable
     def assign_value(self):
         if self.id_as_val()==self.success:
             self.all_op()
@@ -1130,7 +1201,9 @@ class SyntaxAnalyzer:
             self.match("::")
             if self.statement_for_choose()==self.success:
                 self.more_statement_for_choose()
-            else: return self.failed()
+            else: 
+                self.enforce()
+                return self.failed()
             self.more_when()
             return self.success
         else: return self.failed()
@@ -1244,7 +1317,7 @@ class SyntaxAnalyzer:
         else: return self.failed()
 
     def loop_body_statement(self):
-        if (self.loop_kung()==self.success) or (self.loop_choose()==self.success) or (self.loop_control_statement()==self.success) or (self.allowed_in_loop()==self.success):
+        if (self.allowed_in_loop()==self.success) or (self.loop_choose()==self.success) or (self.loop_control_statement()==self.success)or (self.loop_kung()==self.success)  :
             return self.success
         else: return self.failed()
 
@@ -1604,15 +1677,25 @@ class SyntaxAnalyzer:
 
     def relational_expression(self):
         if  self.num_or_arithmexpr()==self.success:
-            self.relop()
-            self.num_or_arithmexpr()
-            return self.success
+            if self.peek()=="==":
+                self.relop()
+                self.match("Charr", True) or self.num_or_arithmexpr2() 
+                return self.success
+            else: 
+                self.relop()
+                self.num_or_arithmexpr2() 
+                return self.success
         elif self.match("Charr") :
             self.enforce()
             self.match("==")
             self.match("Charr")
         else: return self.failed()
 
+    def num_or_arithmexpr2(self):
+         if self.arithm_term()==self.success:
+            self.arithm_addtail()
+            return self.success
+         else: return self.failed
     # deprec 
     def relexrp_with_paren(self):
         if self.match("("):
@@ -1633,7 +1716,9 @@ class SyntaxAnalyzer:
                 self.match("==")
                 self.charr_val()
                 return self.success
-            else: return self.failed()
+            else: 
+                
+                return self.failed()
 
     # deprec 
     def charr_val(self):
@@ -1755,9 +1840,10 @@ class SyntaxAnalyzer:
                 self.expectset.extend(expects)
                 self.enforce()
                 return self.failed()
-        elif self.match("Sus"):
-            return self.success
+        
         elif self.relational_expression()==self.success:
+            return self.success
+        elif self.match("Sus"):
             return self.success
         else: return self.failed()
             

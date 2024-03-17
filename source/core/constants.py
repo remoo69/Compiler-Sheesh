@@ -35,7 +35,7 @@ comma = [',']
 concat = ['...']
 null = None
 space = [' ']
-esc_seq = [r'\t', r'\n', r'\"', r'\\', r'\$']
+esc_seq = [r'\t', r'\n', r'\"', r'\\']
 op = aop+rop2+lop
 symbols = op+comma+[ '#', '_', '.', '@', '^', '&', '(', ')', '`', '“', '~', '::', '?', '$', ';', '[', ']', '\\', '{', '}', '/', '`', '^']#space+
 alph_all = abc_cap+abc_small
@@ -52,8 +52,9 @@ grouping_symbols=["{","}", "(", ")", "[", "]" ]
 other_symbols=["#", "::", ]
 all_symbols_nonop=grouping_symbols+other_symbols+[",", "."]
 invalid_id_char=op+comma+['#', '.', '@', '^', '&', '(', ')', '`', '~', ':', '?', '$', ';', '[', ']', '{', '}', '/', '\\', '`', '^', "'", '"']
-invalid_text_char=['"', "\\"]
+invalid_text_char=['"', ]
 invalid_symbols=["@", "^", "&", "`", "~", "?", "$", ";", "'", '`',":"]
+
 
 # Delimiters used in the Transition Diagram/DFA
 

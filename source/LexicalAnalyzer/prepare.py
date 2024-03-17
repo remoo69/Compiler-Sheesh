@@ -351,5 +351,5 @@ def prepare(code):
     return lines
 
 
-test='\" hello\"#'
+test='\"$whello\"#'
 print(get_text(test))

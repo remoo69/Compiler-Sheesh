@@ -264,3 +264,6 @@ class Lexer:
 #     print(tokenized)
 
 # main()
+test="'\\n'#"
+
+print(Lexer.gettokens(test))

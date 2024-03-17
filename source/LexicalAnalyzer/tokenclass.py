@@ -94,7 +94,9 @@ class LexerCheck:
         if not Token.startswith('"') and not Token.endswith('"'):
             return False
 
-        if any(invalid in Token[1:-1] for invalid in const.invalid_text_char):
+        if Token.count('"') != 2:
+            return False
+        elif any(invalid in Token[1:-1] for invalid in const.invalid_text_char):
             return False
         else: return True
         # escaped = False
@@ -198,7 +200,7 @@ class LexerCheck:
 
     @staticmethod
     def is_Charr(Token):
-        if Token.startswith("'") and Token.endswith("'") and ((len(Token)==3 and ((Token[1:-1] ) or Token[1:-1].isalpha())) or (len(Token)==2 and Token=="''")):
+        if (Token.startswith("'") and Token.endswith("'")) and (((len(Token)==3 and ((Token[1:-1] ) or Token[1:-1].isalpha())) or (len(Token)==2 and Token=="''")) or (len(Token)==4 and (Token[1:-1] in const.esc_seq))):
             return True
         else: return False
 
