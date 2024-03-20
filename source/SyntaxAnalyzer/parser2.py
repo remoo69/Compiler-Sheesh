@@ -683,6 +683,7 @@ class SyntaxAnalyzer:
         elif self.assign_op()==self.success:
             self.enforce()
             self.assign_value()
+            self.enforce()
             self.match("#")
             return self.success
         else:
@@ -757,10 +758,11 @@ class SyntaxAnalyzer:
             if self.match(","):
                 self.enforce()
                 self.match("Identifier")
-                self.match("=")
-                self.match(type)
-                if self.more_more(type)==self.success:
-                    return self.success
+                if self.match("=", True):
+                    self.match(type)
+                    if self.more_more(type)==self.success:
+                        return self.success
+                else: self.more_more(type)
             else: return self.success
 
     # @nullable
@@ -776,30 +778,34 @@ class SyntaxAnalyzer:
             # self.var_seq_tail()
             self.enforce()
             self.match("Identifier")
-            self.match("=")
-            self.match("Whole")
-            self.enforce()
+            if self.match("=", True):
+                self.enforce
+                self.match("Whole")
+                self.enforce()
             self.more("Whole")
+            self.enforce()
             self.match("#")
             return self.success
         elif self.match("dec"):
             # self.var_seq_tail()
             self.enforce()
             self.match("Identifier")
-            self.match("=")
-            self.match("Dec")
-            self.enforce()
+            if self.match("=", True):
+                self.match("Dec")
+                self.enforce()
             self.more("Dec")
+            self.enforce()
             self.match("#")
             return self.success
         elif self.match("text"):
             # self.var_seq_tail()
             self.enforce()
             self.match("Identifier")
-            self.match("=")
-            self.match("Text")
-            self.enforce()
+            if self.match("="):
+                self.match("Text")
+                self.enforce()
             self.more("Text")
+            self.enforce()
             self.match("#")
             return self.success
         elif self.match("charr"):
@@ -808,20 +814,22 @@ class SyntaxAnalyzer:
             self.enforce()
             self.match("text")
             self.match("Identifier")
-            self.match("=")
-            self.match("Charr")
-            self.enforce()
+            if self.match("=", True):
+                self.match("Charr")
+                self.enforce()
             self.more("Charr")
+            self.enforce()
             self.match("#")
             return self.success
         if self.match("sus"):
             # self.var_seq_tail()
             self.enforce()
             self.match("Identifier")
-            self.match("=")
-            self.match("Sus")
-            self.enforce()
+            if self.match("="):
+                self.match("Sus")
+                self.enforce()
             self.more("Sus")
+            self.enforce()
             self.match("#")
             return self.success
         if self.var_seq_common()==self.success:
@@ -880,6 +888,8 @@ class SyntaxAnalyzer:
         if self.match("="):     
             self.enforce()
             if self.assign_value()==self.success:
+                self.enforce()
+                self.match("#")
                 return self.success
             else:
                 expects=["Whole", "Dec"] 
@@ -912,6 +922,7 @@ class SyntaxAnalyzer:
             self.enforce()
             self.assign_op()
             self.assign_value()
+            self.match("#")
             return self.success
         else: return self.failed()
 
