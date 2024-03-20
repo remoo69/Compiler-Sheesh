@@ -701,6 +701,7 @@ class SyntaxAnalyzer:
     
     def io_statement(self):
         if self.pa_mine_statement()==self.success:
+            self.match("#")
             return self.success
         elif self.up_statement()==self.success:
             return self.success
@@ -713,9 +714,7 @@ class SyntaxAnalyzer:
             if self.match("("):
                 if self.argument():
                     if self.match(")"):
-                        if self.match("#"):
-                            return self.success
-                        else: return self.failed()
+                        return self.success
                     else: return self.failed()
                 else: return self.failed()
             else: return self.failed()
