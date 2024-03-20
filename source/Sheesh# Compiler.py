@@ -67,10 +67,15 @@ def run_lex():
     code=txt_editor_pane.get("1.0", END)
     tokens,error=lex.Lexer.tokenize(code)
     # tokens=remove_whitespace_type(tokens)
-    print_lex(tokens)
-    print_error(error)
-    lex_table_pane.config(state="disabled")
-    error_pane.config(state="disabled")
+    if tokens:
+        print_lex(tokens)
+        print_error(error)
+        lex_table_pane.config(state="disabled")
+        error_pane.config(state="disabled")
+    else:
+        print_error(["Nothing to Lexically Analyze. Please input code."])
+        lex_table_pane.config(state="disabled")
+        error_pane.config(state="disabled")
 
 
 def run_parser():
@@ -82,6 +87,7 @@ def run_parser():
     print_lex(tokens)
     if error:
         error_pane.config(state="normal")
+        error_pane.config(foreground= yellow)
         error_pane.delete('1.0', constants.END)
         error_pane.insert(constants.END, "Can't Parse, Resolve Lexical Errors:\n")
         for err in error:
@@ -102,8 +108,11 @@ def run_parser():
         error_pane.delete('1.0', constants.END)
 
         if errors==[]:
-            error_pane.insert(constants.END,"No errors")
+            error_pane.config(foreground= green)
+            error_pane.insert(constants.END, "No Syntax Errors")
+            
         else:
+            error_pane.config(foreground= yellow)
             error_pane.insert(constants.END, f'Syntax Error:\n')
             for error in errors:
                 error_pane.insert(constants.END, f"{error}\n")
@@ -137,18 +146,24 @@ def print_lex(tokenlist):                      # Print Text to Lexical Pane
 
 
 def print_error(error):
-    error_pane.config(state="normal")
-    error_pane.delete('1.0', constants.END)
-    for err in range(len(error)):
-        if err+1 == len(error):
-            if error[err] != '':
-                error_pane.insert(constants.END, f'{error[err]}\n')
-        else:
-            if error[err] != '':
-                if error[err] != error[err+1]:
+    if error==[]:
+        error_pane.config(foreground= green)
+        error_pane.insert(constants.END, "No Lexical Errors")
+    else:
+        error_pane.config(state="normal")
+        error_pane.delete('1.0', constants.END)
+        error_pane.config(foreground= yellow)
+        error_pane.insert(constants.END, "Lexical Errors:\n")
+        for err in range(len(error)):
+            if err+1 == len(error):
+                if error[err] != '':
                     error_pane.insert(constants.END, f'{error[err]}\n')
             else:
-                continue
+                if error[err] != '':
+                    if error[err] != error[err+1]:
+                        error_pane.insert(constants.END, f'{error[err]}\n')
+                else:
+                    continue
 
 
 def load_file():
@@ -172,6 +187,8 @@ root.iconbitmap("source/assets/sheesh_logo1.ico")
 root.title("Sheesh Compiler")
 
 # config color collection
+yellow="#FFF700"
+green="#1BFC06"
 clr_bg = "#2D2D2D"
 clr_black = "#202020"
 clr_gray = "#272727"
@@ -241,7 +258,7 @@ error_pane = Text(
     bd=0,
     bg="#323232",
     highlightthickness=0,
-    fg="red",
+    fg=yellow,
     padx=10,
     pady=10,
     font=('Open Sans', 10),

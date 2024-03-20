@@ -69,7 +69,7 @@ class SyntaxAnalyzer:
     def parse(self):
         self.reset()
         if len(self.tokens)==0:
-            self.syntax_errors.append("No tokens to parse fool")
+            self.syntax_errors.append("No Tokens to Syntactically Analyze. Please Input Code.")
             return self.syntax_errors
         else:
             try:
@@ -407,7 +407,10 @@ class SyntaxAnalyzer:
                         else: self.failed()
 
         
-        else: return self.failed()
+        else:
+            expects=["whole", "dec", "text", "sus", "blank", "def"]
+            self.expectset.extend(expects) 
+            return self.failed()
     
     # def var_or_seq_or_funcinvoc_dec_tail(self):
     #     if self.var_seq_tail()==self.success:
@@ -582,6 +585,9 @@ class SyntaxAnalyzer:
             if self.match("Whole", True) or self.match("Dec", True) :
                 return self.success
             else: return self.failed()
+        else: 
+            expects=["Whole", "Dec"]
+            self.expectset.extend(expects)
 
     @require
     def sheesh_declaration(self):
@@ -675,6 +681,7 @@ class SyntaxAnalyzer:
             self.match("#")
             return self.success
         elif self.assign_op()==self.success:
+            self.enforce()
             self.assign_value()
             self.match("#")
             return self.success
@@ -700,7 +707,7 @@ class SyntaxAnalyzer:
 
     
     def pa_mine_statement(self):
-        if self.match("pa_mine", True):
+        if self.match("pa_mine"):
             self.enforce()
             if self.match("("):
                 if self.argument():
@@ -718,13 +725,31 @@ class SyntaxAnalyzer:
         if self.match("up", True):
             self.enforce()
             if self.match("("):
-                if self.func_argument():
+                if self.up_func_argument():
                     # self.enforce()
                     if self.match(")"):
                         if self.match("#"):
                             return self.success
         else: return self.failed()
 
+    def up_func_argument(self):
+        if self.match("Text", True):
+            self.up_func_argument_tail()
+            return self.success
+        elif self.match("Charr", True):
+            return self.success
+        elif self.match("Identifier", True):
+            return self.success
+        else: 
+            return self.failed()
+        
+    @nullable
+    def up_func_argument_tail(self):
+        if self.match(","):
+            self.enforce()
+            if self.match("Identifier"):
+                return self.success
+        else: return self.failed()
     # @nullable
     def more(self, type):
         if type in ["Whole", "Text", "Charr", "Dec", "Sus"]:
@@ -892,12 +917,15 @@ class SyntaxAnalyzer:
 
     #deprec
     def common_val(self):
-        if self.peek()=="Identifier":
+        if self.peek()=="Identifier" and self.peek(1) in ["(", "["]:
             if self.match("Identifier"):
                     self.common_val_tail()
                     return self.success
             #self.match("Identifier") or 
             else: return self.failed()
+        else: 
+            expects=["Identifier"]
+            self.expectset.extend(expects)
 
     # def assign_value_tail(self):
     @nullable
@@ -951,7 +979,9 @@ class SyntaxAnalyzer:
             return self.success
         elif self.a_val_withparen()==self.success:
             return self.success
-        else: return self.failed()
+        else:
+            self.enforce() 
+            return self.failed()
         # self.isnullable=False
         
         
@@ -1567,6 +1597,9 @@ class SyntaxAnalyzer:
                 self.seq_one_dim()
                 return self.success
             else: return self.failed()
+        else:
+            expects=["Identifier"]
+            self.expectset.extend(expects)
 
     # Deprec 
     def seq_use_assign(self):
@@ -1609,7 +1642,10 @@ class SyntaxAnalyzer:
                     self.relational_expression()
                     return self.success
                 else: return self.failed()
-        else: return self.failed()
+        else:
+            expects=["Identifier", "Whole", "Dec", "Text", "Sus", "Charr", "("]
+            self.expectset.extend(expects) 
+            return self.failed()
         
     # deprec 
     def arithmetic_expression(self):
@@ -1717,7 +1753,8 @@ class SyntaxAnalyzer:
                 self.charr_val()
                 return self.success
             else: 
-                
+                expects=["Whole", "Dec", "Identifier"]
+                self.expectset.extend(expects)
                 return self.failed()
 
     # deprec 
@@ -1726,6 +1763,10 @@ class SyntaxAnalyzer:
             if (self.common_val()==self.success) or self.match("Charr"):
                 return self.success
             else: return self.failed()
+        else:
+            expects=["Charr", "Identifier"]
+            self.expectset.extend(expects)
+            return self.failed()
 
     def relop(self):
         if self.match("==") or self.match(">") or self.match(">=") or self.match("<") or self.match("<=") or self.match("!="):
@@ -1761,7 +1802,10 @@ class SyntaxAnalyzer:
         elif (self.logic_value()==self.success) or (self.logical_not_expression()==self.success):
             return self.success
         
-        else: return self.failed()
+        else:
+            expects=["("] 
+            self.expectset.extend(expects)
+            return self.failed()
 
     def logic_tail(self):
         if self.match("|"):
@@ -1845,7 +1889,10 @@ class SyntaxAnalyzer:
             return self.success
         elif self.match("Sus"):
             return self.success
-        else: return self.failed()
+        else:
+            expects=["Identifier"]
+            self.expectset.extend(expects) 
+            return self.failed()
             
     #deprec
     def text_concat(self):
@@ -1894,9 +1941,12 @@ class SyntaxAnalyzer:
             if self.peek()=="{":
                 self.reg_body()
                 return self.success
-            # else: 
-            #     self.match("#")
-            #     return self.success
+            else: 
+                expects=["{"]
+                self.expectset.extend(expects)
+                if self.match("#"):
+                    return self.success
+                else: return self.failed()
         else: return self.failed()
 
     @nullable

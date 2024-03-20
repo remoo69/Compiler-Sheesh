@@ -35,14 +35,14 @@ class LexError:
         if buffer in const.invalid_symbols:
             errobj.errorval=buffer
             errobj.remaining=tokencode.replace(buffer, '', 1)
-            errobj.error_type=f"Invalid Symbol '{buffer}'"
+            errobj.error_type=f"Invalid Symbol '{buffer}', expected {const.all_op} or {const.all_symbols_nonop} "
             errobj.line=tkc.Token.line_num
             return errobj
         if tokencode[0:3]=="..." and i+4<len(tokencode) and tokencode[i+4] not in const.symbols_delims["..."]:
             buffer=tokencode[0:3]
             errobj.errorval=buffer
             errobj.remaining=tokencode.replace(buffer, '', 1)
-            errobj.error_type=f"Invalid Delimiter for Symbol '{buffer}', '{tokencode[i + 3]}' "
+            errobj.error_type=f"Invalid Delimiter for Symbol '{buffer}', '{tokencode[i + 3]}', expected {const.symbols_delims[buffer]} "
             errobj.line=tkc.Token.line_num
             return errobj
         if buffer in const.all_op or buffer in const.all_symbols_nonop:
@@ -54,25 +54,25 @@ class LexError:
                         if i + 3 < len(tokencode) and buffer + tokencode[i + 3] not in const.all_op:
                             errobj.errorval=buffer
                             errobj.remaining=tokencode.replace(buffer, '', 1)
-                            errobj.error_type=f"Invalid Delimiter for Symbol '{buffer}', '{tokencode[i + 3]}' "
+                            errobj.error_type=f"Invalid Delimiter for Symbol '{buffer}', '{tokencode[i + 3]}', expected {const.symbols_delims[buffer]} "
                             errobj.line=tkc.Token.line_num
                             return errobj
                     else:
                         errobj.errorval=buffer
                         errobj.remaining=tokencode.replace(buffer, '', 1)
-                        errobj.error_type=f"Invalid Delimiter for Symbol '{buffer}', '{tokencode[i + 2]}' "
+                        errobj.error_type=f"Invalid Delimiter for Symbol '{buffer}', '{tokencode[i + 2]}', expected {const.symbols_delims[buffer]} "
                         errobj.line=tkc.Token.line_num
                         return errobj
                 else:
                     errobj.errorval=buffer
                     errobj.remaining=tokencode.replace(buffer, '', 1)
-                    errobj.error_type=f"Invalid Delimiter for Symbol '{buffer}', '{tokencode[i + 1]}' "
+                    errobj.error_type=f"Invalid Delimiter for Symbol '{buffer}', '{tokencode[i + 1]}', expected {const.symbols_delims[buffer]} "
                     errobj.line=tkc.Token.line_num
                     return errobj
             else:
                 errobj.errorval=buffer
                 errobj.remaining=tokencode.replace(buffer, '', 1)
-                errobj.error_type=f"Invalid Null Delimiter for Symbol '{buffer}' "
+                errobj.error_type=f"Invalid Null Delimiter for Symbol '{buffer}', expected {const.symbols_delims[buffer]} "
                 errobj.line=tkc.Token.line_num
                 return errobj
         # i += 1
@@ -88,7 +88,7 @@ class LexError:
             if (buffer in const.keywords) and (tokencode[i] not in const.keywords_delims[buffer]):
                 errobj.errorval=buffer
                 errobj.remaining=tokencode.replace(buffer, '', 1)
-                errobj.error_type=f"Invalid Delimiter for Keyword '{buffer}', '{tokencode[i]}' "
+                errobj.error_type=f"Invalid Delimiter for Keyword '{buffer}', '{tokencode[i]}', expected {const.keywords_delims[buffer]} "
                 errobj.line=tkc.Token.line_num
                 return errobj
 
@@ -98,7 +98,7 @@ class LexError:
         if buffer in const.keywords and buffer not in ["bet", "deins"]:
             errobj.errorval=buffer
             errobj.remaining=tokencode.replace(buffer, '', 1)
-            errobj.error_type=f"Invalid Null Delimiter for Keyword '{buffer}' "
+            errobj.error_type=f"Invalid Null Delimiter for Keyword '{buffer}', expected {const.keywords_delims[buffer]} "
             errobj.line=tkc.Token.line_num
             return errobj
     
@@ -124,7 +124,7 @@ class LexError:
                     elif len(buffer)==len(tokencode):
                         errobj.errorval=buffer
                         errobj.remaining=tokencode.replace(buffer, '', 1)
-                        errobj.error_type=f"Invalid Null Delimiter for Identifier '{buffer}'"
+                        errobj.error_type=f"Invalid Null Delimiter for Identifier '{buffer}', expected {const.delimiters['id_delim']}"
                         errobj.line=tkc.Token.line_num
                         return errobj
                     
@@ -144,7 +144,7 @@ class LexError:
                     elif tokencode[i] in const.invalid_id_char:
                         errobj.errorval=buffer
                         errobj.remaining=tokencode.replace(buffer, '', 1)
-                        errobj.error_type=f"Invalid Delimiter \" {tokencode[i]} \" for Identifier \"{buffer}\""
+                        errobj.error_type=f"Invalid Delimiter \" {tokencode[i]} \" for Identifier \"{buffer}\" , expected {const.delimiters['id_delim']}"
                         errobj.line=tkc.Token.line_num
                         return errobj
                     elif tokencode[i] in const.delimiters["id_delim"]:
@@ -170,20 +170,20 @@ class LexError:
                 buffer=tokencode[0]
                 errobj.errorval=buffer
                 errobj.remaining=tokencode.replace(buffer, '', 1)
-                errobj.error_type=f"Invalid Null Delimiter for Numeric '{buffer}', {tokencode[1]}"
+                errobj.error_type=f"Invalid Null Delimiter for Numeric '{buffer}', {tokencode[1]}, expected {const.delimiters['n_delim']}"
                 errobj.line=tkc.Token.line_num
                 return errobj
             buffer=tokencode[0]
             errobj.errorval=buffer
             errobj.remaining=tokencode.replace(buffer, '', 1)
-            errobj.error_type=f"Invalid Delimiter for Numeric '{buffer}', '{tokencode[1]}' "
+            errobj.error_type=f"Invalid Delimiter for Numeric '{buffer}', '{tokencode[1]}', expected {const.delimiters['n_delim']} "
             errobj.line=tkc.Token.line_num
             return errobj
         if len(tokencode)==1 and tokencode.isdigit():
             buffer=tokencode
             errobj.errorval=buffer
             errobj.remaining=tokencode.replace(buffer, '', 1)
-            errobj.error_type=f"Invalid Null Delimiter for Numeric '{buffer}' "
+            errobj.error_type=f"Invalid Null Delimiter for Numeric '{buffer}', expected {const.delimiters['n_delim']} "
             errobj.line=tkc.Token.line_num
             return errobj
 
@@ -197,13 +197,13 @@ class LexError:
                         # invalid delim
                         errobj.errorval=buffer
                         errobj.remaining=tokencode.replace(buffer, '', 1)
-                        errobj.error_type=f"Invalid Delimiter for Numeric '{buffer}', '{tokencode[i]}' "
+                        errobj.error_type=f"Invalid Delimiter for Numeric '{buffer}', '{tokencode[i]}', expected {const.delimiters['n_delim']} "
                         errobj.line=tkc.Token.line_num
                         return errobj
                 except IndexError:
                     errobj.errorval=buffer
                     errobj.remaining=tokencode.replace(buffer, '', 1)
-                    errobj.error_type=f"Invalid Null Delimiter for Numeric '{buffer}' "
+                    errobj.error_type=f"Invalid Null Delimiter for Numeric '{buffer}', expected {const.delimiters['n_delim']} "
                     errobj.line=tkc.Token.line_num
                     return errobj
             elif buffer.startswith("-"):
@@ -219,19 +219,19 @@ class LexError:
                     buffer=tokencode
                     errobj.errorval=buffer
                     errobj.remaining=tokencode.replace(buffer, '', 1)
-                    errobj.error_type=f"Invalid Null Delimiter for Numeric '{buffer}'"
+                    errobj.error_type=f"Invalid Null Delimiter for Numeric '{buffer}', expected {const.delimiters['n_delim']}"
                     errobj.line=tkc.Token.line_num
                     return errobj
                 elif len(buffer)==len(tokencode):
                     errobj.errorval=buffer
                     errobj.remaining=tokencode.replace(buffer, '', 1)
-                    errobj.error_type=f"Invalid Null Delimiter for Numeric '{buffer}'"
+                    errobj.error_type=f"Invalid Null Delimiter for Numeric '{buffer}', expected {const.delimiters['n_delim']}"
                     errobj.line=tkc.Token.line_num
                     return errobj
                 elif (len(buffer)>=4 and buffer[1]=="-" and buffer[2:3]=="00"):
                     errobj.errorval=buffer
                     errobj.remaining=tokencode.replace(buffer, '', 1)
-                    errobj.error_type=f"Invalid Delimiter for Numeric '{buffer}', '{tokencode[3]}'"
+                    errobj.error_type=f"Invalid Delimiter for Numeric '{buffer}', '{tokencode[3]}', expected {const.delimiters['n_delim']}"
                     errobj.line=tkc.Token.line_num
                     return errobj
                     # invalid size
@@ -245,13 +245,13 @@ class LexError:
                     if len(buffer)>=4 and buffer[2:3]=="00":
                         errobj.errorval=buffer
                         errobj.remaining=tokencode.replace(buffer, '', 1)
-                        errobj.error_type=f"Invalid Delimiter for Numeric '{buffer}', '{tokencode[3]}'"
+                        errobj.error_type=f"Invalid Delimiter for Numeric '{buffer}', '{tokencode[3]}', expected {const.delimiters['n_delim']}"
                         errobj.line=tkc.Token.line_num
                         return errobj
                     elif len(buffer)>=3 and buffer[2]==")":
                         errobj.errorval=buffer
                         errobj.remaining=tokencode.replace(buffer, '', 1)
-                        errobj.error_type=f"Invalid Delimiter for Numeric '{buffer}', '{tokencode[3]}'"
+                        errobj.error_type=f"Invalid Delimiter for Numeric '{buffer}', '{tokencode[3]}', expected {const.delimiters['n_delim']}"
                         errobj.line=tkc.Token.line_num
                         return errobj
                     else:
@@ -263,7 +263,7 @@ class LexError:
                     if len(buffer)>4 and (buffer[3]==")" or buffer[3]=="0"):
                         errobj.errorval=buffer
                         errobj.remaining=tokencode.replace(buffer, '', 1)
-                        errobj.error_type=f"Invalid Delimiter for Numeric '{buffer}', '{tokencode[1]}"
+                        errobj.error_type=f"Invalid Delimiter for Numeric '{buffer}', '{tokencode[1]} , expected {const.delimiters['n_delim']}"
                         errobj.line=tkc.Token.line_num
                         return errobj
                     else:
@@ -289,7 +289,7 @@ class LexError:
         if len(buffer)==len(tokencode) and tkc.LexerCheck.is_Numeric(buffer):
             errobj.errorval=buffer
             errobj.remaining=tokencode.replace(buffer, '', 1)
-            errobj.error_type=f"Invalid Null Delimiter for Numeric, '{buffer}'"
+            errobj.error_type=f"Invalid Null Delimiter for Numeric, '{buffer}', expected {const.delimiters['n_delim']}"
             errobj.line=tkc.Token.line_num
             return errobj
         
@@ -307,19 +307,19 @@ class LexError:
                 if tokencode[len(tokencode)-1]=='"':
                     errobj.errorval=tokencode[0:len(tokencode)-1]
                     errobj.remaining=tokencode.replace(buffer, '', 1)
-                    errobj.error_type=f"Invalid Null Delimiter for Text '{buffer}'"
+                    errobj.error_type=f"Invalid Null Delimiter for Text '{buffer}', expected {const.delimiters['txt_delim']}"
                     errobj.line=tkc.Token.line_num
                     return errobj
                 elif tokencode[i] not in const.delimiters["txt_delim"]:
                     errobj.errorval=buffer
                     errobj.remaining=tokencode.replace(buffer, '', 1)
-                    errobj.error_type=f"Invalid Text Delimiter for {buffer}"
+                    errobj.error_type=f"Invalid Text Delimiter for {buffer}, expected {const.delimiters['txt_delim']}"
                     errobj.line=tkc.Token.line_num
                     return errobj
                 elif len(buffer)==len(tokencode):
                     errobj.errorval=buffer
                     errobj.remaining=tokencode.replace(buffer, '', 1)
-                    errobj.error_type=f"No Closing Quote for {buffer}"
+                    errobj.error_type=f"No Closing Quote for {buffer}, expected {const.delimiters['txt_delim']}"
                     errobj.line=tkc.Token.line_num
                     return errobj
                 i += 1
@@ -386,7 +386,7 @@ class LexError:
                 if tokencode[len(tokencode)-1]=="'":
                     errobj.errorval=tokencode[0:len(tokencode)-1]
                     errobj.remaining=tokencode.replace(buffer, '', 1)
-                    errobj.error_type=f"Invalid Null Delimiter for Charr '{buffer}'"
+                    errobj.error_type=f"Invalid Null Delimiter for Charr '{buffer}', expected {const.delimiters['txt_delim']}"
                     errobj.line=tkc.Token.line_num
                     return errobj
                 # elif tokencode[i] not in const.delimiters["txt_delim"]:
