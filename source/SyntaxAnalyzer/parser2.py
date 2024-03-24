@@ -19,8 +19,9 @@ class SyntaxAnalyzer:
         self.expected=None
         self.isnullable=False
         self.expectset=[]
+        self.req_type=None
 
-#___________________________WRAPPERS____________________________________________________________________________________________________________
+#region WRAPPERS   
               
     def require(func):
         def wrapper2(self, *args, **kwargs):
@@ -49,8 +50,10 @@ class SyntaxAnalyzer:
             # self.isnullable=False  
     
         return wrapper
+
+#endregion WRAPPERS______________________________________________________________________________________________
     
-# _______________________________________________FUNCTIONS_____________________
+#region FUNCTIONS______________________________________________________________________________________________
 
     def reset(self):
         self.pointer=0
@@ -64,6 +67,7 @@ class SyntaxAnalyzer:
         self.expected=None
         self.isnullable=False
         self.expectset=[]
+        self.req_type=None
 
 
     def parse(self):
@@ -165,20 +169,28 @@ class SyntaxAnalyzer:
         return None
     #     
     def match(self, consumable, skippable=False):
-        self.expected=consumable
+        
+        if consumable=="#":
+            self.req_type=None
+
+        if self.req_type and consumable in ["Whole", "Dec", "Text", "Sus", "Charr"]:
+            self.expected=self.req_type
+
+        else: self.expected=consumable
+
         if len(self.tokens)==0:
             self.expectset.append(self.expected)
             print(f"EOF, nothing to match {consumable} with.")
             self.expected=None
             return False
-        consumed=self.see(consumable)  
+        consumed=self.see(self.expected)  
         if consumed==None  : #and not nullable:
             if not skippable and not self.isnullable:
                 
                 try:
-                    print(f"Failed Match: {consumable}, got {self.tokens[0].type}" )
+                    print(f"Failed Match: {self.expected}, got {self.tokens[0].type}" )
                 except IndexError:
-                    print(f"Failed Match: {consumable}, got EOF" )
+                    print(f"Failed Match: {self.expected}, got EOF" )
                 # self.skip()
                 self.expectset.append(self.expected)
                 self.expected=None
@@ -186,7 +198,7 @@ class SyntaxAnalyzer:
                 
                 return False
             else:
-                print(f"No {consumable} detected. Skipping.")
+                print(f"No {self.expected} detected. Skipping.")
                 self.expectset.append(self.expected)
                 self.expected=None
                 # self.isnullable=True
@@ -208,21 +220,20 @@ class SyntaxAnalyzer:
             # print(f"Expected {consumable} but found {self.tokens[0].type} at line {self.tokens[0].line}")
     # def __repr__(self) -> str:
     #     return 
+    def enforce_type(self,type):
+        self.req_type=type
         
+#endregion FUNCTIONS______________________________________________________________________________________________
+
+
+#GRAMMAR_________________________________________________________________________________________________________________      
 
 
 
 
-
-#GRAMMAR____________________________________________________________________________________________      
-
+#MAIN_____________________________________________________________________________________________________________________
     # @require
     def program(self):
-        #implement a way to assess if nothing is parsed
-
-        # self.production_stack.append("program")
-        # self.current_prod.append(grammar.Grammar.cfg[self.production_stack[-1]])
-        # self.production_stack.pop()
         self.import_()
         print("Import:",self.buffer)
         self.clear()
@@ -245,6 +256,8 @@ class SyntaxAnalyzer:
             print("failed")
             return self.failed()    
     
+
+    #region deprec
     # 
     # def inside_func_invocation(self):
     #     if self.argument()==self.success:
@@ -278,9 +291,10 @@ class SyntaxAnalyzer:
     #             return self.success
     #         else: return self.failed()
     #     else: return self.failed()
+    #endregion
 
-
-
+#IMPORTS_________________________________________________________________________________________________________________
+        
     @nullable
     def import_(self):
         # self.nullable=True
@@ -296,7 +310,6 @@ class SyntaxAnalyzer:
         else: self.failed()
 
         
-    # #
     @nullable
     def more_import(self):
         # self.nullable=True
@@ -322,7 +335,6 @@ class SyntaxAnalyzer:
             else: return self.failed()
         else: return self.failed()
 
-    # 
     @nullable
     def more_importprog(self):
         # self.nullable=True
@@ -332,7 +344,7 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
            
-
+    #region deprec
     # def function_definition(self):
     #     if self.match("function"):
     #         self.function_prototype()
@@ -340,6 +352,7 @@ class SyntaxAnalyzer:
     #         self.statement()
     #         self.match("}")
     # 
+    #endregion 
         
     @nullable
     def import_next(self):
@@ -351,7 +364,7 @@ class SyntaxAnalyzer:
 
 
 
-    # 
+#GLOBAL DECLARATIONS_____________________________________________________________________________________________________
     @nullable
     def global_declaration(self):
         # self.nullable=True
@@ -550,8 +563,10 @@ class SyntaxAnalyzer:
     
     def seq_dtype(self):
         dtypes=["whole", "dec", "text", "sus"]
-        for type in dtypes:
+        ltypes=["Whole", "Dec", "Text", "Sus"]
+        for i, type in enumerate(dtypes):
             if self.match(type, True):
+                self.req_type=ltypes[i]
                 return self.success
         
         return self.failed()
@@ -575,16 +590,23 @@ class SyntaxAnalyzer:
     
     def seq_literal(self):
         seqlits=["Text", "Whole", "Dec", "Sus"]
-        if self.match("Text", True) or self.match("Whole", True) or self.match("Dec",True) or self.match("Sus", True):
+        # if self.match("Text", True) or self.match("Whole", True) or self.match("Dec",True) or self.match("Sus", True):
+        #     return self.success
+        if self.match(self.req_type):
             return self.success
         else:
             return self.failed()
     
     def numeric_value(self):
         if self.peek() in ["Whole", "Dec"]:
-            if self.match("Whole", True) or self.match("Dec", True) :
-                return self.success
-            else: return self.failed()
+            if self.req_type==None:
+                if self.match("Whole", True) or self.match("Dec", True):
+                    return self.success
+                else: return self.failed()
+            else:
+                if self.match(self.req_type) :
+                    return self.success
+                else: return self.failed()
         else: 
             expects=["Whole", "Dec"]
             self.expectset.extend(expects)
@@ -630,21 +652,6 @@ class SyntaxAnalyzer:
     
     @nullable
     def allowed_in_loop(self):
-        # allowed_statements = [
-        #     self.var_or_seq_dec,
-        #     self.looping_statement,
-        #     self.yeet_statement,
-        #     self.io_statement,
-        #     self.seq_use_assign,
-        #     self.variable_reassign,
-        #     self.function_invocation
-        # ]
-        
-        # for statement in allowed_statements:
-        #     if statement() == self.success:
-        #         if statement == self.variable_reassign or statement == self.function_invocation:
-        #             self.match("#")
-        #         return self.success
         if (self.var_or_seq_dec()==self.success) or (self.looping_statement()==self.success) or (self.yeet_statement()==self.success) or (self.io_statement()==self.success):
             return self.success
         elif self.match("Identifier", True):
@@ -668,7 +675,6 @@ class SyntaxAnalyzer:
             return self.success
         else: return self.failed()
         
-        # return self.failed()
     def id_tail(self):
         if self.match("("):
             self.func_argument()
@@ -692,8 +698,6 @@ class SyntaxAnalyzer:
 
     @nullable
     def more_statement(self):
-        # nullable=True
-        # if len(self.tokens)>0 and self.tokens[0]!="}":
             if self.statement()==self.success:
                 return self.success
             else: return self.failed()
@@ -776,86 +780,127 @@ class SyntaxAnalyzer:
             return self.success
         elif self.pa_mine_statement()==self.success:
             return self.success
+        elif self.assign_val_type(type)==self.success:
+            return self.success
+        
         else: return self.failed()
 
-    def var_or_seq_dec(self):
-        
-        if self.match("whole"):
-            # self.var_seq_tail()
-            self.enforce()
-            self.match("Identifier")
-            if self.match("=", True):
-                self.enforce
-                self.var_match("Whole")
-                self.enforce()
-            self.more("Whole")
-            self.enforce()
-            self.match("#")
-            return self.success
-        elif self.match("dec"):
-            # self.var_seq_tail()
-            self.enforce()
-            self.match("Identifier")
-            if self.match("=", True):
-                self.var_match("Dec")
-                self.enforce()
-            self.more("Dec")
-            self.enforce()
-            self.match("#")
-            return self.success
-        elif self.match("text"):
-            # self.var_seq_tail()
-            self.enforce()
-            self.match("Identifier")
-            if self.match("="):
-                self.var_match("Text")
-                self.enforce()
-            self.more("Text")
-            self.enforce()
-            self.match("#")
-            return self.success
-        elif self.match("charr"):
-            # self.var_seq_tail()
+    def assign_val_type(self, type):
+        if type=="Whole":
+            if self.id_as_val()==self.success:
+                self.all_op()
+                return self.success
+            elif self.match(type, True):
+                # self.enforce()
+                # if self.peek() in ["+", "-", "*", "/", "%", "==", ">", "<", ">=", "<=", "!="]:
+                #     self.math_or_rel_expr()
+                #     return self.success
+                # elif self.peek() in ["#", ")",]:
+                #     return self.success
+                # else:
+                #     expects=["+", "-", "*", "/", "%", "==", ">", "<", ">=", "<=", "!=", "#"]
+                #     self.expectset.extend(expects)
+                #     self.enforce() 
+                #     return self.failed()
 
-            self.enforce()
-            self.match("text")
-            self.match("Identifier")
-            if self.match("=", True):
-                self.var_match("Charr")
-                self.enforce()
-            self.more("Charr")
-            self.enforce()
-            self.match("#")
-            return self.success
-        if self.match("sus"):
-            # self.var_seq_tail()
-            self.enforce()
-            self.match("Identifier")
-            if self.match("="):
-                self.var_match("Sus")
-                self.enforce()
-            self.more("Sus")
-            self.enforce()
-            self.match("#")
-            return self.success
-        if self.var_seq_common()==self.success:
-            self.var_seq_tail()
-            self.enforce()
-            self.match("#")
-            return self.success
-        # elif self.match("charr"):
+                # self.enforce()
+                self.math_or_rel_expr()
+                return self.success
+            elif self.logical_not_expression()==self.success:
+                self.logic_op()
+                return self.failed()
+            elif self.pa_mine_statement()==self.success:
+                return self.success
+            elif self.a_val_withparen()==self.success:
+                return self.success
+            else:
+                self.enforce() 
+                return self.failed()
+        elif type=="Dec":
+            return
+        elif type=="Text":
+            return
+        elif type=="Charr":
+            return
+        elif type=="Sus":
+            return
+        else: return self.failed()
+    
+
+    def var_or_seq_dec(self):
+        # if self.match("whole"):
+        #     # self.var_seq_tail()
         #     self.enforce()
-        #     self.match("text")
         #     self.match("Identifier")
-        #     self.vardec_tail()
+        #     if self.match("=", True):
+        #         self.enforce
+        #         self.var_match("Whole")
+        #         self.enforce()
+        #     self.more("Whole")
         #     self.enforce()
         #     self.match("#")
         #     return self.success
-        else: return self.failed()
+        # elif self.match("dec"):
+        #     # self.var_seq_tail()
+        #     self.enforce()
+        #     self.match("Identifier")
+        #     if self.match("=", True):
+        #         self.var_match("Dec")
+        #         self.enforce()
+        #     self.more("Dec")
+        #     self.enforce()
+        #     self.match("#")
+        #     return self.success
+        # elif self.match("text"):
+        #     # self.var_seq_tail()
+        #     self.enforce()
+        #     self.match("Identifier")
+        #     if self.match("="):
+        #         self.var_match("Text")
+        #         self.enforce()
+        #     self.more("Text")
+        #     self.enforce()
+        #     self.match("#")
+        #     return self.success
+        # elif self.match("charr"):
+        #     # self.var_seq_tail()
 
-        # if (self.whole_var_dec()==self.success) or (self.dec_var_dec()==self.success) or (self.text_var_dec()==self.success) or (self.sus_var_dec()==self.success) or (self.charr_var_dec()==self.success):
+        #     self.enforce()
+        #     self.match("text")
+        #     self.match("Identifier")
+        #     if self.match("=", True):
+        #         self.var_match("Charr")
+        #         self.enforce()
+        #     self.more("Charr")
+        #     self.enforce()
+        #     self.match("#")
+        #     return self.success
+        # if self.match("sus"):
+        #     # self.var_seq_tail()
+        #     self.enforce()
+        #     self.match("Identifier")
+        #     if self.match("="):
+        #         self.var_match("Sus")
+        #         self.enforce()
+        #     self.more("Sus")
+        #     self.enforce()
+        #     self.match("#")
+        #     return self.success
+        # if self.var_seq_common()==self.success:
+        #     self.var_seq_tail()
+        #     self.enforce()
+        #     self.match("#")
         #     return self.success
         # else: return self.failed()
+        if self.seq_dtype()==self.success:
+            self.enforce()
+            self.enforce_type(self.req_type)
+            if self.match("Identifier"): #ambiguity
+                if self.var_seq_tail()==self.success:
+                    return self.success
+        else: return self.failed()
+
+
 
     def whole_var_dec(self):
         if self.match("whole"):
@@ -975,7 +1020,9 @@ class SyntaxAnalyzer:
         else: return self.failed()
 
     def var_seq_tail(self):
-        if (self.vardec_tail()==self.success) or (self.seq_tail()==self.success):
+        if (self.vardec_tail()==self.success):
+            return self.success
+        elif (self.seq_tail()==self.success):
             return self.success
 
         else:
