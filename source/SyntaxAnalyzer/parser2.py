@@ -163,7 +163,7 @@ class SyntaxAnalyzer:
             # self.skip()
             # raise Exception("No Items for this Production")
             # self.isnullable=False
-            return
+            return 
         else:
             if self.error()=="EOF":
                 return
@@ -1060,6 +1060,8 @@ class SyntaxAnalyzer:
     def vardec_tail(self):
         if self.variable_assign()==self.success:
             self.more_vardec()
+            return self.success
+        elif self.more_vardec()==self.success:
             return self.success
         else: return self.failed()
 
