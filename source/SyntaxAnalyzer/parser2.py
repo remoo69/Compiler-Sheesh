@@ -4,9 +4,24 @@ from source.core.error_handler import SyntaxError as Error
 import sys
 sys.path.append( '.' )
 
+class AST:
+    def __init__(self, root, children=None):
+        self.root=root
+        self.children=children
+
+    def __repr__(self):
+        return f"\n{self.value} : {self.children}"
+
+    def __str__(self):
+        return f"\n{self.value} : {self.children}"
+
+    def add_child(self, child):
+        self.children.append(child)
+
 class SyntaxAnalyzer:
     
     def __init__(self, tokens:list[Token]) -> None:
+        self.Tree=AST("Program", [])
         self.tokens=tokens
         self.pointer=0
         self.production_stack=[]
@@ -897,7 +912,14 @@ class SyntaxAnalyzer:
             self.enforce_type(self.req_type)
             if self.match("Identifier"): #ambiguity
                 if self.var_seq_tail()==self.success:
+                    self.enforce()
+                    if self.match("#"):
+                        return self.success
+                else: 
+                    self.enforce()
+                    self.match("#")
                     return self.success
+            
         else: return self.failed()
 
 
@@ -1021,8 +1043,12 @@ class SyntaxAnalyzer:
 
     def var_seq_tail(self):
         if (self.vardec_tail()==self.success):
+            # self.enforce()
+            # self.match("#")
             return self.success
         elif (self.seq_tail()==self.success):
+            # self.enforce()
+            # self.match("#")
             return self.success
 
         else:
@@ -1053,8 +1079,8 @@ class SyntaxAnalyzer:
         if self.match("="):     
             self.enforce()
             if self.assign_value()==self.success:
-                self.enforce()
-                self.match("#")
+                # self.enforce()
+                # self.match("#")
                 return self.success
             else:
                 expects=["Whole", "Dec"] 
