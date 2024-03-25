@@ -759,24 +759,36 @@ class SyntaxAnalyzer:
                             return self.success
         else: return self.failed()
 
+
     def up_func_argument(self):
-        if self.match("Text", True):
-            self.up_func_argument_tail()
-            return self.success
-        elif self.match("Charr", True):
-            return self.success
-        elif self.match("Identifier", True):
+        self.enforce()
+        if self.match("Text"):
+            if self.match(",", True):
+                self.enforce()
+                self.assign_value()
+
             return self.success
         else: 
             return self.failed()
         
-    @nullable
-    def up_func_argument_tail(self):
-        if self.match(","):
-            self.enforce()
-            if self.match("Identifier"):
-                return self.success
-        else: return self.failed()
+    # def up_func_argument(self):
+    #     if self.match("Text", True):
+    #         self.up_func_argument_tail()
+    #         return self.success
+    #     elif self.match("Charr", True):
+    #         return self.success
+    #     elif self.match("Identifier", True):
+    #         return self.success
+    #     else: 
+    #         return self.failed()
+        
+    # @nullable
+    # def up_func_argument_tail(self):
+    #     if self.match(","):
+    #         self.enforce()
+    #         if self.match("Identifier"):
+    #             return self.success
+    #     else: return self.failed()
     # @nullable
     def more(self, type):
         if type in ["Whole", "Text", "Charr", "Dec", "Sus"]:
@@ -2056,14 +2068,18 @@ class SyntaxAnalyzer:
 
     def logical_not_expression(self):
         if self.match("!"):
-            self.logic_not_tail()
-            return self.success
+            if self.logic_not_tail()==self.success:
+                return self.success
         else: return self.failed()
 
     def logic_not_tail(self):
-        if (self.logical_not_expression()==self.success) or (self.logic_value()==self.success):
+        if (self.logical_not_expression()==self.success):
             return self.success
-        else: return self.failed()
+        elif (self.logic_value()==self.success):
+            return self.success
+        else: 
+            self.enforce()
+            return self.failed()
 
     def logic_not(self):
         if self.match("!"):
