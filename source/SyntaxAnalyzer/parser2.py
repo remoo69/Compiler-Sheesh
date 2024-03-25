@@ -150,12 +150,12 @@ class SyntaxAnalyzer:
         print(len(self.tokens))
         if len(self.tokens)<=0:
             self.expectset=list(set(self.expectset))
-            self.syntax_errors.append(Error(expected=self.expectset, unexpected="EOF", line="EOF"))
+            self.syntax_errors.append(Error(expected=self.expectset, unexpected="EOF", line="EOF", toknum="EOF"))
             self.stop()
             return "EOF"        
         else:
             self.expectset=list(set(self.expectset))
-            self.syntax_errors.append(Error(expected=self.expectset, unexpected=self.tokens[0].type, line=self.tokens[0].line))
+            self.syntax_errors.append(Error(expected=self.expectset, unexpected=self.tokens[0].type, value=self.tokens[0].value, line=self.tokens[0].line, toknum=self.tokens[0].position))
             self.stop()
 
     def failed(self):

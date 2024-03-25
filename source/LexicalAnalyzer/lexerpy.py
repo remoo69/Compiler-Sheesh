@@ -30,11 +30,13 @@ class Lexer:
         current_token: str = ''
         tktype = ''
         block_comment_buffer=''
+        tkc.Token.tok_num=1
         # if tkc.Token.in_comment:
         #     if result:=prep.get_block_comments(code, tkc.Token.in_comment):
         #         current_token, code=result
         # else:
         while code:
+            
             if result:=prep.get_block_comments(code):
                 current_token, code=result
                 tkc.Token.block_start_line=tkc.Token.line_num
@@ -101,6 +103,7 @@ class Lexer:
                 tkc.Token.tok_num+=1    
                 tokens.append(token)
                 current_token=''
+
 
         tkc.Token.line_num+=1
         return tokens, errors

@@ -299,6 +299,7 @@ def get_space(token):
         #     return char, token_cpy       
         if char==" ":
             token_cpy=token.replace(char, '', 1)
+            tkc.Token.tok_num-=1
             return char, token_cpy
         else:return None
     

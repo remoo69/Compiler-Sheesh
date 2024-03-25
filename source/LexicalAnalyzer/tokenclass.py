@@ -18,6 +18,7 @@ class Token:
     block_comment_buffer=''
     id_dict={}
     block_start_line=0
+    
     # def __init__(self, type=None, value=None, line=None, position=None, attribute=None):
     #     self.value = value
     #     self.type = type
