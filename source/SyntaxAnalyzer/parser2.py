@@ -187,6 +187,7 @@ class SyntaxAnalyzer:
         
         if consumable=="#":
             self.req_type=None
+    
 
         if self.req_type and consumable in ["Whole", "Dec", "Text", "Sus", "Charr"]:
             self.expected=self.req_type
@@ -731,7 +732,7 @@ class SyntaxAnalyzer:
         if self.match("pa_mine"):
             self.enforce()
             if self.match("("):
-                if self.argument():
+                if self.pa_mine_args():
                     if self.match(")"):
                         return self.success
                     else: return self.failed()
@@ -740,6 +741,13 @@ class SyntaxAnalyzer:
         else: return self.failed()
 
     
+    def pa_mine_args(self):
+        self.enforce_type("Text")
+        if self.match("Text"):
+            return self.success
+        else: return self.failed()
+
+
     def up_statement(self):
         if self.match("up", True):
             self.enforce()
