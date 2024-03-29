@@ -15,7 +15,7 @@ from tkinter import ttk
 import source.LexicalAnalyzer.lexerpy as lex
 # import source.LexicalAnalyzer.prepare as prep
 from tkinter import filedialog
-from tkinter import Event
+
 # import source.SyntaxAnalyzer.grammar as grammar
 # import source.SyntaxAnalyzer.parser1 as parser
 
@@ -50,9 +50,53 @@ def highlight_reserve_word(*args):
 
     txt_editor_pane.tag_config('found', foreground='yellow')
     txt_editor_pane.tag_config('reserveidenti', foreground='white')
+
+
+def highlight_comment(*args):
+    txt_editor_pane.tag_remove('comment', '1.0', tk.END)
+    text = txt_editor_pane.get('1.0', tk.END)
+    in_comment = False
+    in_line=False
+    in_block=False
+    for i, char in enumerate(text):
+        if char == '/' and len(text) > i+1 and text[i+1] == '/' and not in_comment:
+            # in_comment = not in_comment
+            in_line=not in_line
+            # if len(text) > i+1 and text[i+1] == '\n':
+            #     in_comment = not in_comment
+        elif char=="/" and len(text) > i+1 and text[i+1] == "*" and not in_comment:
+            # in_comment = not in_comment
+            in_block=not in_block
+            # if char == "*" and len(text) > i+1 and text[i+1] == "/" and in_comment:
+            #     in_comment = not in_comment
+        # elif in_comment:
+        #     start_index = f'1.0+{i-1}c'
+        #     end_index = f'1.0+{i}c'
+        #     txt_editor_pane.tag_add('comment', start_index, end_index)
+            
+        elif in_line:
+            if char == '\n':
+                in_line=not in_line
+            start_index = f'1.0+{i-1}c'
+            end_index = f'1.0+{i}c'
+            txt_editor_pane.tag_add('comment', start_index, end_index)
+        
+        elif in_block:
+            if char=="*" and len(text) > i+1 and text[i+1] == "/" :
+                in_block=not in_block
+            start_index = f'1.0+{i-1}c'
+            end_index = f'1.0+{i+2}c'
+            txt_editor_pane.tag_add('comment', start_index, end_index)
+    txt_editor_pane.tag_config('comment', foreground='grey')
+
+
 def on_scroll(*args):
-    line_numbers.yview_moveto(args[0])
-    txt_editor_pane.yview_moveto(args[0])
+    line_numbers.yview_moveto(*args)
+    txt_editor_pane.yview_moveto(*args)
+    
+
+
+
 
 def remove_whitespace_type(tokens):
     new_tokens = []
@@ -178,6 +222,16 @@ def tab_pressed(event:Event) -> str:
     txt_editor_pane.insert("insert", " "*4)
     # Prevent the default tkinter behaviour
     return "break"
+def multiple_yview(*args):
+    line_numbers.yview(*args)
+    txt_editor_pane.yview(*args)
+
+def multiple_yview_scroll(*args):
+    line_numbers.yview_scroll(int(-1*(args[0].delta/120)), "units")
+    txt_editor_pane.yview_scroll(int(-1*(args[0].delta/120)), "units")
+
+
+
 
 root = Tk()
 
@@ -220,8 +274,7 @@ header_label = ctk.CTkLabel(root, image=header_img_tk, text='')
 header_label.pack(side="top", fill="x")
 
 
-line_numbers = Text(root, bd=0, bg=clr_black, fg="#FFFFFF", font=('Open Sans', 11), width=4, wrap="none", state="disabled")
-line_numbers.place(x=5,y=50,width=20,height=390)
+
 
 # setting editor section
 txt_editor_pane = Text(
@@ -317,13 +370,15 @@ parse_btn = Button(
         command=run_parser,
 )
 parse_btn.place(x=800,y=40,width=50,height=50)
-
+line_numbers = Text(bd=0, bg=clr_black, fg="#FFFFFF", font=('Open Sans', 12), width=4, wrap="none", state="disabled")
+line_numbers.place(x=5,y=50,width=20,height=390)
 scrollbar = ttk.Scrollbar(
-    txt_editor_pane, 
+    txt_editor_pane,
     orient='vertical',
-    command=txt_editor_pane.yview,
+    command=multiple_yview,
 )
 scrollbar.pack(side=RIGHT, fill=Y)
+
 line_numbers.configure(yscrollcommand=scrollbar.set)
 txt_editor_pane.configure(yscrollcommand=scrollbar.set)
 # txt_editor_pane['yscrollcommand'] = scrollbar.set
@@ -331,6 +386,7 @@ txt_editor_pane.configure(yscrollcommand=scrollbar.set)
 
 def update_line_numbers(*args):
     highlight_reserve_word(*args)
+    highlight_comment(*args)
     line_numbers.config(state="normal")
     line_numbers.delete("1.0", "end")
     lines = txt_editor_pane.get("1.0", "end").count("\n")
@@ -341,7 +397,9 @@ def update_line_numbers_on_scroll(*args):
     update_line_numbers()
     on_scroll(*args)
 
+
+
 txt_editor_pane.bind("<KeyRelease>", update_line_numbers)
-txt_editor_pane.bind("<MouseWheel>", update_line_numbers_on_scroll)
+txt_editor_pane.bind_all("<MouseWheel>", multiple_yview_scroll)
 
 root.mainloop()

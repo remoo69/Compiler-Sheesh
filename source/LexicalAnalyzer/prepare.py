@@ -351,6 +351,3 @@ def prepare(code):
         lines.append(templines[i])
     return lines
 
-
-test='\"$whello\"#'
-print(get_text(test))

@@ -1,8 +1,11 @@
+from logging import getLogger
 from source.LexicalAnalyzer.tokenclass import Token
 # import source.SyntaxAnalyzer.grammar as grammar
 from source.core.error_handler import SyntaxError as Error
 import sys
 sys.path.append( '.' )
+
+logger=getLogger(__name__)
 
 class AST:
     def __init__(self, root, children=None):
@@ -167,10 +170,10 @@ class SyntaxAnalyzer:
         else:
             if self.error()=="EOF":
                 return
-            else:
-                # self.skip()
-                print(f"pumasok sa skip ")
-                print(self.tokens)
+            # else:
+            #     # self.skip()
+            #     print(f"pumasok sa skip ")
+            #     print(self.tokens)
                 
     def clear(self):
         self.buffer=[]    
@@ -190,7 +193,7 @@ class SyntaxAnalyzer:
     
 
         if self.req_type and consumable in ["Whole", "Dec", "Text", "Sus", "Charr"]:
-            self.expected=self.req_type
+                self.expected=self.req_type
 
         else: self.expected=consumable
 
@@ -199,7 +202,7 @@ class SyntaxAnalyzer:
             print(f"EOF, nothing to match {consumable} with.")
             self.expected=None
             return False
-        consumed=self.see(self.expected)  
+        consumed=self.see(consumable)  
         if consumed==None  : #and not nullable:
             if not skippable and not self.isnullable:
                 
@@ -228,7 +231,7 @@ class SyntaxAnalyzer:
    
             
         else: 
-            self.consume(consumable)
+            self.consume(self.expected)
             self.expected=None
             self.expectset=[]
             print("Matched:",consumed)
@@ -1187,7 +1190,7 @@ class SyntaxAnalyzer:
         elif self.logical_not_expression()==self.success:
             self.logic_op()
             return self.failed()
-        elif self.match("Sus", True):
+        elif self.match("Sus"):
             self.logic_op()
             return self.success
         elif self.match("Text"):

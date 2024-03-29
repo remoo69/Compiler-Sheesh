@@ -244,6 +244,3 @@ class LexerCheck:
             return True
         else: return False
 
-
-test='"'
-print(LexerCheck.is_Text(test))

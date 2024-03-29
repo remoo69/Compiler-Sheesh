@@ -501,5 +501,5 @@ class SyntaxError:
 
     def __repr__(self) -> str:
         # return f"Unexpected {self.unexpected} at line {self.line}, expected {self.expected}"
-        return f"Line {self.line}, Token {self.toknum}: Unexpected \"{self.value}\" [{self.unexpected}], expected => {self.expected}"
-    
+        return f"Line {self.line}, Token {self.toknum}: Unexpected \"{self.value}\" [{self.unexpected}], expected -> {self.expected}"
+        
