@@ -297,7 +297,7 @@ def get_space(token):
         # if re.match(space, char):
         #     token_cpy=re.sub(space, '',token, count=1)
         #     return char, token_cpy       
-        if char==" ":
+        if char==" " or char=="\t":
             token_cpy=token.replace(char, '', 1)
             tkc.Token.tok_num-=1
             return char, token_cpy

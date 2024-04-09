@@ -103,7 +103,7 @@ class Lexer:
                 tkc.Token.tok_num+=1    
                 tokens.append(token)
                 current_token=''
-
+        tokens.append(tkc.Token(value="EOL", type="Newline", line=tkc.Token.line_num, position=tkc.Token.tok_num))
 
         tkc.Token.line_num+=1
         return tokens, errors
