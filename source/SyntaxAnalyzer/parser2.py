@@ -135,7 +135,7 @@ class SyntaxAnalyzer:
         self.toklen = len(self.tokens)
         self.success = self.buffer[-1]
         self.expected = None
-        self.isnullable = False
+        self.isnullable = True
         self.expectset = []
         self.req_type = None
 
@@ -150,8 +150,7 @@ class SyntaxAnalyzer:
         else:
             try:
                 self.program()
-                # print(self.tokens)
-                # self.stack_to_tree()
+                print(self.Tree)
                 return self.syntax_errors
             except SyntaxError as e:
                 print(e)
@@ -192,6 +191,7 @@ class SyntaxAnalyzer:
             return None
         
     def stop(self):
+        print(self.Tree)
         raise SyntaxError("Syntax Error")
 
     def move(self):
@@ -243,17 +243,15 @@ class SyntaxAnalyzer:
         return None
 
     def match(self, consumable, skippable=False, newline_Optional=True):
-        self.cur=self.tokens[0]
+        try:
+            self.cur=self.tokens[0]
+        except IndexError:
+            pass
         if len(self.buffer) >= 1 and self.buffer[-1] == "Newline":
             while self.peek() == "Newline":
                 self.consume("Newline")
-
-        if consumable == "#": self.req_type = None
-
-        if self.req_type and consumable in ["Whole", "Dec", "Text", "Sus", "Charr"]:
-            self.expected = self.req_type
-
-        else: self.expected = consumable
+                
+        self.expected = consumable
 
         if len(self.tokens) == 0:
             self.expectset.append(self.expected)
@@ -511,18 +509,11 @@ class SyntaxAnalyzer:
 
     def numeric_value(self):
         self.Tree.initialize_new()
-        if self.req_type not in ["Text", "Charr"]:
-            if self.req_type is None:
-                if self.match("Whole", True) or self.match("Dec", True):
-                    self.Tree.end_branch(); return self.success
-                else:
-                    return self.failed()
-            else:
-                self.enforce()
-                if self.match(self.req_type):
-                    self.Tree.end_branch(); return self.success
-                else:
-                    return self.failed()
+        if self.match("Whole", True) or self.match("Dec", True):
+            self.Tree.end_branch(); return self.success
+        else:
+            return self.failed()
+    
 
     @require
     def sheesh_declaration(self):
@@ -609,9 +600,7 @@ class SyntaxAnalyzer:
         self.Tree.initialize_new()
         self.enforce()
         if self.match("Text"):
-            if self.match(",", True):
-                self.enforce()
-                self.next_args()
+            self.next_args()
             self.Tree.end_branch(); return self.success
         else:
             return self.failed()
@@ -659,433 +648,6 @@ class SyntaxAnalyzer:
         else:
             return self.failed()
 
-#region implementation of var typings
- 
-    def more(self, type):
-        self.Tree.initialize_new()
-        if type in ["Whole", "Text", "Charr", "Dec", "Sus"]:
-            self.isnullable = True
-            if self.match(","):
-                self.enforce()
-                self.match("Identifier")
-                if self.match("=", True):
-                    self.var_match(type)
-                    if self.more_more(type) == self.success:
-                        self.Tree.end_branch(); return self.success
-                else:
-                    self.more_more(type)
-            else:
-                self.Tree.end_branch(); return self.success
-
-
-    def more_more(self, type):
-        self.Tree.initialize_new()
-        if self.more(type) == self.success:
-            self.Tree.end_branch(); return self.success
-
-        else:
-            self.Tree.end_branch(); return self.success
-
-    def var_match(self, type):
-        self.Tree.initialize_new()
-        if self.match(type, True):
-            self.Tree.end_branch(); return self.success
-        elif self.pa_mine_statement() == self.success:
-            self.Tree.end_branch(); return self.success
-        elif self.assign_val_type(type) == self.success:
-            self.Tree.end_branch(); return self.success
-
-        else:
-            return self.failed()
-
-    def assign_val_type(self, type):
-        self.Tree.initialize_new()
-        if type == "Whole":
-            if self.id_as_val() == self.success:
-                self.all_op()
-                self.Tree.end_branch(); return self.success
-            elif self.match(type, True):
-                self.math_or_rel_expr()
-                self.Tree.end_branch(); return self.success
-            elif self.logical_not_expression() == self.success:
-                self.logic_op()
-                return self.failed()
-            elif self.pa_mine_statement() == self.success:
-                self.Tree.end_branch(); return self.success
-            elif self.a_val_withparen() == self.success:
-                self.Tree.end_branch(); return self.success
-            else:
-                self.enforce()
-                return self.failed()
-        elif type == "Dec":
-            if self.id_as_val() == self.success:
-                self.all_op()
-                self.Tree.end_branch(); return self.success
-            elif self.match(type, True):
-                self.math_or_rel_expr()
-                self.Tree.end_branch(); return self.success
-            elif self.logical_not_expression() == self.success:
-                self.logic_op()
-                return self.failed()
-            elif self.pa_mine_statement() == self.success:
-                self.Tree.end_branch(); return self.success
-            elif self.a_val_withparen() == self.success:
-                self.Tree.end_branch(); return self.success
-            else:
-                self.enforce()
-                return self.failed()
-        elif type == "Text":
-            return
-        elif type == "Charr":
-            return
-        elif type == "Sus":
-            return
-        else:
-            return self.failed()
-
-    def var_or_seq_dec(self):
-        self.Tree.initialize_new()
-        if self.seq_dtype() == self.success:
-            self.enforce()
-            self.enforce_type(self.req_type)
-            if self.match("Identifier"):  # ambiguity
-                if self.var_seq_tail() == self.success:
-                    self.enforce()
-                    if self.match("#"):
-
-                        self.Tree.end_branch(); return self.success
-                else:
-                    self.enforce()
-                    self.match("#")
-
-                    self.Tree.end_branch(); return self.success
-
-        else:
-            return self.failed()
-
-    def whole_var_dec(self):
-        self.Tree.initialize_new()
-        if self.match("whole"):
-            self.enforce()
-            self.match("Identifier")
-            self.w_var_seq_tail()
-            self.enforce()
-            if self.match("#"):
-
-                self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-    def dec_var_dec(self):
-        self.Tree.initialize_new()
-        if self.match("dec"):
-            self.enforce()
-            self.match("Identifier")
-            self.d_var_seq_tail()
-            self.enforce()
-            if self.match("#"):
-                self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-    def sus_var_dec(self):
-        self.Tree.initialize_new()
-        if self.match("sus"):
-            self.enforce()
-            self.match("Identifier")
-            self.s_var_seq_tail()
-            self.enforce()
-            if self.match("#"):
-
-                self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-    def text_var_dec(self):
-        self.Tree.initialize_new()
-        if self.match("whole"):
-            self.enforce()
-            self.match("Identifier")
-            self.t_var_seq_tail()
-            self.enforce()
-            if self.match("#"):
-
-                self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-    def charr_var_dec(self):
-        self.Tree.initialize_new()
-        if self.match("charr"):
-            self.enforce()
-            self.match("text")
-            self.match("Identifier")
-            self.c_var_seq_tail()
-            self.enforce()
-            if self.match("#"):
-
-                self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-    def w_var_seq_tail(self):
-        self.Tree.initialize_new()
-        if self.w_vardec_tail() == self.success:
-            self.Tree.end_branch(); return self.success
-        elif self.w_seq_tail() == self.success:
-            self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-    def w_vardec_tail(self):
-        self.Tree.initialize_new()
-        if self.w_val_assign() == self.success:
-            self.more_whl_var()
-            self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-    @nullable
-    def w_val_assign(self):
-        self.Tree.initialize_new()
-        if self.match("="):
-            self.enforce()
-            if self.whl_value() == self.success:
-                self.Tree.end_branch(); return self.success
-            else:
-                return self.failed()
-        else:
-            return self.failed()
-
-    @nullable
-    def more_whl_var(self):
-        self.Tree.initialize_new()
-        if self.match(",", True):
-            self.match("Identifier")
-            self.w_vardec_tail()
-            self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-    def whl_value(self):
-        self.Tree.initialize_new()
-        if self.match("Whole", True) or self.id_as_val() == self.success:
-            self.whl_op()
-            self.Tree.end_branch(); return self.success
-        elif self.whl_val_withparen() == self.success:
-            self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-    def whl_val_withparen(self):
-        self.Tree.initialize_new()
-        if self.match("("):
-            self.whl_value()
-            self.match(")")
-            self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-    @nullable
-    def whl_op(self):
-        self.Tree.initialize_new()
-        if self.math_op() == self.success:
-            self.whl_value()
-            self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-    def w_seq_tail(self):
-        self.Tree.initialize_new()
-        if self.seq_init() == self.success:
-            self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-    def var_seq_common(self):
-        self.Tree.initialize_new()
-        if self.seq_dtype() == self.success:
-            self.enforce()
-            self.match("Identifier")
-            self.Tree.end_branch(); return self.success
-        # elif self.var_seq_def()==self.success:
-        #     self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-    def var_seq_tail(self):
-        self.Tree.initialize_new()
-        if (self.vardec_tail() == self.success):
-            # self.enforce()
-            # self.match("#")
-
-            self.Tree.end_branch(); return self.success
-        elif (self.seq_tail() == self.success):
-            # self.enforce()
-            # self.match("#")
-
-            self.Tree.end_branch(); return self.success
-
-        else:
-            return self.failed()
-
-    @nullable  # deprecated
-    def vardec_tail(self):
-        self.Tree.initialize_new()
-        if self.variable_assign() == self.success:
-            self.more_vardec()
-            self.Tree.end_branch(); return self.success
-        elif self.more_vardec() == self.success:
-            self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-    @nullable
-    def more_vardec(self):
-        self.Tree.initialize_new()
-        # nullable=True ; self.isnullable
-        if self.match(",", True):
-            self.enforce()
-            self.match("Identifier")
-            self.vardec_tail()
-            self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-    @nullable
-    def variable_assign(self):
-        self.Tree.initialize_new()
-        # nullable=True
-        # self.isnullable=False
-        if self.match("="):
-            self.enforce()
-            if self.assign_value() == self.success:
-                # self.enforce()
-                # self.match("#")
-                # #self.newline()
-                self.Tree.end_branch(); return self.success
-            else:
-                # expects=["Whole", "Dec"]
-                # self.expectset.extend(expects)
-                self.enforce()
-                return self.failed()
-        else:
-            return self.failed()
-
-
-    
-
-    # deprecated
-    def variable_reassign(self):
-        self.Tree.initialize_new()
-        if self.match("Identifier", True):
-            self.enforce()
-            self.assign_op()
-            self.assign_value()
-            self.match("#")
-            # self.newline()
-
-        else:
-            return self.failed()
-
-    # deprec
-    def common_val(self):
-        self.Tree.initialize_new()
-        if self.peek() == "Identifier" and self.peek(1) in ["(", "["]:
-            if self.match("Identifier"):
-                self.common_val_tail()
-                self.Tree.end_branch(); return self.success
-            # self.match("Identifier") or
-            else:
-                return self.failed()
-        else:
-            expects = ["Identifier"]
-            self.expectset.extend(expects)
-
-    # def assign_value_tail(self):
-        self.Tree.initialize_new()
-    @nullable
-    # deprec
-    def common_val_tail(self):
-        self.Tree.initialize_new()
-        if self.match("("):
-            self.func_argument()
-            self.match(")")
-            self.Tree.end_branch(); return self.success
-        elif self.seq_one_dim() == self.success:
-            self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-        
-   
-    def a_val_withparen(self):
-        self.Tree.initialize_new()
-        if self.match("("):
-            # self.expectset.append(")")
-            self.assign_value()
-            self.enforce()
-            self.match(")")
-            # self.expectset.remove(")")
-            self.Tree.end_branch(); return self.success
-
-    def constant_declaration(self):
-        self.Tree.initialize_new()
-        if self.match("based", True):
-            self.const_type()
-        else:
-            return self.failed()
-
-    def const_type(self):
-        self.Tree.initialize_new()
-        if self.var_seq_common() == self.success:
-            self.const_tail()
-            self.Tree.end_branch(); return self.success
-        elif self.match("charr", True):
-            self.enforce()
-            self.match("text")
-            self.match("Identifier")
-            self.const_var_tail()
-            self.enforce()
-            self.match("#")
-            # self.newline()
-            self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-
-    def const_tail(self):
-        self.Tree.initialize_new()
-        if self.const_var_tail() == self.success:
-            self.match("#")
-            # self.newline()
-            self.Tree.end_branch(); return self.success
-        if self.seq_one_dim() == self.success:
-            self.match("=")
-            self.seq_init()
-            self.match("#")
-            # self.newline()
-            self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-    def const_var_tail(self):
-        self.Tree.initialize_new()
-        if self.match("=", True):
-            self.assign_value()
-            self.more_const()
-            self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-
-    @nullable
-    def more_const(self):
-        self.Tree.initialize_new()
-        if self.match(",", True):
-            self.const_var_tail()
-            self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
-#endregion
 
 #region new implementation of vars
 
@@ -1754,7 +1316,7 @@ class SyntaxAnalyzer:
             return self.failed()
     
     @nullable
-    def more_charr_var(self):
+    def more_chr_var(self):
         self.Tree.initialize_new()
         if self.match(","):
             self.match("Identifier")
@@ -1781,7 +1343,6 @@ class SyntaxAnalyzer:
     def  charr_value(self):
         self.Tree.initialize_new() 
         if self.match("Charr", True):
-            self.charr_op()
             self.Tree.end_branch(); return self.success
         elif self.match("Identifier"):
             self.func_call()
@@ -2608,12 +2169,6 @@ class SyntaxAnalyzer:
             if self.match("Sus", True):
                 self.logic_expr()
                 self.Tree.end_branch(); return self.success
-            elif self.num_arithm() == self.success:
-                self.relop()
-                self.enforce()
-                self.rel_val()
-                self.logic_expr()
-                self.Tree.end_branch(); return self.success
             elif self.match("Charr", True):
                 self.charr_op()
                 self.charr_value()
@@ -2622,6 +2177,12 @@ class SyntaxAnalyzer:
             elif self.logic_id() == self.success:
                 self.Tree.end_branch(); return self.success
             elif self.logic_not_expr() == self.success:
+                self.logic_expr()
+                self.Tree.end_branch(); return self.success
+            elif self.num_arithm() == self.success:
+                self.relop()
+                self.enforce()
+                self.rel_val()
                 self.logic_expr()
                 self.Tree.end_branch(); return self.success
             elif self.l_val_withparen() == self.success:
@@ -2743,6 +2304,16 @@ class SyntaxAnalyzer:
             self.Tree.end_branch(); return self.success
         else:
             return self.failed()
+    
+    def num_or_arithmparen(self):
+        self.Tree.initialize_new()
+        if self.match("("):
+            self.num_or_arithmexpr()
+            self.match(")")
+            self.num_math_op()
+            self.Tree.end_branch(); return self.success
+        else:
+            return self.failed()
 
     @nullable
     def num_math_op(self):
@@ -2793,7 +2364,7 @@ class SyntaxAnalyzer:
     
     def charr_op(self):
         self.Tree.initialize_new()
-        if self.match("==") or self.match("!="):
+        if self.match("==", True) or self.match("!=", True):
             self.Tree.end_branch(); return self.success
         else:
             return self.failed()
@@ -2885,14 +2456,4 @@ def remove_whitespace_type(tokens):
             new_tokens.append(token)
     return new_tokens
     
-if __name__ == "__main__":
-    from source.LexicalAnalyzer.tokenclass import Token
-    from source.LexicalAnalyzer.lexerpy import Lexer
-    sample="use a() from id # "
-    tokens,error=   Lexer.tokenize(sample)
-    tokens=remove_whitespace_type(tokens)
-
-    parser=SyntaxAnalyzer(tokens)
-    parser.parse()
-    print(parser.Tree)
     
