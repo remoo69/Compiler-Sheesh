@@ -65,25 +65,7 @@ def remove_comments(code):
 
     return output_code
 
-# def get_block_comments(input_code):
-#     output_code = ""
-#     in_block_comment = False
 
-#     i = 0
-#     while i < len(input_code):
-#         if input_code[i:i+2] == '/*' and not in_block_comment:
-#             in_block_comment = True
-#             i += 2
-#         elif input_code[i:i+2] == '*/' and in_block_comment:
-#             in_block_comment = False
-#             i += 2
-#         elif not in_block_comment:
-#             output_code += input_code[i]
-#             i += 1
-#         else:
-#             i += 1
-
-#     return output_code
 def get_block_comments(text:str):
     i = 0
     comment_buffer=''
@@ -197,9 +179,6 @@ def get_dec(token):
         else:
             temp_token+=char
 
-# def get_lit(token):
-#     if get_keyword(token)==const.boolean:
-#         return 
 
 
 
@@ -216,7 +195,7 @@ def get_keyword(token):
             keyword_detected=True
             return temp_token, token_cpy
                
-        else:
+        else:   
             temp_token+=char
    
 def get_identifier(token):
@@ -297,7 +276,7 @@ def get_space(token):
         # if re.match(space, char):
         #     token_cpy=re.sub(space, '',token, count=1)
         #     return char, token_cpy       
-        if char==" " or char=="\t":
+        if char==" " or char=="\t" or char==' ':
             token_cpy=token.replace(char, '', 1)
             tkc.Token.tok_num-=1
             return char, token_cpy
@@ -319,6 +298,11 @@ def get_text(token):
             return temp_token, token_cpy       
         else:
             temp_token+=char
+
+    if (char in const.delimiters["txt_delim"] or check_concat=="...") and tkc.LexerCheck.is_Text(temp_token):
+            token_cpy=token.replace(temp_token, '', 1)
+            return temp_token, token_cpy   
+    
 
 def get_next_char(input_string, current_index):
     if current_index < len(input_string)-1:
@@ -351,3 +335,8 @@ def prepare(code):
         lines.append(templines[i])
     return lines
 
+
+
+if __name__=="__main__":
+    print(get_keyword("up(“The speed of the fluid is: $d m/s\n\","))
+    print(get_text("(“The speed of the fluid is: $d m/s\n\","))

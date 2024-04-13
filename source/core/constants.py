@@ -51,10 +51,10 @@ whitespace=space+['\n', '\t']
 grouping_symbols=["{","}", "(", ")", "[", "]" ]
 other_symbols=["#", "::", ]
 all_symbols_nonop=grouping_symbols+other_symbols+[",", "."]
-invalid_id_char=op+comma+['#', '.', '@', '^', '&', '(', ')', '`', '~', ':', '?', '$', ';', '[', ']', '{', '}', '/', '\\', '`', '^', "'", '"']
-invalid_text_char=['"', ]
+invalid_id_char=op+comma+['#', '.', '@', '^', '&', '(', ')', '`', '~', ':', '?', '$', ';', '[', ']', '{', '}', '/', '\\', '`', '^', "'", '"', '“', '"', '”']
+invalid_text_char=[] #['"', '“', '"', '”', ]
 invalid_symbols=["@", "^", "&", "`", "~", "?", "$", ";", "'", '`',":"]
-
+multi_charr=[r"'\0'", r"'\n'", r"'\t'",]
 
 # Delimiters used in the Transition Diagram/DFA
 
@@ -72,15 +72,15 @@ delimiters = {
     "delim6": alph_num+[" ", "(", "{", "\"", "\'"],             # added: (,{,",'}
     "delim7": [" ","\\","}", ""],
     "delim8": [" ","\\", ""],
-    "delim9": alph_num+[" ","(","{", "!", '"', "\'"],           # added '
+    "delim9": alph_num+[" ","(","{", "!", '"', '“', '"', '”', "\'"],           # added '
     "delim10": alph_all+[" ","(","!"],
     "delim11": alph_num+[" ","(","!", "\'"],
     "delim12": all_op+comma+[" ","#","[","]",")" ],
     "delim13": alph_num+[" ","\\","(", "{", "\"", None],
     "delim14": alph_all+comma+[" ","#", "}",None],
-    "delim15": alph_num+[" ", "!","(", ")", '"', "-", "\'"],    # added '
+    "delim15": alph_num+[" ", "!","(", ")", '"', '“', '"', '”', "-", "\'"],    # added '
     "delim16": op+comma+[" ", "#", ")", "}", "{", ":"], 
-    "delim17": alph_num+[" ", '"', "\\"],
+    "delim17": alph_num+[" ", '"', '“', '"', '”', "\\"],
     "delim18": comma+[" ","#",")","|", "&","}"],                 # added delim18 for nocap and cap
     "delim19": alph_num+[" ", "(", "\'"],
     "delim20": alph_num+[" ","\""],     
@@ -148,7 +148,7 @@ symbols_delims={
                 "!=":delimiters["delim5"],
                 "&":delimiters["delim11"],
                 "|":delimiters["delim11"],
-                "...": ['"'," "],
+                "...": ['"', '“', '"', '”'," "],
 #------------------------------------- Symbols ------------------------------------------------------
                 "[":delimiters["delim5"],
                 "]":delimiters["delim12"],

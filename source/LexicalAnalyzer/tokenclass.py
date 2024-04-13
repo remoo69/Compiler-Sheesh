@@ -18,98 +18,36 @@ class Token:
     block_comment_buffer=''
     id_dict={}
     block_start_line=0
-    
-    # def __init__(self, type=None, value=None, line=None, position=None, attribute=None):
-    #     self.value = value
-    #     self.type = type
-    #     self.attribute=attribute
-    #     self.line = line
-    #     self.position = position
-    #     self.state= "Start" #States are start, active, end, and error
-        # self.transitions={
-        #     "Operators":{
-        #         'start': {'+': 'plus', '-': 'minus', '*': 'multiply', '/': 'divide', '=': 'equal', '%':'modulo', 'other': 'invalid'},
-        #         'plus': {'=': 'plus_equal', const.symbols_delims['+']:'final', 'other': 'invalid'},
-        #         'minus': {'=': 'minus_equal', const.symbols_delims['-']:'final','other': 'invalid'},
-        #         'multiply': {'=': 'multiply_equal', const.symbols_delims['*']:'final', 'other': 'invalid'},
-        #         'divide': {'=': 'divide_equal',const.symbols_delims['/']:'final', 'other': 'invalid'},
-        #         'equal': {'=':'equal_equal', const.symbols_delims['=']:'final','other': 'invalid'},
-        #         'modulo': {'=':'modulo_equal', const.symbols_delims['%']:'final','other': 'invalid'},
-        #         'plus_equal': {const.symbols_delims['+=']:'final','other': 'invalid'},
-        #         'minus_equal': {const.symbols_delims['-=']:'final','other': 'invalid'},
-        #         'multiply_equal': {const.symbols_delims['*=']:'final','other': 'invalid'},
-        #         'divide_equal': {const.symbols_delims['/=']:'final','other': 'invalid'},
-        #         'modulo_equal': {const.symbols_delims['%=']:'final','other': 'invalid'},
-        #         'equal_equal':{const.symbols_delims['==']:'final','other': 'invalid'},
-        #         'invalid': {'other': 'invalid'},
-        #         'final':{'None':'final'}
-        #     }
-        # }
 
-        # self.accepting_states={}
-
-    # def transition(self, inputval):
-    #     if self.state=="Start":
-    #         if inputval in const.StartStates and self.state=="Start":
-    #             self.value=inputval
-    #             self.state="Active"
-    #         if inputval in const.ActiveStates and self.state=="Active":
-    #             self.add_value(inputval)
-    #         if inputval in const.FinalStates
-    #         else:
-    #             self.set_state("Error")
-
-    # def set_state(self, newstate):
-    #     self.state=newstate
-
-    # def set_value(self, newvalue):
-    #     self.value=newvalue
-
-    # def add_value(self, addvalue):
-    #     self.value+=addvalue
-
-    # def set_type(self, newtype):
-    #     self.type=newtype
-    
-    # def set_attribute(self, newattr):
-    #     self.attribute=newattr
-
-    # def set_start(self):
-    #     self.state="Start"
-
-    # def set_active(self):
-    #     self.state="Active"
-
-    # def is_valid(self):
-    #     pass
-
-    # def simulate(self, inputval):
-    #     pass
-
-    # def reset(self):
-    #     self.set_start
 
 class LexerCheck:
+    @staticmethod
+    def count_chars_from_list(text, char_list):
+        """
+        This function counts the total occurrences of characters from a list within a string.
+
+        Args:
+            text: The string to search in.
+            char_list: A list of characters to count.
+
+        Returns:
+            The total count of characters from the list found in the text.
+        """
+        count = 0
+        for char in text:
+            if char in char_list:
+                count += 1
+        return count
+    
     @staticmethod    
     def is_Text(Token: str) -> bool: #rewritten with gpt
-        if not Token.startswith('"') and not Token.endswith('"'):
-            return False
+        quotes=['"','“',"”",'"']
+        quote_counts = LexerCheck.count_chars_from_list(Token, quotes)  
 
-        if Token.count('"') != 2:
-            return False
-        elif any(invalid in Token[1:-1] for invalid in const.invalid_text_char):
-            return False
-        else: return True
-        # escaped = False
-        # for char in Token[1:-1]:
-        #     if escaped:
-        #         escaped = False
-        #     elif char == '\\':
-        #         escaped = True
-        #     elif char == '"':
-        #         return False
+        if ( (Token.startswith('"') or Token.startswith('“') or Token.startswith('”') or Token.startswith('"'))) and ( (Token.endswith('"') or Token.endswith('”') or Token.endswith('“') or Token.endswith('"'))) and quote_counts%2==0 and not any(invalid in Token[1:-1] for invalid in const.invalid_text_char):
+            return True
+        else: return False
 
-        # return not escaped
     @staticmethod    
     def is_Identifier(Token): #rewritten
         try:
@@ -203,6 +141,8 @@ class LexerCheck:
     def is_Charr(Token):
         if (Token.startswith("'") and Token.endswith("'")) and (((len(Token)==3 and ((Token[1:-1] ) or Token[1:-1].isalpha())) or (len(Token)==2 and Token=="''")) or (len(Token)==4 and (Token[1:-1] in const.esc_seq))):
             return True
+        elif Token in const.multi_charr:
+            return True
         else: return False
 
     @staticmethod    
@@ -244,3 +184,7 @@ class LexerCheck:
             return True
         else: return False
 
+if __name__=='__main__':
+
+    print(LexerCheck.is_Text("up(“The speed of the fluid is: $d m/s\n\""))
+    print(LexerCheck.is_Charr("'\n'"))
