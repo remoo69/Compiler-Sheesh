@@ -88,7 +88,7 @@ delimiters = {
     "delim22": [" ", ":","::"],                                 # added delim22 for default
     "delim23": [" ", ")"],             # added delim23 for whole
     "charr_delim": comma+[" ","#","=",")",":","::"],
-    "txt_delim": comma+[" ", "#", ")", "}", ":"], 
+    "txt_delim": comma+[" ", "#", ")", "}", ":", '=', ],
     "blk_delim": [" ", "\\",None],
     "id_delim": op+comma+[" ", "#", "(",")", "[", "]", "{", ".", ":"],
     "n_delim": op+comma+[" ", "#", "(", ")", ":", "]", "}"],
