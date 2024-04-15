@@ -107,7 +107,7 @@ def remove_whitespace_type(tokens):
 
 def run_lex():
     
-    print("Button pressed")
+    print("Lex Pressed")
     code=txt_editor_pane.get("1.0", END)
     tokens,error=lex.Lexer.tokenize(code)
     # tokens=remove_whitespace_type(tokens)
@@ -121,6 +121,12 @@ def run_lex():
         lex_table_pane.config(state="disabled")
         error_pane.config(state="disabled")
 
+def remove_eol(tokens):
+    new_tokens = []
+    for token in tokens:
+        if token.type != 'Newline':
+            new_tokens.append(token)
+    return new_tokens
 
 def run_parser():
     
@@ -128,7 +134,8 @@ def run_parser():
     code = txt_editor_pane.get("1.0", END)
     tokens, error = lex.Lexer.tokenize(code)
     tokens = remove_whitespace_type(tokens)
-    print_lex(tokens)
+    print_lex(remove_eol(tokens))
+
     if error:
         error_pane.config(state="normal")
         error_pane.config(foreground= yellow)
@@ -161,9 +168,6 @@ def run_parser():
             for error in errors:
                 error_pane.insert(constants.END, f"{error}\n")
             error_pane.config(state="disabled")
-
-       
-            # print()
     
         lex_table_pane.config(state="disabled")
         error_pane.config(state="disabled")
@@ -173,25 +177,16 @@ def print_lex(tokenlist):                      # Print Text to Lexical Pane
     lex_table_pane.config(state="normal")
     lex_table_pane.delete('1.0', constants.END)
     lex_table_pane.insert(constants.END, "LEXEME\t\t\tTOKEN\n\n")
-    # token=prep.remove_whitespace_type(value,type)
-    # j=0
-    # while j < len(tokenlist):
-        # if category[j]=="Keyword" or category[j]=="Symbol" or category[j]=="Operator":
-        #     category[j]=char
     for i in range(len(tokenlist)):
-        # if type[i] == 'Error Category' or type[i] == 'Whitespace' or type[i] == 'None':
-        #     continue
-        # else:  
-        # if tokenlist[i].type=="Whitespace":
-        #     continue
-        # else:
             lex_table_pane.insert(
                 constants.END, f'{str(tokenlist[i].value) if len(str(tokenlist[i].value))<=15 else str(tokenlist[i].value)[:10] + "..."}\t\t\t{str(tokenlist[i].type)}\n')
 
 
 def print_error(error):
     if error==[]:
+        error_pane.config(state="normal")
         error_pane.config(foreground= green)
+        error_pane.delete('1.0', constants.END)
         error_pane.insert(constants.END, "No Lexical Errors")
     else:
         error_pane.config(state="normal")
