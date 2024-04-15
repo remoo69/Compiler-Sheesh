@@ -351,21 +351,28 @@ class LexError:
                     errobj.line=tkc.Token.line_num
                     errobj.toknum=tkc.Token.tok_num
                     return errobj
-
-                elif len(buffer)==len(tokencode):
-                    errobj.errorval=buffer
-                    errobj.remaining=tokencode.replace(buffer, '', 1)
-                    errobj.error_type=f"No Closing Quote for {buffer}"
-                    errobj.line=tkc.Token.line_num
-                    errobj.toknum=tkc.Token.tok_num
-                    return errobj
-                elif len(buffer)>3 and buffer[-1]=="'":
-                    errobj.errorval=buffer
-                    errobj.remaining=tokencode.replace(buffer, '', 1)
-                    errobj.error_type=f"Invalid Charr Length"
-                    errobj.line=tkc.Token.line_num
-                    errobj.toknum=tkc.Token.tok_num
-                    return errobj
+                elif buffer.startswith("'") and buffer.endswith("'"):
+                    if len(buffer)<len(tokencode) and tkc.LexerCheck.is_Charr(buffer) and tokencode[i+1] not in const.delimiters["txt_delim"] :
+                        errobj.errorval=buffer
+                        errobj.remaining=tokencode.replace(buffer, '', 1)
+                        errobj.error_type=f"Invalid Delimiter for Charr ({buffer}): [' {tokencode[i+1]} '], expected {const.delimiters['txt_delim']}"
+                        errobj.line=tkc.Token.line_num
+                        errobj.toknum=tkc.Token.tok_num
+                        return errobj
+                    elif len(buffer)==len(tokencode):
+                        errobj.errorval=buffer
+                        errobj.remaining=tokencode.replace(buffer, '', 1)
+                        errobj.error_type=f"No Closing Quote for {buffer}"
+                        errobj.line=tkc.Token.line_num
+                        errobj.toknum=tkc.Token.tok_num
+                        return errobj
+                    elif len(buffer)>3 and buffer[-1]=="'":
+                        errobj.errorval=buffer
+                        errobj.remaining=tokencode.replace(buffer, '', 1)
+                        errobj.error_type=f"Invalid Charr Length"
+                        errobj.line=tkc.Token.line_num
+                        errobj.toknum=tkc.Token.tok_num
+                        return errobj
                 i += 1
             
             else: return None
