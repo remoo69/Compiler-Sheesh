@@ -1,9 +1,28 @@
 import sys
 sys.path.append('.')
-from logging import getLogger
 from source.LexicalAnalyzer.tokenclass import Token
 from source.core.error_handler import SyntaxError as Error
+from source.core.error_handler import SemanticError as SemError
+from source.SemanticAnalyzer.Semantisizer import SemanticAnalyzer as sa
 import inspect
+from time import perf_counter
+from source.core.error_types import Semantic_Errors as se
+import cProfile
+from collections import deque
+from source.CodeGeneration.CodeGen import CodeGeneration as cg
+
+
+D_WHOLE="whole"
+D_DEC='dec'
+D_TEXT='text'
+D_SUS='sus'
+D_CHARR='charr'
+
+WHOLE='Whole'
+DEC='Dec'
+TEXT='Text'
+SUS='Sus'
+CHARR='charr'
 
 class AST:
     """ 
@@ -15,81 +34,98 @@ class AST:
     2. add_children: append value to list of current children
     3. end_branch: should only be used at the end of the function
     """
-
-    def __init__(self, root, children=[], level=0):
+    # @memoize
+    def __init__(self, root):
         self.root= root
         self.children = []
-        self.level=level
         self.stack=[]
-
+        
         self.bufer=None
 
 
     def __repr__(self) -> str:
         return f"\n<{self.root}:\n{self.children}>\n"
 
-
     def current_func(self, elem=2):
+
         caller_frame = inspect.stack()[elem]
         caller_function_name = caller_frame[3]
     
         if caller_function_name in ["wrapper", "nullable", "required", "match", None]:
             return "Outisde"
         else:
+
             return caller_function_name
 
+    def new_ast(self, root, value):
+        self.initialize_new(root)
+        self.root=root
+        self.children.append(value)
+
+
     def initialize_new(self):
+        
         root=self.current_func()
-        if self.stack==[]:
-            self.buffer=AST(root)
-            self.stack.append(self.buffer)
-
-
-        else:
-            self.buffer=AST(root)
-            self.stack.append(self.buffer)
-
+        self.buffer=AST(root)
+        self.stack.append(self.buffer)
 
     def add_children(self, children):
          self.buffer.children.append(children)
+        
 
     def end_branch(self):
         """ 
         End branch should add the function to the previous function's children
         """
+        
         try:
-            last=self.stack[-2]
+            last:AST=self.stack[-2]
+
             last.children.append(self.stack[-1])
             self.stack[-2]=last
-            self.stack.pop(-1)
+            self.stack.pop()
             self.buffer=self.stack[-1]
         except IndexError:
             print("End of Trees")
+            return
 
+    
     def end_tree(self):
+        
         self.buffer=self.stack[0]
         self.children.append(self.buffer)
 
 class SyntaxAnalyzer:
-    def __init__(self, tokens: list[Token]) -> None:
-        self.Tree = AST("Root", [])
-        self.subtree=None
-        self.tokens = tokens
-        self.pointer = 0
-        self.production_stack = []
-        self.current_prod = []
-        self.buffer = []
-        self.syntax_errors = []
-        self.toklen = len(self.tokens)
-        self.success = "Success"
-        self.expected = None
-        self.isnullable = True
-        self.expectset = []
-        self.req_type = None
-        self.tempchild=None
-        self.call_stack=[]
+
+    
+    def __init__(self, tokens) -> None:
+        self.tokens=tokens
+        self.Tree:AST = AST("Root")
+        self.buffer:deque = deque([])
+        self.syntax_errors=[]
+        self.success:str = "Success"
+        self.expected:list = []
+        self.isnullable:bool = True
+        self.expectset:list = []
         self.cur=None
-        self.tempnullable=None
+
+        self.req_type=None
+        self.matched=[]
+
+        #for semantic
+        self.id_vars=[]
+        self.id_funcs=[]
+        self.semantic_errors:list=[]
+        self.semantic_expected:list=[]
+        self.cur_id=None
+
+
+        self.debug=True
+
+        self.codegen=cg()
+        self.output=[]
+        
+
 
 # region WRAPPERS
     def require(func):
@@ -119,25 +155,27 @@ class SyntaxAnalyzer:
 
 # region FUNCTIONS________________________________________________________
 
-    def reset(self):
-        self.Tree = AST("Root", [])
-        self.subtree=None
-        self.pointer = 0
-        self.production_stack = []
-        self.current_prod = []
-        self.buffer = []
-        self.syntax_errors = []
-        self.toklen = len(self.tokens)
-        self.success = "Success"
-        self.expected = None
-        self.isnullable = True
-        self.expectset = []
-        self.req_type = None
-        self.tempchild=None
-        self.call_stack=[]
+    def reset(self)->None:
+        self.Tree:AST = AST("Root")
+        self.buffer:deque = deque([])
+        self.syntax_errors=[]
+        self.success:str = "Success"
+        self.expected:list = []
+        self.isnullable:bool = True
+        self.expectset:list = []
         self.cur=None
-        self.tempnullable=None
 
+        self.req_type=None
+        self.matched=[]
+
+        #for semantic
+        self.id_vars=[]
+        self.id_funcs=[]
+        self.semantic_errors:list=[]
+        self.semantic_expected:list=[]
+        self.cur_id=None
+        
+        self.output=[]
 
     def parse(self):
         self.reset()
@@ -147,18 +185,33 @@ class SyntaxAnalyzer:
             return self.syntax_errors
         else:
             try:
-                self.program()
-                self.Tree.end_tree()    
-                print(self.Tree)
-                return self.syntax_errors
+                if self.debug:
+                    start=perf_counter()
+                    self.program()
+                    end=perf_counter() 
+                    
+                    self.Tree.end_tree()    
+                    tr=perf_counter()
+                    print(self.Tree)
+                    print(f"Parsing: {end-start}")
+                    print(f"Print Tree: {tr-end}")
+                    print(self.semantic_errors)
+                    print("ID: ",self.id_vars)
+                    print("Funcs: ", self.id_funcs)
+                    print(self.Tree)
+                else:
+                    self.program()
+                    self.Tree.end_tree()
+         
+                return self.syntax_errors, self.semantic_errors, self.output
             except SyntaxError as e:
                 print(e)
-                return self.syntax_errors
+                return self.syntax_errors, self.semantic_errors, self.output
 
+    
     def enforce(self):
         self.isnullable = False
 
-    #
     def peek(self, chars_ahead=0):
         if len(self.tokens) > chars_ahead:
             try:
@@ -172,17 +225,13 @@ class SyntaxAnalyzer:
         toklen = len(self.tokens)
         if (toklen != 0) and (self.tokens[0].type == consumable):
             return consumable
-            # print(self.tokens)
         else:
             return None
-
-    def skip(self):
-        return self.success
 
     def consume(self, consumable):
         toklen = len(self.tokens)
         if (toklen != 0) and (self.tokens[0].type == consumable):
-            self.buffer.append(consumable)
+            self.buffer.append(self.tokens[0])
             self.tokens.pop(0)
             return consumable
 
@@ -190,14 +239,10 @@ class SyntaxAnalyzer:
             return None
         
     def stop(self):
-        print(self.Tree)
         raise SyntaxError("Syntax Error")
 
-    def move(self):
-        self.pointer += 1
 
     def error(self):
-        print(len(self.tokens))
         if len(self.tokens) <= 0:
             self.expectset = list(set(self.expectset))
             self.syntax_errors.append(
@@ -228,19 +273,12 @@ class SyntaxAnalyzer:
         else:
             if self.error() == "EOF":
                 return
-            
-    def clear(self):
-        self.buffer = []
+
 
     def eat_endl(self):
-        if self.peek() == "Newline":
+        while self.peek() == "Newline":
             self.consume("Newline")
 
-    def find(self, item):
-        for n, token in enumerate(self.tokens):
-            if token.type == item:
-                return n
-        return None
     
     def match(self, consumable, skippable=False, newline_Optional=True):
         try:
@@ -255,7 +293,7 @@ class SyntaxAnalyzer:
 
         if len(self.tokens) == 0:
             self.expectset.append(self.expected)
-            print(f"EOF, nothing to match {consumable} with.")
+            print(f"EOF, nothing to match {consumable} with.") if self.debug else None
             self.failed()
             self.Tree.end_branch()
             self.expected = None
@@ -268,40 +306,144 @@ class SyntaxAnalyzer:
             #ANCHOR - removed   and not self.isnullable
             if not skippable :
                 self.enforce()
-                try:
-                    print(
-                        f"Failed Match: {self.expected}, got {self.tokens[0].type}")
-                except IndexError:
-                    print(f"Failed Match: {self.expected}, got EOF")
+                if self.debug:
+                    try:
+                        print(
+                            f"Failed Match: {self.expected} FROM {self.Tree.current_func()}, got {self.tokens[0].type}")
+                    except IndexError:
+                        print(f"Failed Match: {self.expected} FROM {self.Tree.current_func()}, got EOF")
                 self.expectset.append(self.expected)
                 self.expected = None
                 self.failed()
                 return False
             else:
-                print(f"No {self.expected} detected. Skipping.")
+
+                print(f"No {self.expected} FROM {self.Tree.current_func()} detected. Skipping.") if self.debug else None
+
                 self.expectset.append(self.expected)
                 self.expected = None
                 return
         else:
+            self.matched.append(self.tokens[0])
+
             self.consume(self.expected)
+            
             self.expected = None
             self.expectset = []
-            print("Matched:", consumed)
+
+            print("Matched:", consumed, "FROM ", self.Tree.current_func()) if self.debug else None
+
             if consumed == "#":
                 if self.peek() == "}":
-                    self.Tree.add_children(consumed)
+                    self.Tree.add_children(self.matched[-1])
                     return True
+                self.req_type=None
                 self.match("Newline")
                 self.eat_endl()
-            self.Tree.add_children(consumed)
+            self.Tree.add_children(self.matched[-1])
             return True
 
-    def enforce_type(self, type):
-        self.req_type = type
+#region SEMANTIC CHECKS
 
-# endregion FUNCTIONS_____________________________________________________
+    #!SECTION self implementation of semantic for declaration of iden
+    def new_id(self, type_pos=-2):
+        if any(id_var.value == self.matched[-1].value for id_var in self.id_vars):
+            self.semantic_error(se.VAR_REDECL_INSCOPE, self.matched[-1], f"New Variable {self.matched[-1].value}")
+        else: 
+            self.id_vars.append(sa.id_decl(self.matched[-1], self.matched[type_pos].value))
+            self.req_type=self.matched[type_pos].value
 
-# region GRAMMAR_________________________________________________________________________________________________________________
+
+    def new_id_more(self):
+        self.id_vars.append(sa.id_decl(self.matched[-1], self.req_type))   
+
+    def semantic_error(self, error, token, expected):
+        if token != None:
+            self.semantic_expected.append(expected)
+            self.semantic_errors.append(SemError(error=error, line=token.line, toknum=token.position, value=(token.value, token.dtype), expected=self.semantic_expected))
+            self.semantic_expected=[]
+        else:
+            self.semantic_errors.append(SemError(error=error, line=0, toknum=0, value=expected, expected=self.semantic_expected))
+            self.semantic_expected=[]
+        
+    def declared(self, id:Token):
+        if any(id.value == token.value for token in self.id_vars) or any(id.value == token.value for token in self.id_funcs):            return True
+        else: return False
+
+    def duplicate_id(self, declared_id, recent_id):
+        return Token(value=declared_id.value, type=declared_id.type, attribute=declared_id.attribute, scope=declared_id.scope, dtype=declared_id.dtype, 
+                     line=recent_id.line, position=recent_id.position)
+
+    def check_id_op(self):
+        
+        if self.check_var_declared():
+            id=self.get_id(self.matched[-1])
+            if id.dtype!=self.req_type:  
+                self.semantic_error(se.VAR_OPERAND_INVALID, self.duplicate_id(id, self.matched[-1]), self.req_type)
+                return False
+            else: return True
+        
+
+    def get_id(self, id_name):
+        for id in self.id_vars:
+            if id.value==id_name.value:
+                return id
+
+    def check_var_declared(self):
+        if self.matched[-1].type == "Identifier":
+            id=self.matched[-1]
+        else: id=self.matched[-2]
+
+        if not self.declared(id):
+            exp=f"Declared {id.value}"
+            err=se.VAR_UNDECL
+            self.semantic_error(err, id, exp)
+            return False
+        else: 
+            self.cur_id=self.get_id(id)
+            return True
+   
+    def check_func_declared(self):
+        id=self.matched[-2]
+        if not self.declared(id):
+            exp=f"Declared {id.value}"
+            err=se.FUNC_UNDECL
+            self.semantic_error(err, id, exp)
+            return False
+        else: return True
+    
+    def check_var_operand(self, id:Token):
+        if not self.declared(id):
+            self.semantic_expected.append(self.req_type)
+            self.semantic_errors.append(SemError(error=se.VAR_OPERAND_INVALID, line=id.line, toknum=id.position, value=id.value, expected=self.semantic_expected))
+        else: return True
+
+    def check_req_type(self, id:Token):
+        if self.declared(id) and id.dtype == self.req_type:
+            return True
+        else:
+            self.semantic_expected.append(f"Variable of Type {self.req_type}")
+            self.semantic_errors.append(SemError(error=se.VAR_OPERAND_INVALID, line=id.line, toknum=id.position, value=id.value, expected=self.semantic_expected))
+            return False
+        
+    def var_load_type(self, id:Token):
+        if id != None:
+            self.req_type=id.dtype
+        else:
+            self.semantic_error(se.VAR_UNDECL, id, f"Declared undefined")
+
+
+    def ID_assign(self,id:Token, value):
+        for token in self.id_vars:
+            if token.value==id.value:
+                token.numerical_value=value
+        
+
+#endregion SEMANTIC CHECKS
+
+# endregion FUNCTIONS
+
+# region GRAMMAR
 
 # MAIN_____________________________________________________________________________________________________________________
     def program(self):
@@ -326,6 +468,7 @@ class SyntaxAnalyzer:
     # I didn't change anything here since alaws naman change sa implementation
     # kahit meron sa cfg
 
+#region non-decl
     @nullable
     def import_(self):
         self.Tree.initialize_new()
@@ -350,6 +493,9 @@ class SyntaxAnalyzer:
     def import_prog(self):
         self.Tree.initialize_new()
         if self.match("Identifier", True):
+
+            sa.id_import(self.matched[-1])
+
             self.func_paren(); self.import_tail()
             self.Tree.end_branch()
             return self.success
@@ -365,6 +511,9 @@ class SyntaxAnalyzer:
         elif self.match("from", True):
             self.enforce()
             self.match("Identifier")
+
+            sa.id_module(self.matched[-1])
+
             self.Tree.end_branch()
             return self.success
         else:
@@ -432,15 +581,27 @@ class SyntaxAnalyzer:
     def in_param(self):
         self.Tree.initialize_new()
         if self.match("charr", True):
+
+            self.req_type=self.matched[-1].value
+
             self.enforce()
             self.match("text")
             self.match("Identifier")
+
+            sa.id_decl_param(self.matched[-1], "charr")
+
             self.more_paramtail()
             self.Tree.end_branch(); return self.success
         elif self.seq_dtype() == self.success:
             self.enforce()
             self.match("Identifier")
-            self.index_param()
+
+            sa.id_decl_param(self.matched[-1], self.req_type)
+
+            if self.index_param()==self.success:
+
+                sa.id_as_sequence( self.matched[-1])
+
             self.more_paramtail()
             self.Tree.end_branch(); return self.success
         else:
@@ -550,6 +711,9 @@ class SyntaxAnalyzer:
             if self.up_argument():
                 self.match(")")
                 self.match("#")
+
+                self.codegen.up(self.matched, self.output, self.id_vars)
+
                 self.Tree.end_branch(); return self.success 
         else:
             return self.failed()
@@ -557,20 +721,39 @@ class SyntaxAnalyzer:
     def id_tail(self):
         self.Tree.initialize_new()
         if self.match("(", True):
+
+            self.check_func_declared()
+
+
             self.func_argument()
             self.match(")")
             self.match("#")
             self.Tree.end_branch(); return self.success
         elif self.one_dim() == self.success:
+
+            self.check_var_declared()
+            self.var_load_type(self.matched[-1].dtype)
+
             self.assign_op()
             self.assign_value()
             self.match("#")
             self.Tree.end_branch(); return self.success
         elif self.assign_op() == self.success:
+            
+#FIXME - bug
+            
+            if self.check_var_declared():
+                self.var_load_type(self.cur_id)
+                print(self.id_vars)
+
             self.enforce()
             self.assign_value()
             self.enforce()
             self.match("#")
+
+            # self.codegen.eval_arithm(self.matched, self.id_vars)
+            self.codegen.ID_assign(matched_list=self.matched, id_list=self.id_vars,value=self.codegen.eval_arithm(self.matched, self.id_vars))
+
             self.Tree.end_branch(); return self.success
         else:
             self.enforce()
@@ -636,38 +819,54 @@ class SyntaxAnalyzer:
         else:
             return self.failed()
 
+#endregion non-decl
 
-#region new implementation of vars
+
+
+##region new implementation of vars
 
     def var_or_seq_dec(self):
         self.Tree.initialize_new()  
         if self.match("whole", True):
             self.match("Identifier")
+
+            self.new_id()
+
             self.w_var_seq_tail()
             self.match("#")
             self.Tree.end_branch(); return self.success
         elif self.match("dec", True):
             self.match("Identifier")
+
+            self.new_id()
+            
+
             self.d_var_seq_tail()
             self.match("#")
             self.Tree.end_branch(); return self.success
         elif self.match("sus", True):
             self.match("Identifier")
+
+            self.new_id()
+
             self.s_var_seq_tail()
 
             self.match("#")
             self.Tree.end_branch(); return self.success
         elif self.match("text", True):
-
             self.match("Identifier")
+
+            self.new_id()
             self.t_var_seq_tail()
 
             self.match("#")
             self.Tree.end_branch(); return self.success
         elif self.match("charr", True):
-
             self.match("text")
             self.match("Identifier")
+
+            self.new_id(-3)
+
             self.c_vardec_tail()
 
             self.match("#")
@@ -681,6 +880,9 @@ class SyntaxAnalyzer:
         if self.w_vardec_tail() == self.success:
             self.Tree.end_branch(); return self.success
         elif self.index()== self.success:
+
+            sa.id_as_sequence(self.matched[-1])
+
             self.w_seq_tail()
             self.Tree.end_branch(); return self.success
         else:
@@ -706,6 +908,10 @@ class SyntaxAnalyzer:
         if self.match("=", True):
             self.enforce()
             if self.whl_all_value()==self.success:
+
+                # print(self.codegen.eval_arithm(self.matched))
+                self.codegen.ID_assign(matched_list=self.matched, id_list=self.id_vars,value=self.codegen.eval_arithm(self.matched, self.id_vars))
+
                 self.Tree.end_branch(); return self.success
             else:
                 return self.failed()
@@ -717,6 +923,9 @@ class SyntaxAnalyzer:
         self.Tree.initialize_new()
         if self.match(",", True):
             self.match("Identifier")
+
+            self.new_id_more()
+
             self.w_vardec_tail()
             self.Tree.end_branch(); return self.success
         else:
@@ -743,6 +952,9 @@ class SyntaxAnalyzer:
             self.whl_op()
             self.Tree.end_branch(); return self.success
         elif self.id_as_val()==self.success:
+
+            self.check_var_operand()
+
             self.whl_op()
             self.Tree.end_branch(); return self.success
         elif self.whl_val_withparen()==self.success:
@@ -839,9 +1051,11 @@ class SyntaxAnalyzer:
     def d_var_seq_tail(self):
         self.Tree.initialize_new()
         if self.d_vardec_tail() == self.success:
-
             self.Tree.end_branch(); return self.success
         elif self.index()== self.success:
+
+            sa.id_as_sequence(self.matched[-1])
+
             self.d_seq_tail()
             self.Tree.end_branch(); return self.success
         else:
@@ -877,6 +1091,9 @@ class SyntaxAnalyzer:
         self.Tree.initialize_new()
         if self.match(",", True):
             self.match("Identifier")
+            
+            self.new_id_more()
+
             self.d_vardec_tail()
             self.Tree.end_branch(); return self.success
         else:
@@ -903,6 +1120,8 @@ class SyntaxAnalyzer:
             self.dec_op()
             self.Tree.end_branch(); return self.success
         elif self.id_as_val()==self.success:
+            if self.matched[-1].dtype != D_DEC:
+                self.semantic_error(se.VAR_OPERAND_INVALID, self.matched[-1], D_DEC)
             self.dec_op()
             self.Tree.end_branch(); return self.success
         elif self.dec_val_withparen()==self.success:
@@ -999,6 +1218,9 @@ class SyntaxAnalyzer:
         if self.s_vardec_tail() == self.success:
             self.Tree.end_branch(); return self.success
         elif self.index()== self.success:
+
+            sa.id_as_sequence(self.matched[-1])
+
             self.s_seq_tail()
             self.Tree.end_branch(); return self.success
         else:
@@ -1035,6 +1257,9 @@ class SyntaxAnalyzer:
         self.Tree.initialize_new()
         if self.match(",", True):
             self.match("Identifier")
+
+            self.new_id_more()
+
             self.s_vardec_tail()
             self.Tree.end_branch(); return self.success
         else:
@@ -2013,6 +2238,9 @@ class SyntaxAnalyzer:
             self.yeet_type()
             self.enforce()
             self.match("Identifier")
+
+            sa.id_funcdef(self.matched[-1], self.matched[-2].value)
+
             self.match("(")
             self.parameter()
             self.match(")")
@@ -2041,7 +2269,10 @@ class SyntaxAnalyzer:
     def id_as_val(self):
         self.Tree.initialize_new()
         if self.match("Identifier", True):
-            self.id_val_tail()
+
+            if self.id_val_tail()!=self.success:
+                self.check_id_op()
+
             self.Tree.end_branch(); return self.success
         else:
             return self.failed()
@@ -2050,6 +2281,10 @@ class SyntaxAnalyzer:
     def id_val_tail(self):
         self.Tree.initialize_new()
         if self.match("(", True):
+
+            self.check_func_declared()
+            self.check_id_op()
+
             self.func_argument()
             self.match(")")
             self.Tree.end_branch(); return self.success
@@ -2126,6 +2361,7 @@ class SyntaxAnalyzer:
     def id_val_op(self):
         self.Tree.initialize_new()
         if self.id_as_val() == self.success:
+            self.id_val_tail()
             self.id_expr_tail()
             self.Tree.end_branch(); return self.success
         #STUB - removed

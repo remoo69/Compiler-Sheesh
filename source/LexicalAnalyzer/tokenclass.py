@@ -5,20 +5,40 @@ from dataclasses import dataclass
 
 @dataclass
 class Token:
+
+    #Refers to the token's value. Could be a keyword, identifier, etc. This does not refer to the token's numerical value
     value: str
-    type: str
-    attribute: str= 'default'
+
+    #Refers to the type of token. Should be in the list of 
+    #valid tokens such as Keyword, Identifier, Dec, Whole, Symbol, Operator, Text, Charr, Sus, Whitespace
+    type: str 
+
+
+    #Refers to the attribute of the token. Could be the type of the data type of the token.  
+    attribute: str= None
+
+    #Refers to the scope of the token. Could be Global or Local
+    scope: str=None
+    
+    #Refers to the data type of the token. Could be int, float, string, etc.
+    dtype:str=None
+
+
     line: int=0
     position: int= 0
+
+    numerical_value:float=None
+
 
     idnum=1
     tok_num=1
     line_num=1
     in_comment=False
     block_comment_buffer=''
-    id_dict={}
     block_start_line=0
 
+    # def type_(self):
+    #     return self.type
 
 class LexerCheck:
     @staticmethod

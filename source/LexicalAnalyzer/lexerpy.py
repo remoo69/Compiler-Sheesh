@@ -99,7 +99,10 @@ class Lexer:
 
                     token = tkc.Token(value=current_token, type="Identifier", attribute=tktype, line=tkc.Token.line_num, position=tkc.Token.tok_num)
                 else:
-                    token = tkc.Token(value=current_token, type=category, line=tkc.Token.line_num, position=tkc.Token.tok_num)
+                    if category in ["Whole", "Dec"]:
+                        token = tkc.Token(value=current_token, type=category, line=tkc.Token.line_num, position=tkc.Token.tok_num, numerical_value=float(current_token))
+                    else:
+                        token = tkc.Token(value=current_token, type=category, line=tkc.Token.line_num, position=tkc.Token.tok_num,)
                 tkc.Token.tok_num+=1    
                 tokens.append(token)
                 current_token=''
