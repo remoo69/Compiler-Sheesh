@@ -408,12 +408,13 @@ class SyntaxError:
         return f"Line {self.line}, Token {self.toknum}: Unexpected \"{self.value}\" [{self.unexpected}], expected -> {self.expected}"
 
 class SemanticError:
-    def __init__(self, error, line, toknum, value, expected) -> None:
+    def __init__(self, *, error, line, toknum, value, expected) -> None:
         self.error=error
         self.line=line
         self.toknum=toknum
         self.expected=expected
         self.value=value
 
+
     def __repr__(self) -> str:
-        return f"Line {self.line}, Token {self.toknum}: {self.error} \"{self.value}\", expected -> {self.expected}"
+            return f"Line {self.line}, Token {self.toknum}: {self.error} \"{self.value}\", expected -> {self.expected}"
