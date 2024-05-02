@@ -1,8 +1,9 @@
 import re
 import sys
+from tkinter import StringVar, Text
 sys.path.append('.')
 # from source.SyntaxAnalyzer.parser2 import SyntaxAnalyzer
-from source.LexicalAnalyzer.lexerpy import Lexer 
+from Lexer import Lexer 
 import llvmlite as ir
 
 class charr:
@@ -105,8 +106,8 @@ class charr:
     
 class CodeGeneration:
 
-    def __init__(self):
-        # self.syntax=syntax_analyzer
+    def __init__(self, syntax_analyzer):
+        self.syntax=syntax_analyzer
         self.types={
             "whole":int,
             "decimal":float,
@@ -223,6 +224,7 @@ class CodeGeneration:
                 result = operand1 % operand2
             operand_stack.append(result)
 
+        print(operand_stack[0])
         return operand_stack[0]
 
 
@@ -231,9 +233,12 @@ class CodeGeneration:
         vars=[]
         text=''
         val=[]
+        type=None
         for match in reversed(matched):
             if match.type=="Identifier":
                 vars.append(self.get_value(match, id_list))
+                type=match.dtype
+                print(type)
             elif match.type in self.types:
                 vars.append(self.types[match.type](match.value))
             elif match.type=="Text":
@@ -248,7 +253,9 @@ class CodeGeneration:
         # print(format_specifiers)
         # Check if the number of format specifiers matches the number of variables
         if len(format_specifiers) != len(vars):
-            raise ValueError("Number of format specifiers does not match number of variables")
+            self.syntax.semantic_errors.append(f"Number of format specifiers does not match number of variables")
+            
+            # raise ValueError("Number of format specifiers does not match number of variables")
 
         # For each format specifier, check if the corresponding variable has the correct type
         for i in range(len(format_specifiers)):
@@ -259,8 +266,8 @@ class CodeGeneration:
             val.append(var)
             # Check if the variable has the correct type
             if not isinstance(var, self.format_spec[format_specifier]):
-                
-                raise TypeError(f"Variable {var} does not match format specifier {format_specifier}")
+                self.syntax.semantic_errors.append(f"Variable {var} does not match format specifier {format_specifier}")
+                # raise TypeError(f"Variable {var} does not match format specifier {format_specifier}")
 
         # Replace the format specifiers with {} for string formatting
         for format_specifier in format_specifiers:
@@ -271,6 +278,13 @@ class CodeGeneration:
 
         # Print the formatted string
         output_stream.append(formatted_text)
+
+    
+    def pa_mine(self, matched, id_list,  terminal:StringVar):
+        user_input = terminal.get()
+        ev = CodeGeneration()
+        result = ev.ID_assign(matched, id_list, user_input)
+        print(result)
     
 if __name__ == "__main__":
     # variables = {"a":1, "b":2, "c":3}

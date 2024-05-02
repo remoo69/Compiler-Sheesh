@@ -4,7 +4,7 @@ keywords = ["text", "charr","whole", "dec", "sus", "blank", "sheesh", "yeet", "b
 # import source.helper as helper
 import sys
 sys.path.append( '.' )
-from source.SyntaxAnalyzer import parser2
+from source.SyntaxAnalyzer.Parser import SyntaxAnalyzer as parser
 
 import customtkinter as ctk
 import tkinter as tk
@@ -12,7 +12,7 @@ from tkinter import *
 from PIL import Image, ImageTk
 from tkinter import constants
 from tkinter import ttk
-import source.LexicalAnalyzer.lexerpy as lex
+import source.LexicalAnalyzer.Lexer as lex
 # import source.LexicalAnalyzer.prepare as prep
 from tkinter import filedialog
 import cProfile
@@ -142,7 +142,7 @@ def run_parser():
         # Call your parser function
     # If there is no syntax error, continue with the rest of the code
     # parser.syntax_analyzer(grammar.Grammar.cfg, code)
-        parse=parser2.SyntaxAnalyzer(tokens)
+        parse=parser.SyntaxAnalyzer(tokens)
         errors, sem_err=parse.parse()  
 
         error_pane.config(state="normal")
@@ -174,6 +174,8 @@ def run_parser():
         error_pane.config(state="disabled")
 
 
+
+
 def run_semantic():
     # error_pane.config(state="normal")
     # error_pane.config(foreground= yellow)
@@ -201,20 +203,20 @@ def run_semantic():
         # Call your parser function
     # If there is no syntax error, continue with the rest of the code
     # parser.syntax_analyzer(grammar.Grammar.cfg, code)
-        parse=parser2.SyntaxAnalyzer(tokens)
-        errors, sem_err, output=parse.parse()  
+        parse=parser(tokens)
+        errors, sem_err=parse.parse()  
 
         error_pane.config(state="normal")
         error_pane.delete('1.0', constants.END)
-        if output==[]:
-            error_pane.config(foreground= green)
-            error_pane.insert(constants.END, "No Output\n")
-        else:
-            error_pane.config(foreground= green)
-            error_pane.insert(constants.END, f'Output:\n')
-            for out in output:
-                error_pane.insert(constants.END, f"{out}\n")
-            # error_pane.config(state="disabled")
+        # if output==[]:
+        #     error_pane.config(foreground= green)
+        #     error_pane.insert(constants.END, "No Output\n")
+        # else:
+        #     error_pane.config(foreground= green)
+        #     error_pane.insert(constants.END, f'Output:\n')
+        #     for out in output:
+        #         error_pane.insert(constants.END, f"{out}\n")
+        #     # error_pane.config(state="disabled")
 
         if errors==[] :
             error_pane.config(foreground= green)
@@ -383,6 +385,12 @@ error_pane = Text(
     state = "disabled",)
 
 error_pane.place(x=0,y=440,width=900,height=260)
+
+# input_pane=tk.StringVar()
+# user_input_entry=tk.Entry(error_pane, textvariable=input_pane, width=50)
+# user_input_entry.pack()
+
+
 
 
 # run lexer function button

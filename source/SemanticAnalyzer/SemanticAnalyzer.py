@@ -1,8 +1,8 @@
-from dataclasses import dataclass
 import sys
 sys.path.append( '.' )
 from source.core.symbol_table import Token
-from source.core.error_handler import SemanticError as se
+from source.core.error_handler import SemanticError as SemError
+from source.core.error_types import Semantic_Errors as se
 
 
 GBL="Global"
@@ -21,7 +21,10 @@ class SemanticAnalyzer:
     The semantic analyzer will check the AST for any semantic errors.
     The SA must be used within the syntax analyzer.
     """
-    semantic_errors: list[se]=[]
+    
+    def __init__(self, parse_tree) -> None:
+        self.parse_tree=parse_tree
+        self.semantic_errors: list[se]=[]
 
 #region Semantic Rules
 #!SECTION: ID TYPE ENFORCEMENT 
@@ -99,5 +102,51 @@ class SemanticAnalyzer:
     
     # def find_type(self, Token):
         
+    #region SEMANTIC CHECKS
+
+    def semantic_error(self, error, token, expected):
+        self.semantic_expected.append(expected)
+        self.semantic_errors.append(SemError(error=error, line=token.line, toknum=token.position, value=token.value, expected=self.semantic_expected))
+        
+    def declared(self, id:Token):
+        if any(id.value == token.value for token in self.id_vars) or any(id.value == token.value for token in self.id_funcs):            return True
+        else: return False
+
+
+    def check_var_declared(self):
+        if self.matched[-1].type == "Identifier":
+            id=self.matched[-1]
+        else: id=self.matched[-2]
+        if not self.declared(id):
+            exp=f"Declared {id.value}"
+            err=se.VAR_UNDECL
+            self.semantic_error(err, id, exp)
+            return
+        else: return True
+   
+    def check_func_declared(self):
+        id=self.matched[-2]
+        if id in self.id_funcs:
+            exp=f"Declared {id.value}"
+            err=se.FUNC_UNDECL
+            self.semantic_error(err, id, exp)
     
+    def check_var_operand(self, id:Token):
+        if self.declared(id):
+            self.semantic_expected.append(self.req_type)
+            self.semantic_errors.append(SemError(error=se.VAR_OPERAND_INVALID, line=id.line, toknum=id.position, value=id.value, expected=self.semantic_expected))
+
+    def check_req_type(self, id:Token):
+        if self.declared(id) and id.dtype != self.req_type:
+            self.semantic_expected.append(f"Variable of Type {self.req_type}")
+            self.semantic_errors.append(SemError(error=se.VAR_OPERAND_INVALID, line=id.line, toknum=id.position, value=id.value, expected=self.semantic_expected))
+
+    def var_load_type(self, id:Token):
+        self.req_type=id.dtype
+
+
+    # def 
+#endregion SEMANTIC CHECKS
+
+
 
