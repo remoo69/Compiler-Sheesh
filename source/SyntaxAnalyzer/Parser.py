@@ -2,41 +2,37 @@ import sys
 sys.path.append('.')
 from source.core.symbol_table import Token
 from source.core.error_handler import SyntaxError as Error
-from source.core.error_handler import SemanticError as SemError
-from source.SemanticAnalyzer.Semantisizer import SemanticAnalyzer as sa
 from time import perf_counter
-from source.core.error_types import Semantic_Errors as se
 from collections import deque
 from source.core.AST import AST
-from source.SemanticAnalyzer.Semantisizer import SemanticAnalyzer as sa
+from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer as semantic
 
 
-debug=True
+debug=False
 debug_fail=False
 
 class SyntaxAnalyzer:
 
     
-    def __init__(self, tokens) -> None:
-        self.sa=sa()
-        self.tokens=tokens
+    def __init__(self, tokens:list[Token]) -> None:
+
+        
+
+        self.tokens:list[Token]=tokens
         self.Tree = AST("Root")
         self.buffer = deque([])
-        self.syntax_errors = deque([])
+        self.syntax_errors =[]
         self.success = "Success"
         self.expected = None
         self.isnullable = True
         self.expectset = []
+
         self.cur=None
 
         self.req_type=None
         self.matched=[]
 
-        #for semantic
-        self.id_vars=[]
-        self.id_funcs=[]
-        self.semantic_errors=[]
-        self.semantic_expected=[]
+        self.semantic=None
 
 
 
@@ -73,21 +69,21 @@ class SyntaxAnalyzer:
 
     def reset(self):
         self.Tree = AST("Root")
-        self.buffer = []
+        self.buffer = deque([])
         self.syntax_errors = []
         self.success = "Success"
         self.expected = None
         self.isnullable = True
         self.expectset = []
+
         self.cur=None
+
         self.req_type=None
         self.matched=[]
 
-        #for semantic
-        self.id_vars=[]
-        self.id_funcs=[]
-        self.semantic_errors=[]
-        self.semantic_expected=[]
+        self.semantic=None
+
+        # self.semantic=semantic(self.matched)
 
     def parse(self):
         self.reset()
@@ -98,21 +94,30 @@ class SyntaxAnalyzer:
         else:
             try:
                 start=perf_counter()
+
                 self.program()
+                
                 end=perf_counter() 
                 
-                self.Tree.end_tree()    
+                self.Tree.end_tree()   
+
                 tr=perf_counter()
                 print(f"Parsing: {end-start}")
                 print(f"Print Tree: {tr-end}")
-                print(self.semantic_errors)
-                print("ID: ",self.id_vars)
-                print("Funcs: ", self.id_funcs)
                 print(self.Tree)
-                return self.syntax_errors, self.semantic_errors
+
+                # self.semantic=semantic(self.Tree)
+                # self.semantic.analyze()
+                # self.Tree.visualize()
+
+
+                # print(f"IDs:{self.semantic.id_vars}\n\nFUNCs:{self.semantic.id_funcs}")
+                # return self.syntax_errors, self.semantic.semantic_errors
             except SyntaxError as e:
                 print(e)
-                return self.syntax_errors, self.semantic_errors
+            self.semantic=semantic(self.Tree)
+            self.semantic.analyze()
+            return self.syntax_errors ,self.semantic.semantic_errors
 
     
     def enforce(self):
@@ -241,12 +246,15 @@ class SyntaxAnalyzer:
             print("Matched:", consumed, "FROM ", self.Tree.current_func()) if debug else None
             if consumed == "#":
                 if self.peek() == "}":
-                    self.Tree.add_children(consumed)
+                    self.Tree.add_children(self.matched[-1])
                     return True
+                self.Tree.add_children(self.matched[-1])
                 self.match("Newline")
                 self.eat_endl()
-            self.Tree.add_children(consumed)
-            return True
+                return True
+            else:
+                self.Tree.add_children(self.matched[-1])
+                return True
 
 
 
@@ -392,7 +400,7 @@ class SyntaxAnalyzer:
         self.Tree.initialize_new()
         if self.match("charr", True):
 
-            self.req_type=self.matched[-1].value
+            # self.req_type=self.matched[-1].value
 
             self.enforce()
             self.match("text")
@@ -523,8 +531,6 @@ class SyntaxAnalyzer:
             self.Tree.end_branch(); return self.success
         elif self.match("Identifier", True):
 
-            # self.check_var_declared()
-            
             self.id_tail()
             self.Tree.end_branch(); return self.success
         elif self.match("up", True):
@@ -642,11 +648,13 @@ class SyntaxAnalyzer:
         if self.match("whole", True):
             self.match("Identifier")
 
-            # self.new_id()
+            # self.semantic.new_id()
 
             self.w_var_seq_tail()
             self.match("#")
+
             self.Tree.end_branch(); return self.success
+        
         elif self.match("dec", True):
             self.match("Identifier")
 
@@ -655,7 +663,9 @@ class SyntaxAnalyzer:
 
             self.d_var_seq_tail()
             self.match("#")
+
             self.Tree.end_branch(); return self.success
+        
         elif self.match("sus", True):
             self.match("Identifier")
 
@@ -664,7 +674,9 @@ class SyntaxAnalyzer:
             self.s_var_seq_tail()
 
             self.match("#")
+
             self.Tree.end_branch(); return self.success
+        
         elif self.match("text", True):
             self.match("Identifier")
 
@@ -672,7 +684,9 @@ class SyntaxAnalyzer:
             self.t_var_seq_tail()
 
             self.match("#")
+
             self.Tree.end_branch(); return self.success
+        
         elif self.match("charr", True):
             self.match("text")
             self.match("Identifier")
@@ -682,7 +696,9 @@ class SyntaxAnalyzer:
             self.c_vardec_tail()
 
             self.match("#")
+
             self.Tree.end_branch(); return self.success
+        
         else:
             return self.failed()
 
@@ -1906,9 +1922,11 @@ class SyntaxAnalyzer:
         elif self.match("felloff", True):
             self.enforce()
             self.match("#")
+            self.Tree.end_branch(); return self.success
         elif self.match("pass", True):
             self.enforce()
             self.match("#")
+            self.Tree.end_branch(); return self.success
         elif self.match("kung", True):
             self.enforce()
             self.match("(")

@@ -79,3 +79,11 @@ class Semantic_Errors:
 
         FUNC_OPERAND_INVALID="Function Operand Type is Invalid"
         WTYPE_RETURN_VAL="Returned Value Type is Invalid"
+
+
+        ZERO_DIV="Division by Zero"
+        OUT_OF_BOUNDS="Out of Bounds"
+        WRONG_NUM_VALUES="Wrong Number of Values"
+        WRONG_NUM_DIMENSIONS="Wrong Number of Dimensions"
+
+        WRONG_INDEX_TYPE="Wrong Type of Index"

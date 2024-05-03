@@ -14,7 +14,7 @@ class Token:
     type: str 
 
 
-    #Refers to the attribute of the token. Could be the type of the data type of the token.  
+    #Refers to the attribute of the token. Could be func, var, seq, etc
     attribute: str= None
 
     #Refers to the scope of the token. Could be Global or Local
@@ -37,6 +37,9 @@ class Token:
     block_comment_buffer=''
     block_start_line=0
 
+    def __repr__(self) -> str:
+        return f"Token(\"{self.value}\", {self.attribute}, {self.dtype}, {self.numerical_value})"
+
 class SymbolTable:
 
     """ 
@@ -46,6 +49,14 @@ class SymbolTable:
     """
     def __init__(self):
         self.symbols = {}
+
+    def keys(self):
+        return self.symbols.keys()
+    
+
+    def add(self, value:Token):
+        key=value.value
+        self.symbols[key] = value
 
     def __setitem__(self, value:Token):
         key=value.value
