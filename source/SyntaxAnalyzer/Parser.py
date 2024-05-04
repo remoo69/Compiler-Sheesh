@@ -8,7 +8,7 @@ from source.core.AST import AST
 from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer as semantic
 
 
-debug=False
+debug=True
 debug_fail=False
 
 class SyntaxAnalyzer:
@@ -362,7 +362,7 @@ class SyntaxAnalyzer:
     @nullable
     def global_declaration(self):
         self.Tree.initialize_new()
-        if self.global_statement():
+        if self.global_statement()==self.success:
             self.more_globaldec()
             self.Tree.end_branch(); return self.success
         else:
@@ -371,7 +371,7 @@ class SyntaxAnalyzer:
     @nullable
     def more_globaldec(self):
         self.Tree.initialize_new()
-        if self.global_declaration():
+        if self.global_declaration()==self.success:
             self.Tree.end_branch(); return self.success
         else:
             return self.failed()
@@ -648,7 +648,6 @@ class SyntaxAnalyzer:
         if self.match("whole", True):
             self.match("Identifier")
 
-            # self.semantic.new_id()
 
             self.w_var_seq_tail()
             self.match("#")
@@ -657,8 +656,6 @@ class SyntaxAnalyzer:
         
         elif self.match("dec", True):
             self.match("Identifier")
-
-            # self.new_id()
             
 
             self.d_var_seq_tail()
@@ -669,7 +666,6 @@ class SyntaxAnalyzer:
         elif self.match("sus", True):
             self.match("Identifier")
 
-            # self.new_id()
 
             self.s_var_seq_tail()
 
@@ -680,7 +676,6 @@ class SyntaxAnalyzer:
         elif self.match("text", True):
             self.match("Identifier")
 
-            # self.new_id()
             self.t_var_seq_tail()
 
             self.match("#")
@@ -691,7 +686,6 @@ class SyntaxAnalyzer:
             self.match("text")
             self.match("Identifier")
 
-            # self.new_id(-3)
 
             self.c_vardec_tail()
 
@@ -719,10 +713,10 @@ class SyntaxAnalyzer:
     @nullable
     def w_vardec_tail(self):
         self.Tree.initialize_new()
-        if self.one_dim()==self.success:
-            self.more_whl_var()
-            self.Tree.end_branch();return self.success
-        elif self.w_val_assign()==self.success:
+        # if self.one_dim()==self.success:
+        #     self.more_whl_var()
+        #     self.Tree.end_branch();return self.success
+        if self.w_val_assign()==self.success:
             self.more_whl_var()
             self.Tree.end_branch();return self.success 
         elif self.more_whl_var()==self.success: #NOTE - added this
@@ -885,10 +879,10 @@ class SyntaxAnalyzer:
     @nullable
     def d_vardec_tail(self):
         self.Tree.initialize_new()
-        if self.one_dim()==self.success:
-            self.more_dec_var()
-            self.Tree.end_branch();return self.success
-        elif self.d_val_assign()==self.success:
+        # if self.one_dim()==self.success:
+        #     self.more_dec_var()
+        #     self.Tree.end_branch();return self.success
+        if self.d_val_assign()==self.success:
             self.more_dec_var()
             self.Tree.end_branch();return self.success  
         elif self.more_dec_var()==self.success: #NOTE - added this
@@ -1048,10 +1042,10 @@ class SyntaxAnalyzer:
     @nullable
     def s_vardec_tail(self):
         self.Tree.initialize_new()
-        if self.one_dim()==self.success:
-            self.more_sus_var()
-            self.Tree.end_branch();return self.success
-        elif self.s_val_assign()==self.success:
+        # if self.one_dim()==self.success:
+        #     self.more_sus_var()
+        #     self.Tree.end_branch();return self.success
+        if self.s_val_assign()==self.success:
             self.more_sus_var()
             self.Tree.end_branch();return self.success  
         elif self.more_sus_var()==self.success: #NOTE - added this
@@ -1182,10 +1176,10 @@ class SyntaxAnalyzer:
     @nullable
     def t_vardec_tail(self):
         self.Tree.initialize_new()
-        if self.one_dim()==self.success:
-            self.more_txt_var()
-            self.Tree.end_branch();return self.success
-        elif self.t_val_assign()==self.success:
+        # if self.one_dim()==self.success:
+        #     self.more_txt_var()
+        #     self.Tree.end_branch();return self.success
+        if self.t_val_assign()==self.success:
             self.more_txt_var()
             self.Tree.end_branch();return self.success  
         elif self.more_txt_var()==self.success: #NOTE - added this
@@ -1437,6 +1431,7 @@ class SyntaxAnalyzer:
         if self.match("based", True):
             self.const_type()
             self.match("#")
+            self.Tree.end_branch(); return self.success
         else:
             return self.failed()
         
@@ -1463,7 +1458,7 @@ class SyntaxAnalyzer:
             self.match("Identifier")
             self.c_const_var_tail()
             self.enforce()
-            self.match("#")
+            # self.match("#")
             self.Tree.end_branch(); return self.success
         else:
             return self.failed()
@@ -1506,7 +1501,7 @@ class SyntaxAnalyzer:
 
     def w_const_var_tail(self):
         self.Tree.initialize_new()
-        if self.match("=", True):
+        if self.match("="):
             self.whl_value()
             self.more_whl_const()
             self.Tree.end_branch(); return self.success
@@ -1560,7 +1555,7 @@ class SyntaxAnalyzer:
 
     def d_const_var_tail(self):
         self.Tree.initialize_new()
-        if self.match("=", True):
+        if self.match("="):
             self.dec_value()
             self.more_dec_const()
             self.Tree.end_branch(); return self.success
@@ -1615,7 +1610,7 @@ class SyntaxAnalyzer:
 
     def s_const_var_tail(self):
         self.Tree.initialize_new()
-        if self.match("=", True):
+        if self.match("="):
             self.logic_value()
             self.more_sus_const()
             self.Tree.end_branch(); return self.success
@@ -1671,8 +1666,8 @@ class SyntaxAnalyzer:
 
     def t_const_var_tail(self):
         self.Tree.initialize_new()
-        if self.match("=", True):
-            self.logic_value()
+        if self.match("="):
+            self.txt_value()
             self.more_txt_const()
             self.Tree.end_branch(); return self.success
         else:
@@ -1692,7 +1687,7 @@ class SyntaxAnalyzer:
 
     def c_const_var_tail(self):
         self.Tree.initialize_new()
-        if self.match("=", True):
+        if self.match("="):
             self.charr_value()
             self.more_chr_const()
             self.Tree.end_branch(); return self.success

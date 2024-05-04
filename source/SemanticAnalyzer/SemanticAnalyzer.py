@@ -286,6 +286,7 @@ class SemanticAnalyzer:
         if self.current_node.children[0].type=="Identifier":
             self.nearest_id=self.current_node.children[0]
             self.check.var()
+            print(self.nearest_id)
             self.check.var_value()
             self.check.var_type() 
             self.check.scope()
@@ -350,7 +351,7 @@ class Check:
         def var_type(self):
             id=self.semantic.nearest_id
             if id.dtype!=self.semantic.req_type:
-                exp=f"Variable of Type {self.semantic.req_type}"
+                exp=f"Variable of Type {self.semantic.req_type}, Got {id.dtype}"
                 err=se.VAR_OPERAND_INVALID
                 self.semantic.semantic_error(err, id, exp)
                 return
@@ -379,11 +380,11 @@ class Create:
     def load_var(self, id:Token):
         declared=self.semantic.id_vars[id.value]
 
-        self.semantic.nearest_id.type=declared.dtype
+        self.semantic.nearest_id.dtype=declared.dtype
         self.semantic.nearest_id.numerical_value=declared.numerical_value
         self.semantic.nearest_id.scope=declared.scope
         self.semantic.nearest_id.attribute=declared.attribute
-        
+
 
     def new_id(self, type, scope=LOCAL,  attribute=None):
         id=self.semantic.nearest_id #NOTE - idk if this is the right way to do this
@@ -398,12 +399,12 @@ class Create:
             self.semantic.semantic_error(se.VAR_REDECL, id, f"Variable {id.value}")
 
 
-    def new_func(self, scope, type, attribute=FUNC):
+    def new_func(self,type, attribute=FUNC):
         id=self.semantic.nearest_id
         if id.value not in self.semantic.id_funcs.keys():
             id.dtype=type
             id.attribute=attribute
-            id.scope=scope
+            id.scope=GBL
 
             self.semantic.id_funcs.add(id)
         else:
