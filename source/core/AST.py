@@ -6,7 +6,7 @@ sys.path.append('.')
 # import networkx as nx
 # import matplotlib.pyplot as plt
 from graphviz import Digraph
-from source.core.symbol_table import Token
+from source.core.symbol_table import Token, Identifiers
 
 debug=True
 
@@ -29,6 +29,7 @@ class AST:
         self.root= root
         self.children = []
         self.stack:list[AST]=[]
+        self.symbol_table:Identifiers=None
         
         self.buffer=None
 
@@ -195,3 +196,16 @@ class AST:
             self.buffer=None
         else:
             raise ValueError("Stack not empty")
+        
+
+    def leaves(self):
+        """ 
+        Returns all the leaves of the tree
+        """
+        leaves=[]
+        for child in self.children:
+            if isinstance(child, AST):
+                leaves.extend(child.leaves())
+            else:
+                leaves.append(child)
+        return leaves

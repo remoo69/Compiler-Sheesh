@@ -75,3 +75,12 @@ class SymbolTable:
         return f"{self.symbols}"
     
 
+class Identifiers:
+    def __init__(self) -> None:
+        self.vars=SymbolTable()
+        self.funcs=SymbolTable()
+        self.params=SymbolTable()
+
+    def __repr__(self):
+        return f"Identifiers({self.vars}, {self.funcs}, {self.params})"
+    

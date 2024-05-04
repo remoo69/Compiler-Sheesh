@@ -244,6 +244,71 @@ def run_semantic():
         lex_table_pane.config(state="disabled")
         error_pane.config(state="disabled")
 
+    
+def compile():
+    print("Button pressed")
+    code = txt_editor_pane.get("1.0", END)
+    tokens, error = lex.Lexer.tokenize(code)
+    tokens = remove_whitespace_type(tokens)
+    print_lex(remove_eol(tokens))
+
+    if error:
+        error_pane.config(state="normal")
+        error_pane.config(foreground= yellow)
+        error_pane.delete('1.0', constants.END)
+        error_pane.insert(constants.END, "Can't Parse, Resolve Lexical Errors:\n")
+        for err in error:
+            error_pane.insert(constants.END, f'{err}\n')
+    else:
+        error_pane.config(state="disabled")
+        # Continue with the rest of the code
+    # Call your parser function here
+    # If there is a syntax error, display it in the error pane
+   
+        # Call your parser function
+    # If there is no syntax error, continue with the rest of the code
+    # parser.syntax_analyzer(grammar.Grammar.cfg, code)
+        parse=parser(tokens)
+        errors, sem_err=parse.parse()  
+
+        error_pane.config(state="normal")
+        error_pane.delete('1.0', constants.END)
+        # if output==[]:
+        #     error_pane.config(foreground= green)
+        #     error_pane.insert(constants.END, "No Output\n")
+        # else:
+        #     error_pane.config(foreground= green)
+        #     error_pane.insert(constants.END, f'Output:\n')
+        #     for out in output:
+        #         error_pane.insert(constants.END, f"{out}\n")
+        #     # error_pane.config(state="disabled")
+
+        if errors==[] :
+            error_pane.config(foreground= green)
+            error_pane.insert(constants.END, "\nNo Syntax Errors\n")
+            
+        else:
+            error_pane.config(foreground= yellow)
+            error_pane.insert(constants.END, f'\nSyntax Error:\n')
+            for error in errors:
+                error_pane.insert(constants.END, f"{error}\n")
+            # error_pane.config(state="disabled")
+    
+        if sem_err==[]:
+            error_pane.config(foreground= green)
+            error_pane.insert(constants.END, "\nNo Semantic Errors\n") 
+        else:
+            error_pane.config(foreground= yellow)
+            error_pane.insert(constants.END, f'\nSemantic Errors:\n')
+            for serr in sem_err:
+                error_pane.insert(constants.END, f"{serr}\n")
+            error_pane.config(state="disabled")
+
+    
+
+        lex_table_pane.config(state="disabled")
+        error_pane.config(state="disabled")
+
 def print_lex(tokenlist):                      # Print Text to Lexical Pane
     print("Printing lex")
     lex_table_pane.config(state="normal")

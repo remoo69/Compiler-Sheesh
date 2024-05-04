@@ -2,8 +2,9 @@ import re
 import sys
 from tkinter import StringVar, Text
 sys.path.append('.')
-# from source.SyntaxAnalyzer.parser2 import SyntaxAnalyzer
-from Lexer import Lexer 
+
+# from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer
+from source.core.AST import AST
 import llvmlite as ir
 
 class charr:
@@ -296,3 +297,120 @@ if __name__ == "__main__":
     print(ev.eval_arithm(code))
     # cg=CodeGeneration(SyntaxAnalyzer(None))
     # cg.up("The speed of the fluid $t is: $w m/s ", 'hi',10, )
+
+class CodeGeneration2:
+    def __init__(self, tree:AST) -> None:
+        self.ast=tree
+        self.output_stream=[]
+
+        self.current_node = self.ast
+        self.previous_node = None
+        self.types={
+            "whole":int,
+            "decimal":float,
+            "text":str,
+            "suspect":bool,
+            "char":charr
+        }
+        self.format_spec={
+            "w":int,
+            "d":float,
+            "t":str,
+            "s":bool,
+            "c":charr
+        }
+
+        self.routines={
+            "allowed_in_loop":self.allowed_in_loop,
+            "pa_mine":self.pa_mine
+
+        }
+
+
+    def generate_code(self):
+        while True:
+            if self.current_node.root not in self.routines.keys():
+                self.previous_node=self.current_node
+                self.current_node = self.ast.traverse(self.current_node)
+            else:
+                self.routines[self.current_node.root]()
+                self.previous_node=self.current_node
+                self.current_node = self.ast.traverse(self.current_node)
+            if self.current_node is None:
+                break  # Exit the loop if the tree has been fully traversed
+
+    def get_value(self, id, id_dict):
+        # for var in id_list:
+        #     if var.value==id.value:
+        #         return var
+        # else:
+        #     raise Exception("Variable not found")
+        if id.value in id_dict:
+            return id_dict[id.value]
+        else:
+            raise Exception("Variable not found")
+
+    def allowed_in_loop(self):
+        routines={
+            "up":self.up
+        }
+        if self.current_node.children[0].value in routines.keys():
+            routines[self.current_node.children[0].value]()
+            self.previous_node=self.current_node
+            self.current_node = self.ast.traverse(self.current_node)
+
+    def up(self):
+        id_dict=self.ast.symbol_table.vars
+        matched=self.ast.leaves()
+        vars=[]
+        text=''
+        val=[]
+        type=None
+        for match in reversed(matched):
+            if match.type=="Identifier":
+                vars.append(self.get_value(match, id_dict))
+                type=match.dtype
+                print(type)
+            elif match.type in self.types:
+                vars.append(self.types[match.type](match.value))
+            elif match.type=="Text":
+                text=match.value
+                print(match.value)
+            elif match.type=="(":
+                break
+ 
+
+        # Find all format specifiers in the text
+        format_specifiers = re.findall(f"\$[{''.join(self.format_spec.keys())}]", text)
+        # print(format_specifiers)
+        # Check if the number of format specifiers matches the number of variables
+        if len(format_specifiers) != len(vars):
+            self.syntax.semantic_errors.append(f"Number of format specifiers does not match number of variables")
+            
+            # raise ValueError("Number of format specifiers does not match number of variables")
+
+        # For each format specifier, check if the corresponding variable has the correct type
+        for i in range(len(format_specifiers)):
+            # Get the format specifier (remove the dollar sign)
+            format_specifier = format_specifiers[i][1:]
+            # Get the corresponding variable
+            var = vars[i].numerical_value
+            val.append(var)
+            # Check if the variable has the correct type
+            if not isinstance(var, self.format_spec[format_specifier]):
+                self.syntax.semantic_errors.append(f"Variable {var} does not match format specifier {format_specifier}")
+                # raise TypeError(f"Variable {var} does not match format specifier {format_specifier}")
+
+        # Replace the format specifiers with {} for string formatting
+        for format_specifier in format_specifiers:
+            text = text.replace(format_specifier, "{}")
+
+        # Format the string with the variables
+        formatted_text = text.format(*val)
+
+        # Print the formatted string
+        self.output_stream.append(formatted_text)
+        print(self.output_stream)
+
+    def pa_mine(self):
+        pass

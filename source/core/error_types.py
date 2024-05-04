@@ -91,3 +91,6 @@ class Semantic_Errors:
         WRONG_NUM_DIMENSIONS="Wrong Number of Dimensions"
 
         WRONG_INDEX_TYPE="Wrong Type of Index"
+
+
+        EMPTY_BODY="Empty Body"
