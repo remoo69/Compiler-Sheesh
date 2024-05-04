@@ -117,7 +117,7 @@ class SyntaxAnalyzer:
                 print(e)
             self.semantic=semantic(self.Tree)
             self.semantic.analyze()
-            return self.syntax_errors ,self.semantic.semantic_errors
+            return self.syntax_errors ,self.semantic.semantic_errors,
 
     
     def enforce(self):
