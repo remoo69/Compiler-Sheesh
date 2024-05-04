@@ -1,26 +1,32 @@
+import sys
+sys.path.append('.')
+
+from source.LexicalAnalyzer.Lexer import Lexer as PLexer
+from source.SyntaxAnalyzer.Parser import SyntaxAnalyzer as PParser
 
 from llvmlite import ir
+import pprint
 
 class Compiler:
     
     def __init__(self):
         self.type_map = {
-            'sus':ir.IntType(1),
-            'whole':ir.IntType(32),
-            'dec':ir.FloatType(),
-            'blank':ir.VoidType(),
-            'text':ir.ArrayType(ir.IntType(8),1), # Note i8 in most languages are characters
-            'charr':ir.IntType(8)
+            'bool':ir.IntType(1),
+            'int':ir.IntType(32),
+            'float':ir.FloatType(),
+            'double':ir.DoubleType(),
+            'void':ir.VoidType(),
+            'str':ir.ArrayType(ir.IntType(8),1), # Note i8 in most languages are characters
         }
 
-        self.module = ir.Module('sheesh')
+        self.module = ir.Module('main')
         
         # Defining builtin function (printf)
-        fnty = ir.FunctionType(self.type_map['whole'], [ir.IntType(8).as_pointer()], var_arg=True)
-        func = ir.Function(self.module, fnty, 'up')
+        fnty = ir.FunctionType(self.type_map['int'], [ir.IntType(8).as_pointer()], var_arg=True)
+        func = ir.Function(self.module, fnty, 'printf')
 
         # This helps to keep track of Defined Variabled
-        self.variables = {'up':(func,ir.IntType(32))}
+        self.variables = {'printf':(func,ir.IntType(32))}
         
         # Current Builder
         self.builder = None

@@ -61,6 +61,10 @@ class Semantic_Errors:
         VAR_UNDECL="Undeclared Variable"
         VAR_UNDEF="Undefined Variable"
         VAR_REDECL_INSCOPE= "Redeclaration of Variable in Scope"
+        VAR_SCOPE_INVALID="Variable Scope is Invalid"
+
+        SEQ_UNDECL="Undeclared Sequence"
+
         
         FUNC_UNDECL="Undeclared Function"
         FUNC_UNDEF="Undefined Function"

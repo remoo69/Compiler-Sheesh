@@ -79,7 +79,7 @@ delimiters = {
     "delim13": alph_num+[" ","\\","(", "{", "\"", None],
     "delim14": alph_all+comma+[" ","#", "}",None],
     "delim15": alph_num+[" ", "!","(", ")", '"', '“', '"', '”', "-", "\'"],    # added '
-    "delim16": op+comma+[" ", "#", ")", "}", "{", ":"], 
+    "delim16": op+comma+[" ", "#", ")", "}", "{", ":", "]"], # added ] and :
     "delim17": alph_num+[" ", '"', '“', '"', '”', "\\"],
     "delim18": comma+[" ","#",")","|", "&","}"],                 # added delim18 for nocap and cap
     "delim19": alph_num+[" ", "(", "\'"],
