@@ -45,16 +45,15 @@ class Compiler:
                 self.semantic=SemanticAnalyzer(self.parser.Tree)
                 self.semantic.analyze()
                 if not self.semantic.semantic_errors:
-                    self.codegen=CodeGeneration2(self.semantic.ast)
+                    self.codegen=CodeGeneration2(self.semantic)
                     self.codegen.generate_code()
-                    self.output=self.codegen.output
+                    self.output=self.codegen.output_stream
                     return
                 else:
                     self.semantic_errors=self.semantic.semantic_errors
                     return
             else:
                 self.syntax_errors=self.parser.syntax_errors
-                return
         else:
             self.lex_errors=self.lexer.errors
             return

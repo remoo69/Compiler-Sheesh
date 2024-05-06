@@ -53,13 +53,9 @@ class SemanticAnalyzer:
         self.parse_tree:AST=parse_tree
         
         # self.matched=matched
-        self.semantic_errors: list[se]=[]
         self.semantic_expected=[]
 
         self.semantic_errors: list[SemError]=[]
-        # self.id.vars:SymbolTable=SymbolTable()
-        # self.id.funcs:SymbolTable=SymbolTable()
-        # self.id.params:SymbolTable=SymbolTable()
         self.id=Identifiers()
         self.parse_tree.symbol_table=self.id
 
@@ -72,9 +68,6 @@ class SemanticAnalyzer:
 
         self.check=Check(self)
         self.create=Create(self)
-        # self.code_gen=CodeGeneration2(self.parse_tree)
-
-
 
         self.buffer=[]
 
@@ -169,7 +162,7 @@ class SemanticAnalyzer:
         tail_map={
             "(": self.check.func,
             "one_dim": self.check.seq,
-            "assign_op": self.check.var,
+            "assign_op": self.create.assign,
         }
 
         try:
@@ -196,7 +189,9 @@ class SemanticAnalyzer:
                 self.create.new_id(type=self.current_node.children[0].value, attribute=VAR)
                 self.create.load_type(self.current_node.children[1])
 
-                # self.create.assign(self.current_node.children[1])
+                self.create.assign(self.current_node.children[1])
+                print(self.nearest_id)
+                
 
             elif self.current_node.children[2].type=="Identifier":
                 self.nearest_id=self.current_node.children[2]
@@ -207,7 +202,10 @@ class SemanticAnalyzer:
             else:
                 raise ValueError("No Identifier Found")
         except AttributeError:
-            raise AttributeError("No Identifier Found")
+            # raise AttributeError("No Identifier Found")
+            print(f"Attribute Error in {self.current_node.root}, got {self.current_node.children}")
+            print("No Identifier Found")
+            pass
     
     def more_whl_var(self):
         if self.current_node.children[1].type=="Identifier":
@@ -269,11 +267,15 @@ class SemanticAnalyzer:
     
 
     def control_flow_statement(self):
-        if self.current_node.children[2].type=="Identifier" and self.current_node.children[0].value=="choose":
-            self.nearest_id=self.current_node.children[2]
-            self.check.var()
-            self.check.var_value()
-            self.check.scope() 
+        try:
+            if self.current_node.children[2].type=="Identifier" and self.current_node.children[0].value=="choose":
+                self.nearest_id=self.current_node.children[2]
+                self.check.var()
+                self.check.var_value()
+                self.check.scope() 
+        except AttributeError:
+            print(f"Attribute Error sa {self.current_node.root}, had {self.current_node.children}")
+            pass
 
     def looping_statement(self):
         if self.current_node.children[2].type=="Identifier" and self.current_node.children[0].value=="for":
@@ -364,13 +366,14 @@ class Check:
             
         def var(self):
             id=self.semantic.nearest_id
-            if id.value not in self.semantic.id.accessible_ids():
+            if id.value not in self.semantic.id.accessible_ids().keys():
                 exp=f"Declared Variable {id.value}"
                 err=se.VAR_UNDECL
                 self.semantic.semantic_error(err, id, exp)
-                return
+                return False
             else:
                 self.semantic.create.load_var(id)
+                return True
                 
         
 
@@ -381,6 +384,7 @@ class Check:
                 err=se.VAR_UNDEF
                 self.semantic.semantic_error(err, id, exp)
                 return
+            else: return True
 
         def var_type(self):
             id=self.semantic.nearest_id
@@ -417,12 +421,41 @@ class Create:
     def __init__(self, semantic:SemanticAnalyzer) -> None:
         self.semantic=semantic
 
-    def assign(self, id:Token, value)->None:
-        self.semantic.nearest_id=id
+    def assign(self, to_id=None)->None:
+        if to_id==None:
+            to_id=self.semantic.nearest_id
+        expr=[]
+        value=None
         if self.semantic.check.var():
+            items=self.semantic.current_node.leaves()
+            for children in items:
+                try:
+                    if children.type not in ["#", ",", "Newline", "whole", "dec", "sus", "text", "charr"]:
+                        if children.type=="Identifier":
+                            self.semantic.nearest_id=children
+                            if self.semantic.check.var() and self.semantic.check.var_value():
+                                expr.append(self.semantic.nearest_id)
+                        else: expr.append(children)
+                except AttributeError:
+                    raise AttributeError("No Identifier Found")
+                
+            value=self.semantic.create.eval_arithm(expr)
+            # while self.semantic.current_node.children:
+            #     try:
+            #         if self.semantic.current_node.children[0].type=="=":
+            #             value=self.semantic.current_node.children[1]
+            #             break
+            #         expr.append(self.semantic.current_node.children)
+            #         self.semantic.current_node=self.semantic.parse_tree.traverse(self.semantic.current_node)
             if value:
-                self.semantic.id.vars[id.value].numerical_value=value
-
+                self.semantic.parse_tree.symbol_table.accessible_ids()[to_id.value].numerical_value=value
+                return True
+        
+    def get_var(self, id:Token):
+        try:
+            return self.semantic.id.vars[id.value]
+        except KeyError:
+            self.semantic.semantic_error(se.VAR_UNDECL, id, f"Variable {id.value}")
 
     def load_type(self, id:Token):
         self.semantic.req_type=id.dtype
@@ -434,6 +467,8 @@ class Create:
         self.semantic.nearest_id.numerical_value=declared.numerical_value
         self.semantic.nearest_id.scope=declared.scope
         self.semantic.nearest_id.attribute=declared.attribute
+
+        return True
 
 
     def new_id(self, type, scope=LOCAL,  attribute=None):
@@ -471,6 +506,87 @@ class Create:
             self.semantic.id.params.add(id)
         else:
             self.semantic.semantic_error(se.PARAM_REDECL, id, f"Parameter {id.value}")
+
+    def evaluate(self, eval:list):
+        precedence = {'+':1, '-':1, '*':2, '/':2, '%':2}
+        operator_stack = []
+        operand_stack = []
+
+        for token in reversed(eval):
+            if token.type == "Identifier":
+                operand_stack.append(token.numerical_value)
+            elif token.type not in ['+', '-', '*', '/', '^', '(', ')', "=", "%", "Newline"]:
+                try:
+                    operand_stack.append(int(token.value))
+                except ValueError:
+                    operand_stack.append(int(token.value[1:-1]))
+            elif token.type == '(':
+                operator_stack.append(token.value)
+            elif token.type == ')':
+                while operator_stack[-1].type != '(':
+                    operator = operator_stack.pop().value
+                    operand2 = operand_stack.pop()
+                    operand1 = operand_stack.pop()
+                    if operator == '+':
+                        result = operand1 + operand2
+                    elif operator == '-':
+                        result = operand1 - operand2
+                    elif operator == '*':
+                        result = operand1 * operand2
+                    elif operator == '/':
+                        result = operand1 / operand2
+                    elif operator=='%':
+                        result = operand1 % operand2
+                    operand_stack.append(result)
+                operator_stack.pop()  # Remove the '(' from the stack
+            else:
+                while (operator_stack and operator_stack[-1].type != '(' and 
+                    precedence[operator_stack[-1].type] >= precedence[token.type]):
+                    operator = operator_stack.pop().value
+                    operand2 = operand_stack.pop()
+                    operand1 = operand_stack.pop()
+                    if operator == '+':
+                        result = operand1 + operand2
+                    elif operator == '-':
+                        result = operand1 - operand2
+                    elif operator == '*':
+                        result = operand1 * operand2
+                    elif operator == '/':
+                        result = operand1 / operand2
+                    elif operator=='%':
+                        result = operand1 % operand2
+                    operand_stack.append(result)
+                operator_stack.append(token)
+
+        while operator_stack:
+            operator = operator_stack.pop().value
+            operand2 = operand_stack.pop()
+            operand1 = operand_stack.pop()
+            if operator == '+':
+                result = operand1 + operand2
+            elif operator == '-':
+                result = operand1 - operand2
+            elif operator == '*':
+                result = operand1 * operand2
+            elif operator == '/':
+                result = operand1 / operand2
+            elif operator=='%':
+                result = operand1 % operand2
+            operand_stack.append(result)
+
+        print(operand_stack[0])
+        return operand_stack[0]
+    
+    def eval_arithm(self, expr):
+
+        eval=[]
+        for match in reversed(expr):
+            if match.type=="=":
+                return self.evaluate(eval)
+            elif match.type in ["#", "Newline"]:
+                pass
+            else:
+                eval.append(match)
 
 
   

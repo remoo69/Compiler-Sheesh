@@ -117,7 +117,7 @@ class SyntaxAnalyzer:
                 print(e)
             self.semantic=semantic(self.Tree)
             self.semantic.analyze()
-            
+
             return
 
     
@@ -1788,7 +1788,7 @@ class SyntaxAnalyzer:
         if self.ehkung_statement() == self.success:
             self.more_condtail()
             self.Tree.end_branch(); return self.success
-        elif self.match("deins", True) == self.success:
+        elif self.match("deins", True):
             self.enforce()
             self.reg_body()
             self.Tree.end_branch(); return self.success
@@ -1807,6 +1807,9 @@ class SyntaxAnalyzer:
         if self.match("when", True):
             self.when_literal()
             self.match("::")
+
+            self.eat_endl()
+
             if self.statement_for_choose() == self.success:
                 self.more_when()
             else:
@@ -1858,7 +1861,9 @@ class SyntaxAnalyzer:
         self.Tree.initialize_new()
         if self.match("default", True):
             self.match("::")
+
             self.eat_endl()
+
             self.statement_for_choose()
             self.Tree.end_branch(); return self.success
         else:
@@ -1995,6 +2000,9 @@ class SyntaxAnalyzer:
             self.when_literal()
             self.enforce()
             self.match("::")
+
+            self.eat_endl()
+            
             self.loop_body()
             self.in_loop_when()
             self.Tree.end_branch(); return self.success
@@ -2015,6 +2023,9 @@ class SyntaxAnalyzer:
         if self.match("default", True):
             self.enforce()
             self.match("::")
+
+            self.eat_endl()
+
             self.loop_body()
             self.Tree.end_branch(); return self.success
         else:

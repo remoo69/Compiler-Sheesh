@@ -1,5 +1,6 @@
 
 import sys
+from typing import Self
 sys.path.append( '.' )
 from dataclasses import dataclass
 
@@ -22,7 +23,6 @@ class Token:
     
     #Refers to the data type of the token. Could be int, float, string, etc.
     dtype:str=None
-
 
     line: int=0
     position: int= 0
@@ -83,6 +83,11 @@ class Identifiers:
 
     def __repr__(self):
         return f"Identifiers({self.vars}, {self.funcs}, {self.params})"
-    
+
+
     def accessible_ids(self):
-        return list(self.vars.keys()) + list(self.funcs.keys()) 
+        temp=SymbolTable()
+        temp.symbols.update(self.vars.symbols) 
+        temp.symbols.update(self.funcs.symbols) 
+
+        return temp

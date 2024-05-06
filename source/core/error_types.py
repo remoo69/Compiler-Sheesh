@@ -54,8 +54,6 @@ class Semantic_Errors:
         Array Access:
             Wrong type of index
             Out of Bounds
-
-        
           
         """
         VAR_UNDECL="Undeclared Variable"

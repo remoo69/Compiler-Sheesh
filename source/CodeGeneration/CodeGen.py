@@ -3,8 +3,7 @@ import sys
 
 sys.path.append('.')
 from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer
-from source.core.AST import AST
-import llvmlite as ir
+
 
 class charr:
     def __init__(self, value):
@@ -123,17 +122,7 @@ class CodeGeneration:
             "c":charr
         }
 
-    def eval_arithm(self, matched, id_list):
-        eval=[]
-        for match in reversed(matched):
-            if match.type=="=":
-                return self.evaluate(eval)
-            elif match.type=="Identifier":
-                eval.append(self.get_value(match, id_list))
-            elif match.type in ["#", "Newline"]:
-                pass
-            else:
-                eval.append(match)
+    
 
     def get_value(self, id, id_list):
         for var in id_list:
@@ -160,73 +149,7 @@ class CodeGeneration:
         else:
             raise Exception("Variable not found")
 
-    def evaluate(self, eval:list):
-        precedence = {'+':1, '-':1, '*':2, '/':2, '%':2}
-        operator_stack = []
-        operand_stack = []
-
-        for token in reversed(eval):
-            if token.type == "Identifier":
-                operand_stack.append(token.numerical_value)
-            elif token.type not in ['+', '-', '*', '/', '^', '(', ')', "=", "%", "Newline"]:
-                operand_stack.append(int(token.value))
-            elif token.type == '(':
-                operator_stack.append(token.value)
-            elif token.type == ')':
-                while operator_stack[-1].type != '(':
-                    operator = operator_stack.pop().value
-                    operand2 = operand_stack.pop()
-                    operand1 = operand_stack.pop()
-                    if operator == '+':
-                        result = operand1 + operand2
-                    elif operator == '-':
-                        result = operand1 - operand2
-                    elif operator == '*':
-                        result = operand1 * operand2
-                    elif operator == '/':
-                        result = operand1 / operand2
-                    elif operator=='%':
-                        result = operand1 % operand2
-                    operand_stack.append(result)
-                operator_stack.pop()  # Remove the '(' from the stack
-            else:
-                while (operator_stack and operator_stack[-1].type != '(' and 
-                    precedence[operator_stack[-1].type] >= precedence[token.type]):
-                    operator = operator_stack.pop().value
-                    operand2 = operand_stack.pop()
-                    operand1 = operand_stack.pop()
-                    if operator == '+':
-                        result = operand1 + operand2
-                    elif operator == '-':
-                        result = operand1 - operand2
-                    elif operator == '*':
-                        result = operand1 * operand2
-                    elif operator == '/':
-                        result = operand1 / operand2
-                    elif operator=='%':
-                        result = operand1 % operand2
-                    operand_stack.append(result)
-                operator_stack.append(token)
-
-        while operator_stack:
-            operator = operator_stack.pop().value
-            operand2 = operand_stack.pop()
-            operand1 = operand_stack.pop()
-            if operator == '+':
-                result = operand1 + operand2
-            elif operator == '-':
-                result = operand1 - operand2
-            elif operator == '*':
-                result = operand1 * operand2
-            elif operator == '/':
-                result = operand1 / operand2
-            elif operator=='%':
-                result = operand1 % operand2
-            operand_stack.append(result)
-
-        print(operand_stack[0])
-        return operand_stack[0]
-
+    
 
 
     def up(self, matched, output_stream, id_list):
@@ -299,9 +222,13 @@ if __name__ == "__main__":
 
 class CodeGeneration2:
     def __init__(self, semantic:SemanticAnalyzer) -> None:
-        
+
         self.semantic=semantic
         self.output_stream=[]
+        self.id_list=self.semantic.parse_tree.symbol_table
+
+        self.id_dict=self.semantic.parse_tree.symbol_table.accessible_ids()
+        self.matched=self.semantic.parse_tree.leaves()
 
         self.current_node = self.semantic.parse_tree
         self.previous_node = None
@@ -322,7 +249,15 @@ class CodeGeneration2:
 
         self.routines={
             "allowed_in_loop":self.allowed_in_loop,
-            "pa_mine":self.pa_mine
+            "pa_mine":self.pa_mine,
+            "var_or_seq_dec":self.var_or_seq_dec,
+
+        }
+
+        self.functionality={
+            "up":self.up
+
+
 
         }
 
@@ -331,34 +266,33 @@ class CodeGeneration2:
         while True:
             if self.current_node.root not in self.routines.keys():
                 self.previous_node=self.current_node
-                self.current_node = self.ast.traverse(self.current_node)
+                self.current_node = self.semantic.parse_tree.traverse(self.current_node)
             else:
                 self.routines[self.current_node.root]()
                 self.previous_node=self.current_node
-                self.current_node = self.ast.traverse(self.current_node)
+                self.current_node = self.semantic.parse_tree.traverse(self.current_node)
             if self.current_node is None:
                 break  # Exit the loop if the tree has been fully traversed
 
     def get_value(self, id, id_dict):
-        # for var in id_list:
-        #     if var.value==id.value:
-        #         return var
-        # else:
-        #     raise Exception("Variable not found")
         if id.value in id_dict:
             return id_dict[id.value]
         else:
             raise Exception("Variable not found")
 
+
+    def var_or_seq_dec(self):
+        # try:
+            if self.current_node.children[-1].value=="#":
+                self.eval_arithm()
+
     def allowed_in_loop(self):
-        routines={
-            "up":self.up
-        }
+
         try:
-            if self.current_node.children[0].value in routines.keys():
-                routines[self.current_node.children[0].value]()
+            if self.current_node.children[0].value in self.functionality.keys():
+                self.functionality[self.current_node.children[0].value]()
                 self.previous_node=self.current_node
-                self.current_node = self.ast.traverse(self.current_node)
+                self.current_node = self.semantic.parse_tree.traverse(self.current_node)
             else:
                 # raise Exception("Routine not found")
                 print(f'Routine {self.current_node.children[0].value} not found')
@@ -368,8 +302,8 @@ class CodeGeneration2:
             print(f"No Routine for {self.current_node.children[0].root}")
 
     def up(self):
-        id_dict=self.semantic.parse_tree.symbol_table.vars
-        matched=self.semantic.parse_tree.leaves()
+        matched=self.matched
+        id_dict=self.id_dict
         vars=[]
         text=''
         val=[]
@@ -419,6 +353,89 @@ class CodeGeneration2:
         # Print the formatted string
         self.output_stream.append(formatted_text)
         print(self.output_stream)
+
+
+
+    def evaluate(self, eval:list):
+        precedence = {'+':1, '-':1, '*':2, '/':2, '%':2}
+        operator_stack = []
+        operand_stack = []
+
+        for token in reversed(eval):
+            if token.type == "Identifier":
+                operand_stack.append(token.numerical_value)
+            elif token.type not in ['+', '-', '*', '/', '^', '(', ')', "=", "%", "Newline"]:
+                operand_stack.append(int(token.value))
+            elif token.type == '(':
+                operator_stack.append(token.value)
+            elif token.type == ')':
+                while operator_stack[-1].type != '(':
+                    operator = operator_stack.pop().value
+                    operand2 = operand_stack.pop()
+                    operand1 = operand_stack.pop()
+                    if operator == '+':
+                        result = operand1 + operand2
+                    elif operator == '-':
+                        result = operand1 - operand2
+                    elif operator == '*':
+                        result = operand1 * operand2
+                    elif operator == '/':
+                        result = operand1 / operand2
+                    elif operator=='%':
+                        result = operand1 % operand2
+                    operand_stack.append(result)
+                operator_stack.pop()  # Remove the '(' from the stack
+            else:
+                while (operator_stack and operator_stack[-1].type != '(' and 
+                    precedence[operator_stack[-1].type] >= precedence[token.type]):
+                    operator = operator_stack.pop().value
+                    operand2 = operand_stack.pop()
+                    operand1 = operand_stack.pop()
+                    if operator == '+':
+                        result = operand1 + operand2
+                    elif operator == '-':
+                        result = operand1 - operand2
+                    elif operator == '*':
+                        result = operand1 * operand2
+                    elif operator == '/':
+                        result = operand1 / operand2
+                    elif operator=='%':
+                        result = operand1 % operand2
+                    operand_stack.append(result)
+                operator_stack.append(token)
+
+        while operator_stack:
+            operator = operator_stack.pop().value
+            operand2 = operand_stack.pop()
+            operand1 = operand_stack.pop()
+            if operator == '+':
+                result = operand1 + operand2
+            elif operator == '-':
+                result = operand1 - operand2
+            elif operator == '*':
+                result = operand1 * operand2
+            elif operator == '/':
+                result = operand1 / operand2
+            elif operator=='%':
+                result = operand1 % operand2
+            operand_stack.append(result)
+
+        print(operand_stack[0])
+        return operand_stack[0]
+    
+    def eval_arithm(self):
+        matched=self.matched
+        id_list=self.id_list
+        eval=[]
+        for match in reversed(matched):
+            if match.type=="=":
+                return self.evaluate(eval)
+            elif match.type=="Identifier":
+                eval.append(self.get_value(match, id_list))
+            elif match.type in ["#", "Newline"]:
+                pass
+            else:
+                eval.append(match)
 
     def pa_mine(self):
         pass
