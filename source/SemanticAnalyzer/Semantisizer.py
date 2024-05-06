@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import sys
 sys.path.append( '.' )
-from source.LexicalAnalyzer.tokenclass import Token
+from source.core.symbol_table import Token
 from source.core.error_handler import SemanticError as se
 
 
