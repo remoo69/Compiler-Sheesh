@@ -104,7 +104,10 @@ class Lexer:
                     token = symb.Token(value=current_token, type="Identifier", attribute=tktype, line=symb.Token.line_num, position=symb.Token.tok_num)
                 else:
                     if category in ["Whole", "Dec"]:
-                        token = symb.Token(value=current_token, type=category, line=symb.Token.line_num, position=symb.Token.tok_num, numerical_value=float(current_token))
+                        try:
+                            token = symb.Token(value=current_token, type=category, line=symb.Token.line_num, position=symb.Token.tok_num, numerical_value=float(current_token))
+                        except ValueError:
+                            token = symb.Token(value=current_token, type=category, line=symb.Token.line_num, position=symb.Token.tok_num, numerical_value=float(current_token[1:-1]))
                     else:
                         token = symb.Token(value=current_token, type=category, line=symb.Token.line_num, position=symb.Token.tok_num,)
                 symb.Token.tok_num+=1    

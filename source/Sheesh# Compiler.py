@@ -108,6 +108,7 @@ def run_lex():
     error=compiler.lexer.errors
     tokens=remove_eol(tokens)
     if tokens:
+        tokens=remove_whitespace_type(tokens)
         print_lex(tokens)
         lex_table_pane.config(state="disabled")
         error_pane.config(state="disabled")
