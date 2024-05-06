@@ -18,6 +18,15 @@ import source.core.symbol_table as symb
 
 
 class Lexer:
+
+    def __init__(self, code: str):
+        
+        self.code=code
+        self.tokens=[]
+        self.errors=[]
+        self.no_tokens=[symb.Token(value="NO TOKENS", type= "NO TOKENS")]
+
+
     @staticmethod
     def gettokens(code: str) -> tuple[list[symb.Token], list[err.Error]]:
         tokens = []
@@ -107,8 +116,7 @@ class Lexer:
         return tokens, errors
 
 
-    @staticmethod    
-    def tokenize(codes):
+    def tokenize(self):
         symb.Token.tok_num=1
         symb.Token.idnum=1
         symb.Token.id_dict={}
@@ -116,7 +124,7 @@ class Lexer:
         symb.Token.in_comment=False
         symb.Token.line_num=1
 
-        lines = prep.prepare(codes)
+        lines = prep.prepare(self.code)
         tokens = []
         errors = []
         symb.Token.line_num=1
@@ -147,7 +155,9 @@ class Lexer:
         if symb.Token.in_comment:
             error=err.Error(type= f"Invalid Block Comment", line=symb.Token.block_start_line, errorval=symb.Token.block_comment_buffer, remaining=None)
             errors.append(error)
-        return tokens, errors
+        
+        self.errors=errors
+        self.tokens=tokens
     
 
 

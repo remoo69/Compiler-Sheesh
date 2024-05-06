@@ -84,3 +84,5 @@ class Identifiers:
     def __repr__(self):
         return f"Identifiers({self.vars}, {self.funcs}, {self.params})"
     
+    def accessible_ids(self):
+        return list(self.vars.keys()) + list(self.funcs.keys()) 

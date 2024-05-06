@@ -1,9 +1,8 @@
 import re
 import sys
-from tkinter import StringVar, Text
-sys.path.append('.')
 
-# from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer
+sys.path.append('.')
+from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer
 from source.core.AST import AST
 import llvmlite as ir
 
@@ -281,11 +280,11 @@ class CodeGeneration:
         output_stream.append(formatted_text)
 
     
-    def pa_mine(self, matched, id_list,  terminal:StringVar):
-        user_input = terminal.get()
-        ev = CodeGeneration()
-        result = ev.ID_assign(matched, id_list, user_input)
-        print(result)
+    # def pa_mine(self, matched, id_list,  terminal:StringVar):
+    #     user_input = terminal.get()
+    #     ev = CodeGeneration()
+    #     result = ev.ID_assign(matched, id_list, user_input)
+    #     print(result)
     
 if __name__ == "__main__":
     # variables = {"a":1, "b":2, "c":3}
@@ -299,11 +298,12 @@ if __name__ == "__main__":
     # cg.up("The speed of the fluid $t is: $w m/s ", 'hi',10, )
 
 class CodeGeneration2:
-    def __init__(self, tree:AST) -> None:
-        self.ast=tree
+    def __init__(self, semantic:SemanticAnalyzer) -> None:
+        
+        self.semantic=semantic
         self.output_stream=[]
 
-        self.current_node = self.ast
+        self.current_node = self.semantic.parse_tree
         self.previous_node = None
         self.types={
             "whole":int,
@@ -354,14 +354,22 @@ class CodeGeneration2:
         routines={
             "up":self.up
         }
-        if self.current_node.children[0].value in routines.keys():
-            routines[self.current_node.children[0].value]()
-            self.previous_node=self.current_node
-            self.current_node = self.ast.traverse(self.current_node)
+        try:
+            if self.current_node.children[0].value in routines.keys():
+                routines[self.current_node.children[0].value]()
+                self.previous_node=self.current_node
+                self.current_node = self.ast.traverse(self.current_node)
+            else:
+                # raise Exception("Routine not found")
+                print(f'Routine {self.current_node.children[0].value} not found')
+                pass
+        except AttributeError as e:
+            print(e)
+            print(f"No Routine for {self.current_node.children[0].root}")
 
     def up(self):
-        id_dict=self.ast.symbol_table.vars
-        matched=self.ast.leaves()
+        id_dict=self.semantic.parse_tree.symbol_table.vars
+        matched=self.semantic.parse_tree.leaves()
         vars=[]
         text=''
         val=[]

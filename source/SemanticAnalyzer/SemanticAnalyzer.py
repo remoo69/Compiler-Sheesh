@@ -4,7 +4,7 @@ from source.core.symbol_table import Token, Identifiers
 from source.core.error_handler import SemanticError as SemError
 from source.core.error_types import Semantic_Errors as se
 from source.core.AST import AST
-from source.CodeGeneration.CodeGen import CodeGeneration2
+# from source.CodeGeneration.CodeGen import CodeGeneration2
 
 
 
@@ -72,7 +72,7 @@ class SemanticAnalyzer:
 
         self.check=Check(self)
         self.create=Create(self)
-        self.code_gen=CodeGeneration2(self.parse_tree)
+        # self.code_gen=CodeGeneration2(self.parse_tree)
 
 
 
@@ -131,7 +131,7 @@ class SemanticAnalyzer:
                 self.previous_node=self.current_node
                 self.current_node = self.parse_tree.traverse(self.current_node)
             if self.current_node is None:
-                self.code_gen.generate_code()
+                # self.code_gen.generate_code()
                 break  # Exit the loop if the tree has been fully traversed
 
 
@@ -162,6 +162,7 @@ class SemanticAnalyzer:
                 # raise ValueError("No Identifier Found")
                 pass
         except AttributeError:
+            print(f"Attribute Error in {self.current_node.root}, got {self.current_node.children}")
             pass
 
     def id_tail(self):
@@ -195,7 +196,7 @@ class SemanticAnalyzer:
                 self.create.new_id(type=self.current_node.children[0].value, attribute=VAR)
                 self.create.load_type(self.current_node.children[1])
 
-                self.create.assign(self.current_node.children[1])
+                # self.create.assign(self.current_node.children[1])
 
             elif self.current_node.children[2].type=="Identifier":
                 self.nearest_id=self.current_node.children[2]
@@ -282,11 +283,15 @@ class SemanticAnalyzer:
             self.check.scope() 
 
     def loop_body_statement(self):
-        if self.current_node.children[2].type=="Identifier" and self.current_node.children[0].value=="choose":
-            self.nearest_id=self.current_node.children[2]
-            self.check.var()
-            self.check.var_value()
-            self.check.scope()
+        try:
+            if self.current_node.children[2].type=="Identifier" and self.current_node.children[0].value=="choose":
+                self.nearest_id=self.current_node.children[2]
+                self.check.var()
+                self.check.var_value()
+                self.check.scope()
+        except IndexError as e:
+            print(f"Index Error sa {self.current_node.root}, had {self.current_node.children}")
+            pass
 
     def func_def(self):
 
@@ -343,7 +348,7 @@ class Check:
 
         def func(self):
             id=self.semantic.nearest_id
-            if id.value not in self.semantic.id.funcs.keys():
+            if id.value not in self.semantic.id.accessible_ids():
                 exp=f"Declared Function {id.value}"
                 err=se.FUNC_UNDECL
                 self.semantic.semantic_error(err, id, exp)
@@ -351,7 +356,7 @@ class Check:
             
         def seq(self):
             id=self.semantic.nearest_id
-            if id.value not in self.semantic.id.vars.keys():
+            if id.value not in self.semantic.id.accessible_ids():
                 exp=f"Declared Sequence {id.value}"
                 err=se.SEQ_UNDECL
                 self.semantic.semantic_error(err, id, exp)
@@ -359,7 +364,7 @@ class Check:
             
         def var(self):
             id=self.semantic.nearest_id
-            if id.value not in self.semantic.id.vars.keys():
+            if id.value not in self.semantic.id.accessible_ids():
                 exp=f"Declared Variable {id.value}"
                 err=se.VAR_UNDECL
                 self.semantic.semantic_error(err, id, exp)
@@ -412,12 +417,11 @@ class Create:
     def __init__(self, semantic:SemanticAnalyzer) -> None:
         self.semantic=semantic
 
-    def assign(self, id:Token)->None:
+    def assign(self, id:Token, value)->None:
         self.semantic.nearest_id=id
-        self.semantic.check.var()
-        self.semantic.check.var_value()
-        self.semantic.check.var_type()
-        self.semantic.check.scope()
+        if self.semantic.check.var():
+            if value:
+                self.semantic.id.vars[id.value].numerical_value=value
 
 
     def load_type(self, id:Token):
@@ -434,7 +438,7 @@ class Create:
 
     def new_id(self, type, scope=LOCAL,  attribute=None):
         id=self.semantic.nearest_id #NOTE - idk if this is the right way to do this
-        if id.value not in self.semantic.id.vars.keys():
+        if id.value not in self.semantic.id.accessible_ids():
             id.dtype=type
             id.attribute=attribute
             id.scope=self.semantic.current_scope
@@ -447,7 +451,7 @@ class Create:
 
     def new_func(self,type, attribute=FUNC):
         id=self.semantic.nearest_id
-        if id.value not in self.semantic.id.funcs.keys():
+        if id.value not in self.semantic.id.accessible_ids():
             id.dtype=type
             id.attribute=attribute
             id.scope=GBL

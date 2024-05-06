@@ -8,7 +8,7 @@ from source.core.AST import AST
 from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer as semantic
 
 
-debug=True
+debug=False
 debug_fail=False
 
 class SyntaxAnalyzer:
@@ -117,7 +117,8 @@ class SyntaxAnalyzer:
                 print(e)
             self.semantic=semantic(self.Tree)
             self.semantic.analyze()
-            return self.syntax_errors ,self.semantic.semantic_errors,
+            
+            return
 
     
     def enforce(self):
