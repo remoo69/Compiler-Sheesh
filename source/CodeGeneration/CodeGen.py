@@ -159,17 +159,38 @@ class CodeGenerator:
             "in_loop_body":self.in_loop_body,
             "loop_body":self.loop_body,
             "more_loop_body":self.more_loop_body,
+            "control_flow_statement":self.control_flow_statement,
 
         }
 
         self.functionality={
+
+            "yeet":self.yeet,
+            "def":self.def_,
+            "based":self.based,
             "up":self.up,
-            "for":self.for_loop,
-            "bet":self.bet,
+            "pa_mine":self.pa_mine,
+            
+            
             "kung":self.kung,
-            "choose":self.choose,
-            "felloff":self.felloff,
+            
             "pass":self.pass_,
+            "kung":self.kung,
+            "ehkung":self.ehkung,
+            "deins":self.deins,
+            "choose":self.choose,
+            "when":self.when,
+            "default":self.default,
+            
+            "bet":self.bet,
+            "whilst":self.whilst,
+            "for":self.for_loop,
+            # "to":self.to_loop,
+            "felloff":self.felloff,
+            # "step":self.step,
+            "pass":self.pass_,
+
+
 
 
         }
@@ -283,6 +304,11 @@ class CodeGenerator:
             self.current_node = self.semantic.parse_tree.traverse(self.current_node)
             self.routines["loop_body_statement"]()  
             
+    def control_flow_statement(self):
+        if self.current_node.children[0].value in ["choose", "kung"]:
+            self.functionality[self.current_node.children[0].value]()
+            self.previous_node=self.current_node
+            self.current_node = self.semantic.parse_tree.traverse(self.current_node)
 
 #region Functionality
 #SECTION - FUNCTIONALITY
@@ -325,7 +351,12 @@ class CodeGenerator:
             print(f"For Loop: \n\tIterator: {iterator}\n\t End: {end}\n\t Step: {step}")
         
     def kung(self):
-        raise NotImplementedError
+
+        condition=self.current_node.children[2].leaves()
+        reg_body=self.current_node.children[4]
+        # cond_tail=
+
+
         
 
     def bet(self):
@@ -552,6 +583,76 @@ class CodeGenerator:
                 eval.append(match)
 
         return self.evaluate(eval)
+    
+    def eval_logic(self, expr):
+        eval=[]
+        for match in reversed(expr):
+            if match.type in ["#", "Newline"]:
+                pass
+            else:
+                eval.append(match)
+        return self.evaluate_logic(eval)
+    
+    def evaluate_logic(self, eval):
+        precedence = {'&':1, '|':1, '!':2}
+        operator_stack = []
+        operand_stack = []
 
+        for token in reversed(eval):
+            if token.type == "Identifier":
+                operand_stack.append(token.numerical_value)
+            elif token.type not in ['&', '|', '!', '(', ')', "=", "Newline"]:
+                try:
+                    operand_stack.append(float(token.numerical_value))
+                except ValueError:
+                    operand_stack.append(float(token.numerical_value[1:-1]))
+            elif token.type == '(':
+                operator_stack.append(token)
+            elif token.type == ')':
+                while operator_stack[-1].type != '(':
+                    operator = operator_stack.pop().value
+                    operand2 = operand_stack.pop()
+                    operand1 = operand_stack.pop()
+                    if operator == '&':
+                        result = operand1 and operand2
+                    elif operator == '|':
+                        result = operand1 or operand2
+                    operand_stack.append(result)
+                operator_stack.pop()
+
+    def evaluate_relational(self, eval):
+        precedence = {'<':1, '>':1, '<=':1, '>=':1, '==':2, '!=':2}
+        operator_stack = []
+        operand_stack = []
+
+        for token in reversed(eval):
+            if token.type == "Identifier":
+                operand_stack.append(token.numerical_value)
+            elif token.type not in ['<', '>', '<=', '>=', '==', '!=', '(', ')', "=", "Newline"]:
+                try:
+                    operand_stack.append(float(token.numerical_value))
+                except ValueError:
+                    operand_stack.append(float(token.numerical_value[1:-1]))
+            elif token.type == '(':
+                operator_stack.append(token)
+            elif token.type == ')':
+                while operator_stack[-1].type != '(':
+                    operator = operator_stack.pop().value
+                    operand2 = operand_stack.pop()
+                    operand1 = operand_stack.pop()
+                    if operator == '<':
+                        result = operand1 < operand2
+                    elif operator == '>':
+                        result = operand1 > operand2
+                    elif operator == '<=':
+                        result = operand1 <= operand2
+                    elif operator == '>=':
+                        result = operand1 >= operand2
+                    elif operator == '==':
+                        result = operand1 == operand2
+                    elif operator == '!=':
+                        result = operand1 != operand2
+                    operand_stack.append(result)
+                operator_stack.pop()
     def pa_mine(self):
         raise NotImplementedError

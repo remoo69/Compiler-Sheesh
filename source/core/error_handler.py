@@ -1,7 +1,7 @@
 import sys
 sys.path.append( '.' )
 import source.core.constants as const
-import source.LexicalAnalyzer.Prepare as prep
+import source.LexicalAnalyzer.prepare as prep
 import source.core.symbol_table as symb
 
 class Error:

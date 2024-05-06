@@ -1,6 +1,6 @@
 import sys
 sys.path.append( '.' )
-import source.LexicalAnalyzer.Prepare as prep
+import source.LexicalAnalyzer.prepare as prep
 import source.core.error_handler as err
 import source.core.symbol_table as symb
 
