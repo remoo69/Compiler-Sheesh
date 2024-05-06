@@ -10,6 +10,8 @@ from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer as semanti
 
 debug=False
 debug_fail=False
+tree_debug=True
+status_report=False
 
 class SyntaxAnalyzer:
 
@@ -86,6 +88,7 @@ class SyntaxAnalyzer:
         # self.semantic=semantic(self.matched)
 
     def parse(self):
+        print("Parsing...")
         self.reset()
         if len(self.tokens) == 0:
             self.syntax_errors.append(
@@ -93,18 +96,23 @@ class SyntaxAnalyzer:
             return self.syntax_errors
         else:
             try:
-                start=perf_counter()
+                if status_report:
+                    start=perf_counter()
 
-                self.program()
-                
-                end=perf_counter() 
-                
-                self.Tree.end_tree()   
+                    self.program()
+                    
+                    end=perf_counter() 
+                    
+                    self.Tree.end_tree()   
 
-                tr=perf_counter()
-                print(f"Parsing: {end-start}")
-                print(f"Print Tree: {tr-end}")
-                print(self.Tree)
+                    tr=perf_counter()
+                    print(f"Parsing: {end-start}")
+                    print(f"Print Tree: {tr-end}")
+                else:
+                    self.program()
+                    self.Tree.end_tree() 
+                if tree_debug:
+                    print(self.Tree)
 
                 # self.semantic=semantic(self.Tree)
                 # self.semantic.analyze()
@@ -115,8 +123,8 @@ class SyntaxAnalyzer:
                 # return self.syntax_errors, self.semantic.semantic_errors
             except SyntaxError as e:
                 print(e)
-            self.semantic=semantic(self.Tree)
-            self.semantic.analyze()
+            # self.semantic=semantic(self.Tree)
+            # self.semantic.analyze()
 
             return
 
@@ -249,8 +257,11 @@ class SyntaxAnalyzer:
                 if self.peek() == "}":
                     self.Tree.add_children(self.matched[-1])
                     return True
-                self.Tree.add_children(self.matched[-1])
                 self.match("Newline")
+                self.matched.pop(-1)
+                self.Tree.add_children(self.matched[-1])
+                
+                
                 self.eat_endl()
                 return True
             else:
@@ -1884,6 +1895,7 @@ class SyntaxAnalyzer:
         elif self.match("for", True):
             self.enforce()
             self.match("(")
+            self.match("whole")
             self.match("Identifier")
             self.match("=")
             self.whl_value()
@@ -2189,23 +2201,23 @@ class SyntaxAnalyzer:
             self.Tree.end_branch(); return self.success
         
         #STUB - removed?
-        elif self.id_val_paren() == self.success:
-            self.Tree.end_branch(); return self.success
+        # elif self.id_val_paren() == self.success:
+        #     self.Tree.end_branch(); return self.success
         else:
             return self.failed()
     
 #STUB - REMOVE 12/04/24
-    def id_val_paren(self):
-        self.Tree.initialize_new()
-        if self.match("(", True):
-            self.enforce()
-            self.id_val_op()
-            self.enforce()
-            self.match(")")
-            self.id_expr_tail()
-            self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
+    # def id_val_paren(self):
+    #     self.Tree.initialize_new()
+    #     if self.match("(", True):
+    #         self.enforce()
+    #         self.id_val_op()
+    #         self.enforce()
+    #         self.match(")")
+    #         self.id_expr_tail()
+    #         self.Tree.end_branch(); return self.success
+    #     else:
+    #         return self.failed()
         
     @nullable
     def id_expr_tail(self):

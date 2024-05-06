@@ -247,49 +247,71 @@ def compile():
     lex_errors=compiler.lex_errors
     syntax_errors=compiler.syntax_errors
     semantic_errors=compiler.semantic_errors
+    runtime_errors=compiler.runtime_errors
     output=compiler.output
+
+
+    error_tag = "error_text"
+    normal_tag = "normal_text"
+    emphasis= "emphasis_text"
+
+    error_pane.tag_configure(error_tag, foreground="yellow")
+    error_pane.tag_configure(normal_tag, foreground="green")
+    error_pane.tag_configure(emphasis, foreground=green)
 
     if lex_errors:
         error_pane.config(state="normal")
-        error_pane.config(foreground= yellow)
+        # error_pane.config(foreground= yellow)
         error_pane.delete('1.0', constants.END)
-        error_pane.insert(constants.END, "Can't Parse, Resolve Lexical Errors:\n")
+        error_pane.insert(constants.END, "Can't Parse, Resolve Lexical Errors:\n", error_tag)
         for err in lex_errors:
-            error_pane.insert(constants.END, f'{err}\n')
+            error_pane.insert(constants.END, f'{err}\n', error_tag)
     else:
         error_pane.config(state="disabled")
 
         error_pane.config(state="normal")
         error_pane.delete('1.0', constants.END)
-        if output==[]:
-            error_pane.config(foreground= green)
-            error_pane.insert(constants.END, "No Output\n")
+
+
+        if runtime_errors==[]:
+
+            if output==[]:
+                # error_pane.config(foreground= yellow)
+                error_pane.insert(constants.END, "No Output\n", normal_tag)
+            else:
+                # error_pane.config(foreground= green)
+                error_pane.insert(constants.END, f'Output:\n', emphasis)
+                for out in output:
+                    repeat=output[out]
+                    for i in range(repeat):
+                        error_pane.insert(constants.END, f"{out}\n", emphasis)
+                # error_pane.config(state="disabled")
         else:
-            error_pane.config(foreground= green)
-            error_pane.insert(constants.END, f'Output:\n')
-            for out in output:
-                error_pane.insert(constants.END, f"{out}\n")
-            # error_pane.config(state="disabled")
+            # error_pane.config(foreground= yellow)
+            error_pane.insert(constants.END, f'\nRuntime Error:\n', error_tag)
+            for rerr in runtime_errors:
+                error_pane.insert(constants.END, f"{rerr}\n", error_tag)
+            error_pane.config(state="disabled")
 
         if syntax_errors==[] :
-            error_pane.config(foreground= green)
-            error_pane.insert(constants.END, "\nNo Syntax Errors\n")
+            # error_pane.config(foreground= green)
+            error_pane.insert(constants.END, "\nNo Syntax Errors\n", normal_tag)
             
         else:
-            error_pane.config(foreground= yellow)
-            error_pane.insert(constants.END, f'\nSyntax Error:\n')
+            # error_pane.config(foreground= yellow)
+            error_pane.insert(constants.END, f'\nSyntax Error:\n', error_tag)
             for error in syntax_errors:
-                error_pane.insert(constants.END, f"{error}\n")
+                error_pane.insert(constants.END, f"{error}\n", error_tag)
             # error_pane.config(state="disabled")
     
         if semantic_errors==[]:
-            error_pane.config(foreground= green)
-            error_pane.insert(constants.END, "\nNo Semantic Errors\n") 
+            # error_pane.config(foreground= green)
+            error_pane.insert(constants.END, "\nNo Semantic Errors\n", normal_tag) 
         else:
-            error_pane.config(foreground= yellow)
-            error_pane.insert(constants.END, f'\nSemantic Errors:\n')
+            # error_pane.config(foreground= yellow)
+            error_pane.insert(constants.END, f'\nSemantic Errors:\n', error_tag)
             for serr in semantic_errors:
-                error_pane.insert(constants.END, f"{serr}\n")
+                error_pane.insert(constants.END, f"{serr}\n", error_tag)
             error_pane.config(state="disabled")
 
     
@@ -298,7 +320,7 @@ def compile():
         error_pane.config(state="disabled")
 
 def print_lex(tokenlist):                      # Print Text to Lexical Pane
-    print("Printing lex")
+    print("Printing lex...")
     lex_table_pane.config(state="normal")
     lex_table_pane.delete('1.0', constants.END)
     lex_table_pane.insert(constants.END, "LEXEME\t\t\tTOKEN\n\n")

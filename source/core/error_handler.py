@@ -417,4 +417,16 @@ class SemanticError:
 
 
     def __repr__(self) -> str:
-            return f"Line {self.line}, Token {self.toknum}: {self.error} \"{self.value}\", expected -> {self.expected}"
+            return f"Line {self.line}, Token {self.toknum}: {self.error} for \"{self.value}\", expected -> {self.expected}"
+    
+
+class RuntimeError:
+    def __init__(self, *, error,  token, expected) -> None:
+        self.error=error
+        self.line=token.line
+        self.toknum=token.position
+        self.expected=expected
+
+
+    def __repr__(self) -> str:
+            return f"Line {self.line}, Token {self.toknum}: {self.error}, expected -> {self.expected}"
