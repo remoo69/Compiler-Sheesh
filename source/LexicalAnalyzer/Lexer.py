@@ -120,6 +120,7 @@ class Lexer:
 
 
     def tokenize(self):
+        print("Tokenizing...")
         symb.Token.tok_num=1
         symb.Token.idnum=1
         symb.Token.id_dict={}

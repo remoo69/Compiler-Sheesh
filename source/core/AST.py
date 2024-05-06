@@ -36,6 +36,7 @@ class AST:
         
 
     def __repr__(self, level=0):
+        # print("Printing Tree from IDK")
         indent = '  ' * level
         repr_str = f"{indent}{self.root}:\n"
         for child in self.children:
@@ -179,11 +180,11 @@ class AST:
                 AST.unended.pop(-1)
         except IndexError as e:
             print(e)
-            print(self.stack)
+            # print(self.stack)
             # self.stack.pop(-1)
             # self.buffer=self.stack[-1]
             # AST.unended.pop(-1)
-            print("End of Trees")
+            # print("End of Trees")
             return
 
     
@@ -209,3 +210,15 @@ class AST:
             else:
                 leaves.append(child)
         return leaves
+    
+    def values(self):
+        """ 
+        Returns all the values of the tree
+        """
+        leaves=self.leaves()
+        values=[]
+
+        for leaf in leaves:
+            values.append(leaf.value)
+        return values
+

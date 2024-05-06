@@ -7,6 +7,7 @@ from source.core.AST import AST
 # from source.CodeGeneration.CodeGen import CodeGeneration2
 
 
+debug=False
 
 GBL="Global"
 LOCAL="Local"
@@ -18,6 +19,8 @@ IMP="Imported"
 PARAM="Parameter"
 
 CONST="Constant"
+
+ARG="Argument"
 
 
 class SemanticAnalyzer:
@@ -72,6 +75,18 @@ class SemanticAnalyzer:
         self.buffer=[]
 
         self.nearest_id=None
+
+        self.in_arg=False
+
+        self.data_types={
+            "whole": int,
+            "dec": float,
+            "sus": bool,
+            "text": str,
+            "charr": str, #idk pa dito
+        }
+
+        self.reverse_types={v: k for k, v in self.data_types.items()}
         
         self.routines={
 
@@ -104,6 +119,7 @@ class SemanticAnalyzer:
             "sheesh_declaration": self.sheesh_declaration,
             "math_op": self.math_op,
             "reg_body": self.reg_body,
+            "assign_op": self.assign_op,
             
 
 
@@ -115,6 +131,7 @@ class SemanticAnalyzer:
         return f"SemanticAnalyzer({self.parse_tree})"
 
     def analyze(self):
+        print("Semantic Analysis...")
         while True:
             if self.current_node.root not in self.routines.keys():
                 self.previous_node=self.current_node
@@ -148,27 +165,29 @@ class SemanticAnalyzer:
 
 
     def allowed_in_loop(self):
+        self.in_arg=False
         try:
             if self.current_node.children[0].type=="Identifier":
                 self.nearest_id=self.current_node.children[0]
+            
+            if self.current_node.children[0].type=="up" or self.current_node.children[0].type in self.id.funcs.keys():
+                self.in_arg=True
             else: 
                 # raise ValueError("No Identifier Found")
                 pass
         except AttributeError:
-            print(f"Attribute Error in {self.current_node.root}, got {self.current_node.children}")
+            print(f"Attribute Error in {self.current_node.root}, got {self.current_node.children}") if debug else None
             pass
 
     def id_tail(self):
         tail_map={
             "(": self.check.func,
-            "one_dim": self.check.seq,
-            "assign_op": self.create.assign,
+            # "one_dim": self.check.seq,
         }
-
-        try:
-            tail_map[self.current_node.children[0].root]()
-        except AttributeError:
-            tail_map[self.current_node.children[0].value]()
+        # try:
+        self.create.explore(tail_map)
+        # except KeyError:
+        #     pass
 
     
     def id_val_tail(self):
@@ -177,20 +196,17 @@ class SemanticAnalyzer:
             "one_dim": self.check.seq,
         }
 
-        try:
-            tail_map[self.current_node.children[0].root]()
-        except AttributeError:
-            tail_map[self.current_node.children[0].value]()
+        self.create.explore(tail_map)
 
     def var_or_seq_dec(self):
-        try:
+        # try:
             if self.current_node.children[1].type=="Identifier":
                 self.nearest_id=self.current_node.children[1]
                 self.create.new_id(type=self.current_node.children[0].value, attribute=VAR)
                 self.create.load_type(self.current_node.children[1])
 
                 self.create.assign(self.current_node.children[1])
-                print(self.nearest_id)
+                print(self.nearest_id)if debug else None
                 
 
             elif self.current_node.children[2].type=="Identifier":
@@ -201,11 +217,11 @@ class SemanticAnalyzer:
                 self.create.assign(self.current_node.children[2])
             else:
                 raise ValueError("No Identifier Found")
-        except AttributeError:
-            # raise AttributeError("No Identifier Found")
-            print(f"Attribute Error in {self.current_node.root}, got {self.current_node.children}")
-            print("No Identifier Found")
-            pass
+        # except AttributeError:
+        #     # raise AttributeError("No Identifier Found")
+        #     print(f"Attribute Error in {self.current_node.root}, got {self.current_node.children}")if debug else None
+        #     print("No Identifier Found")if debug else None
+        #     pass
     
     def more_whl_var(self):
         if self.current_node.children[1].type=="Identifier":
@@ -267,33 +283,35 @@ class SemanticAnalyzer:
     
 
     def control_flow_statement(self):
-        try:
+        # try:
             if self.current_node.children[2].type=="Identifier" and self.current_node.children[0].value=="choose":
                 self.nearest_id=self.current_node.children[2]
                 self.check.var()
                 self.check.var_value()
                 self.check.scope() 
-        except AttributeError:
-            print(f"Attribute Error sa {self.current_node.root}, had {self.current_node.children}")
-            pass
+        # except AttributeError:
+        #     print(f"Attribute Error sa {self.current_node.root}, had {self.current_node.children}")if debug else None
+        #     pass
 
     def looping_statement(self):
-        if self.current_node.children[2].type=="Identifier" and self.current_node.children[0].value=="for":
-            self.nearest_id=self.current_node.children[2]
-            self.check.var()
-            self.check.var_value()
-            self.check.scope() 
+        if self.current_node.children[3].type=="Identifier" and self.current_node.children[0].value=="for" and self.current_node.children[2].type=="whole":
+            self.nearest_id=self.current_node.children[3]
+            self.create.new_id(type="whole", attribute=VAR)
+            self.create.assign()
 
     def loop_body_statement(self):
-        try:
-            if self.current_node.children[2].type=="Identifier" and self.current_node.children[0].value=="choose":
+        # try:
+            leaves=self.current_node.leaves()
+            if leaves[2].type=="Identifier" and leaves[0].value=="choose":
                 self.nearest_id=self.current_node.children[2]
                 self.check.var()
                 self.check.var_value()
                 self.check.scope()
-        except IndexError as e:
-            print(f"Index Error sa {self.current_node.root}, had {self.current_node.children}")
-            pass
+            else:
+                pass
+        # except IndexError as e:
+        #     print(f"Index Error sa {self.current_node.root}, had {self.current_node.children}")if debug else None
+        #     pass
 
     def func_def(self):
 
@@ -311,7 +329,7 @@ class SemanticAnalyzer:
         if self.current_node.children[0].type=="Identifier":
             self.nearest_id=self.current_node.children[0]
             self.check.var()
-            print(self.nearest_id)
+            print(self.nearest_id)if debug else None
             self.check.var_value()
             self.check.var_type() 
             self.check.scope()
@@ -322,12 +340,38 @@ class SemanticAnalyzer:
         if self.current_node.children[0].type=="sheesh":
             self.current_scope=LOCAL
 
+    def assign_op(self):
+        assign_ops={
+            "=": self.create.assign,
+            "+=": self.create.assign,
+            "-=": self.create.assign,
+            "*=": self.create.assign,
+            "/=": self.create.assign,
+            "%=": self.create.assign,
+        }
+
+        # self.create.explore(assign_ops)
+        
+        try:
+            assign_ops[self.current_node.children[0].root]()
+        except AttributeError:
+            if self.current_node.children[0].value=="/=":
+                operand=self.check.next_operand()
+                if (operand.numerical_value<1 and operand.numerical_value >-1) and operand.numerical_value %1 == 0:
+
+                    self.semantic_error(se.ZERO_DIV, operand, "Non-zero value")
+                else:
+                    assign_ops[self.current_node.children[0].value]()
+            else:
+                assign_ops[self.current_node.children[0].value]()
+
 
     def math_op(self):
         if self.current_node.children[0].type=="/":
             operand=self.check.next_operand()
-            if int(operand.numerical_value) == 0:
+            if (operand.numerical_value<1 and operand.numerical_value >-1) and operand.numerical_value%1 == 0:
                 self.semantic_error(se.ZERO_DIV, operand, "Non-zero value")
+            
 
     def reg_body(self):
         if len(self.current_node.children)<=2:
@@ -389,10 +433,11 @@ class Check:
         def var_type(self):
             id=self.semantic.nearest_id
             if id.dtype!=self.semantic.req_type:
-                exp=f"Variable of Type {self.semantic.req_type}, Got {id.dtype}"
-                err=se.VAR_OPERAND_INVALID
-                self.semantic.semantic_error(err, id, exp)
-                return
+                if not self.semantic.in_arg:
+                    exp=f"Variable of Type {self.semantic.req_type}, Got {id.dtype}"
+                    err=se.VAR_OPERAND_INVALID
+                    self.semantic.semantic_error(err, id, exp)
+                    return
             
         def scope(self):
             id=self.semantic.nearest_id
@@ -400,19 +445,23 @@ class Check:
                 exp=f"In {self.semantic.current_scope} Scope"
                 err=se.VAR_SCOPE_INVALID
                 self.semantic.semantic_error(err, id, exp)
-                print(id.scope, self.semantic.current_scope)
+                print(id.scope, self.semantic.current_scope)if debug else None
                 return
 
 
         def next_operand(self):
             temp_node=self.semantic.previous_node
-            try:
-                if temp_node.children[1].children[0].type in ["Identifier", "Whole", "Dec"]:
-                    return temp_node.children[1].children[0]
+            # try:
+            #     if temp_node.children[1].children[0].type in ["Identifier", "Whole", "Dec"]:
+            #         return temp_node.children[1].children[0]
 
-            except AttributeError:
-                return temp_node.children[2]
-
+            # except AttributeError:
+            #     # return temp_node.children[2]
+            #     if temp_node.children[1].children[0].children[0].type in ["Identifier", "Whole", "Dec"]:
+            #         return temp_node.children[1].children[0].children[0]
+            leaves=temp_node.leaves()
+            if leaves[1].type in ["Identifier", "Whole", "Dec"]:
+                return leaves[1]
             
         
 
@@ -421,35 +470,81 @@ class Create:
     def __init__(self, semantic:SemanticAnalyzer) -> None:
         self.semantic=semantic
 
-    def assign(self, to_id=None)->None:
+
+    def explore(self, map):
+        try:
+            map[self.semantic.current_node.children[0].root]()
+        except AttributeError:
+            map[self.semantic.current_node.children[0].value]()
+
+        except KeyError:
+            pass
+
+    def assign(self, to_id=None, )->None:
+        assign_ops=["=", "+=", "-=", "*=", "/=", "%="]
+        op=None
+        for index, vals in enumerate(self.semantic.current_node.leaves()):
+            if vals.type in assign_ops:
+                op=self.semantic.current_node.leaves()[index].value
+                break
+        
+
         if to_id==None:
             to_id=self.semantic.nearest_id
         expr=[]
         value=None
         if self.semantic.check.var():
-            items=self.semantic.current_node.leaves()
-            for children in items:
-                try:
-                    if children.type not in ["#", ",", "Newline", "whole", "dec", "sus", "text", "charr"]:
+            items=self.semantic.current_node.parent.leaves()
+            temp=self.semantic.current_node.parent.values()
+            
+            eq_index=temp.index(op)
+            for children in items[eq_index+1:]:
+                # try:
+                    if children.type not in ["#", ",", "Newline", "whole", "dec", "sus", "text", "charr", "for" ]:
                         if children.type=="Identifier":
                             self.semantic.nearest_id=children
                             if self.semantic.check.var() and self.semantic.check.var_value():
                                 expr.append(self.semantic.nearest_id)
+                        elif children.type=="to":
+                            break
                         else: expr.append(children)
-                except AttributeError:
-                    raise AttributeError("No Identifier Found")
-                
+                    
+                # except AttributeError:
+                #     raise AttributeError("No Identifier Found")
+            
+        
             value=self.semantic.create.eval_arithm(expr)
-            # while self.semantic.current_node.children:
-            #     try:
-            #         if self.semantic.current_node.children[0].type=="=":
-            #             value=self.semantic.current_node.children[1]
-            #             break
-            #         expr.append(self.semantic.current_node.children)
-            #         self.semantic.current_node=self.semantic.parse_tree.traverse(self.semantic.current_node)
-            if value:
-                self.semantic.parse_tree.symbol_table.accessible_ids()[to_id.value].numerical_value=value
-                return True
+
+            id_ref=self.semantic.parse_tree.symbol_table.accessible_ids()[to_id.value]
+            if id_ref.numerical_value==None:
+                id_ref.numerical_value=0
+            if op != "=":
+                if op=="+=":
+                    value+=id_ref.numerical_value
+                elif op=="-=":
+                    value-=id_ref.numerical_value
+                elif op=="*=":
+                    value*=id_ref.numerical_value
+                elif op=="/=":
+                    value/=id_ref.numerical_value
+                elif op=="%=":
+                    value%=id_ref.numerical_value
+    
+            
+            if value != None:
+                if type(value)==self.semantic.data_types[to_id.dtype]:
+                    self.semantic.parse_tree.symbol_table.accessible_ids()[to_id.value].numerical_value=value
+                    return True
+                else:
+                
+                    if value%1==0:
+                        value=self.semantic.data_types[to_id.dtype](value)
+                        self.semantic.parse_tree.symbol_table.accessible_ids()[to_id.value].numerical_value=value
+                        return True
+                    else:
+                        self.semantic.semantic_error(se.VAR_OPERAND_INVALID, to_id, f"Value of Type {to_id.dtype}, got {self.semantic.reverse_types[type(value)]}")
+            else:
+                self.semantic.semantic_error(se.VAR_UNDEF, to_id, "Value pare")
         
     def get_var(self, id:Token):
         try:
@@ -481,7 +576,7 @@ class Create:
             self.semantic.id.vars.add(id)
             self.semantic.nearest_id=id
         else:
-            self.semantic.semantic_error(se.VAR_REDECL, id, f"Variable {id.value}")
+            self.semantic.semantic_error(se.VAR_REDECL_INSCOPE, id, f"Other Identifier. Current: {id.value}")
 
 
     def new_func(self,type, attribute=FUNC):
@@ -517,11 +612,11 @@ class Create:
                 operand_stack.append(token.numerical_value)
             elif token.type not in ['+', '-', '*', '/', '^', '(', ')', "=", "%", "Newline"]:
                 try:
-                    operand_stack.append(int(token.value))
+                    operand_stack.append(float(token.numerical_value))
                 except ValueError:
-                    operand_stack.append(int(token.value[1:-1]))
+                    operand_stack.append(float(token.numerical_value[1:-1]))
             elif token.type == '(':
-                operator_stack.append(token.value)
+                operator_stack.append(token)
             elif token.type == ')':
                 while operator_stack[-1].type != '(':
                     operator = operator_stack.pop().value
@@ -574,19 +669,19 @@ class Create:
                 result = operand1 % operand2
             operand_stack.append(result)
 
-        print(operand_stack[0])
+        print(operand_stack[0]) if debug else None
         return operand_stack[0]
     
     def eval_arithm(self, expr):
 
         eval=[]
         for match in reversed(expr):
-            if match.type=="=":
-                return self.evaluate(eval)
-            elif match.type in ["#", "Newline"]:
+            if match.type in ["#", "Newline"]:
                 pass
             else:
                 eval.append(match)
+
+        return self.evaluate(eval)
 
 
   
