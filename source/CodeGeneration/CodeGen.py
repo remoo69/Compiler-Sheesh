@@ -8,7 +8,7 @@ from source.core.error_types import Semantic_Errors as se
  
 
 
-debug=True
+debug=False
 
 class charr:
     def __init__(self, value):
@@ -112,9 +112,7 @@ class CodeGenerator:
     def __init__(self, semantic:SemanticAnalyzer) -> None:
 
         self.semantic=semantic
-        self.output_stream={
-
-        }
+        self.output_stream={}
         self.id_list=self.semantic.parse_tree.symbol_table
 
         self.id_dict=self.semantic.parse_tree.symbol_table.accessible_ids()
@@ -122,9 +120,12 @@ class CodeGenerator:
 
         self.current_node = self.semantic.parse_tree
 
+        
+
         self.runtime_errors = []
 
-        self.previous_node = None
+        self.previous_node = None # Store the previous node to handle loops
+
         self.types={
             "whole":int,
             "decimal":float,
@@ -157,10 +158,10 @@ class CodeGenerator:
 
 
         }
+        self.functionality=Functionality(self)
 
         self.routines={
             "allowed_in_loop":self.allowed_in_loop,
-            "pa_mine":self.pa_mine,
             "var_or_seq_dec":self.var_or_seq_dec,
             "looping_statement":self.looping_statement,
             "loop_body_statement":self.loop_body_statement,
@@ -168,42 +169,41 @@ class CodeGenerator:
             "loop_body":self.loop_body,
             "more_loop_body":self.more_loop_body,
             "control_flow_statement":self.control_flow_statement,
+            "statement":self.statement,
 
         }
 
         self.functionality={
 
-            "yeet":self.yeet,
-            "def":self.def_,
-            "based":self.based,
-            "up":self.up,
-            "pa_mine":self.pa_mine,
+            "yeet":self.functionality.yeet,
+            "def":self.functionality.def_,
+            "based":self.functionality.based,
+            "up":self.functionality.up,
+            "pa_mine":self.functionality.pa_mine,
             
             
-            "kung":self.kung,
+            "pass":self.functionality.pass_,
+            "kung":self.functionality.kung,
+            "ehkung":self.functionality.ehkung,
+            "deins":self.functionality.deins,
+            "choose":self.functionality.choose,
+            "when":self.functionality.when,
+            "default":self.functionality.default,
             
-            "pass":self.pass_,
-            "kung":self.kung,
-            "ehkung":self.ehkung,
-            "deins":self.deins,
-            "choose":self.choose,
-            "when":self.when,
-            "default":self.default,
-            
-            "bet":self.bet,
-            "whilst":self.whilst,
-            "for":self.for_loop,
+            "bet":self.functionality.bet,
+            "whilst":self.functionality.whilst,
+            "for":self.functionality.for_loop,
             # "to":self.to_loop,
-            "felloff":self.felloff,
+            "felloff":self.functionality.felloff,
             # "step":self.step,
-            "pass":self.pass_,
-
-
+            "pass":self.functionality.pass_,
 
 
         }
+        
 
-
+    def statement(self):
+        pass
     def generate_code(self):
         print("Generating code...")
         while True:
@@ -217,11 +217,7 @@ class CodeGenerator:
             if self.current_node is None:
                 break  # Exit the loop if the tree has been fully traversed
 
-    def get_value(self, id, id_dict):
-        if id.value in id_dict.keys():
-            return id_dict[id.value]
-        else:
-            raise Exception("Variable not found")
+    
     
 
     def loop_body_statement(self):
@@ -322,6 +318,25 @@ class CodeGenerator:
 #SECTION - FUNCTIONALITY
 
 
+    
+    
+    
+
+class Functionality:
+    def __init__(self, codegen: CodeGenerator) -> None:
+        self.codegen=codegen
+        self.current_node=self.codegen.current_node
+        self.previous_node=self.codegen.previous_node
+        self.semantic=self.codegen.semantic
+        self.id_dict=self.codegen.id_dict
+        self.literal_types=self.codegen.literal_types  
+        self.format_spec=self.codegen.format_spec
+        self.own_specifiers=self.codegen.own_specifiers
+        self.runtime_errors=self.codegen.runtime_errors
+        self.output_stream=self.codegen.output_stream
+
+
+
     def for_loop(self):
         
         children=self.current_node.children
@@ -361,10 +376,30 @@ class CodeGenerator:
         
     def kung(self):
 
-        condition=self.current_node.children[2].leaves()
-        reg_body=self.current_node.children[4]
+        condition=self.codegen.current_node.children[2].leaves()
+        success=self.codegen.current_node.children[4]
+        fail=self.codegen.current_node.children[-1] 
+
+        if self.evaluate_condition(condition):
+            self.coedgen.current_node = self.semantic.parse_tree.traverse(success)
+            self.codegen.routines[self.current_node.root]()
+
+        else:
+            self.codegen.current_node = self.semantic.parse_tree.traverse(fail)
+            self.codegen.routines[self.codegen.current_node.root]()
         # cond_tail=
 
+    def evaluate_condition(self, condition):
+        evaluate=""
+        for cond in condition:
+            if cond.type=="Identifier":
+                evaluate+=str(self.get_value(cond, self.id_dict).numerical_value)
+            elif cond.type in ["kung", "ehkung"]:
+                break
+            else:
+                evaluate+=cond.value
+
+        output=eval(evaluate)
 
     def yeet(self):
         raise NotImplementedError
@@ -402,84 +437,95 @@ class CodeGenerator:
     def pass_(self):
         raise NotImplementedError
 
-    def up(self):
-        matched=self.current_node.leaves()
-        id_dict=self.id_dict
-        vars=[]
-        text=''
-        val=[]
-        type=None
 
-        for match in reversed(matched):
-            if match.type=="Identifier":
-                vars.append(self.get_value(match, id_dict))
-                type=match.dtype
-                print(type)
-            elif match.type in self.literal_types and match.type!="Text":
-                vars.append(match)
-            elif match.type=="Text":
-                text=match.value
-                print(text)
-            elif match.type=="(":
-                break
- 
-
-        # Find all format specifiers in the text
-        format_specifiers = re.findall(f"\$[{''.join(self.format_spec.keys())}]", text)
-        # print(format_specifiers)
-        # Check if the number of format specifiers matches the number of variables
-        if len(format_specifiers) != len(vars):
-            err_msg="Number of format specifiers does not match number of variables"
-            if len(vars)<len(format_specifiers):
-                expected=f"{len(format_specifiers)} variables of type"
-                for format in format_specifiers:
-                        expected+=f" {self.own_specifiers[format[1:]]},"
-                self.runtime_errors.append(
-                    RuntimeError(error=err_msg, token=self.current_node.children[0], expected=expected)
-                    )
-            elif len(vars)>len(format_specifiers):
-                expected=f"{len(vars)} format specifiers of type"
-                for var in vars:
-                    if var.type=="Identifier":
-                        expected+=f" {var.dtype},"
-                    else:
-                        expected+=f" {var.type},"
-                self.runtime_errors.append(
-                    RuntimeError(error=err_msg, token=self.current_node.children[0], expected=expected)
-                    )
+    def get_value(self, id, id_dict):
+        if id.value in id_dict.keys():
+            return id_dict[id.value]
         else:
+            raise Exception("Variable not found")
 
-        # For each format specifier, check if the corresponding variable has the correct type
-            for i in range(len(format_specifiers)):
-                # Get the format specifier (remove the dollar sign)
-                format_specifier = format_specifiers[i][1:]
-                # Get the corresponding variable
-                var = vars[i].numerical_value
-                val.append(var)
-                # Check if the variable has the correct type
-                if not isinstance(var, self.format_spec[format_specifier]):
-                    err_msg=f"Variable {vars[i].value} does not match format specifier {format_specifier}"
-                    expected=f"{self.own_specifiers[format_specifier]} for format specifier ${format_specifier}"
+    def up(self):
+            matched=self.current_node.leaves()
+            id_dict=self.id_dict
+            vars=[]
+            text=''
+            val=[]
+            type=None
+
+            for match in reversed(matched):
+                if match.type=="Identifier":
+                    vars.append(self.get_value(match, id_dict))
+                    type=match.dtype
+                    print(type)
+                elif match.type in self.literal_types and match.type!="Text":
+                    vars.append(match)
+                elif match.type=="Text":
+                    text=match.value
+                    print(text)
+                elif match.type=="(":
+                    break
+    
+
+            # Find all format specifiers in the text
+            format_specifiers = re.findall(f"\$[{''.join(self.format_spec.keys())}]", text)
+            # print(format_specifiers)
+            # Check if the number of format specifiers matches the number of variables
+            if len(format_specifiers) != len(vars):
+                err_msg="Number of format specifiers does not match number of variables"
+                if len(vars)<len(format_specifiers):
+                    expected=f"{len(format_specifiers)} variables of type"
+                    for format in format_specifiers:
+                            expected+=f" {self.own_specifiers[format[1:]]},"
                     self.runtime_errors.append(
-                RuntimeError(error=err_msg, token=self.current_node.children[0], expected=expected)
-                )
-                    # raise TypeError(f"Variable {var} does not match format specifier {format_specifier}")
-
-            # Replace the format specifiers with {} for string formatting
-            for format_specifier in format_specifiers:
-                text = text.replace(format_specifier, "{}")
-
-            # Format the string with the variables
-            formatted_text = text.format(*val)
-
-            occurrence=0
-            # Print the formatted string
-            if formatted_text in self.output_stream.keys():
-                self.output_stream[formatted_text]+=1
+                        RuntimeError(error=err_msg, token=self.current_node.children[0], expected=expected)
+                        )
+                elif len(vars)>len(format_specifiers):
+                    expected=f"{len(vars)} format specifiers of type"
+                    for var in vars:
+                        if var.type=="Identifier":
+                            expected+=f" {var.dtype},"
+                        else:
+                            expected+=f" {var.type},"
+                    self.runtime_errors.append(
+                        RuntimeError(error=err_msg, token=self.current_node.children[0], expected=expected)
+                        )
             else:
-                occurence=1
-                self.output_stream[formatted_text]=occurence
-            print(self.output_stream)
+
+            # For each format specifier, check if the corresponding variable has the correct type
+                vars=list(reversed(vars))
+                for i in range(len(format_specifiers)):
+                    # Get the format specifier (remove the dollar sign)
+                    format_specifier = format_specifiers[i][1:]
+                    # Get the corresponding variable
+                    var = vars[i].numerical_value
+                    if (var >1 or var<-1) and var%1==0:
+                            var=self.format_spec[format_specifier](var)
+                    val.append(var)
+                    # Check if the variable has the correct type
+                    if not isinstance(var, self.format_spec[format_specifier]):
+                        
+                        err_msg=f"Variable {vars[i].value} does not match format specifier {format_specifier}"
+                        expected=f"{self.own_specifiers[format_specifier]} for format specifier ${format_specifier}"
+                        self.runtime_errors.append(
+                    RuntimeError(error=err_msg, token=self.current_node.children[0], expected=expected)
+                    )
+                        # raise TypeError(f"Variable {var} does not match format specifier {format_specifier}")
+
+                # Replace the format specifiers with {} for string formatting
+                for format_specifier in format_specifiers:
+                    text = text.replace(format_specifier, "{}")
+
+                # Format the string with the variables
+                formatted_text = text.format(*val)
+
+                occurrence=0
+                # Print the formatted string
+                if formatted_text in self.output_stream.keys():
+                    self.output_stream[formatted_text]+=1
+                else:
+                    occurence=1
+                    self.output_stream[formatted_text]=occurence
+                print(self.output_stream)
 
 
     def assign(self, id):

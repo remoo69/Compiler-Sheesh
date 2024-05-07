@@ -120,6 +120,7 @@ class SemanticAnalyzer:
             "math_op": self.math_op,
             "reg_body": self.reg_body,
             "assign_op": self.assign_op,
+            "condition": self.condition,
             
 
 
@@ -223,6 +224,13 @@ class SemanticAnalyzer:
         #     print("No Identifier Found")if debug else None
         #     pass
     
+
+    def condition(self):
+        leaves=self.current_node.leaves()
+        print(leaves)
+        # for leaf in leaves:
+            
+
     def more_whl_var(self):
         if self.current_node.children[1].type=="Identifier":
             self.nearest_id=self.current_node.children[1]
@@ -284,11 +292,12 @@ class SemanticAnalyzer:
 
     def control_flow_statement(self):
         # try:
-            if self.current_node.children[2].type=="Identifier" and self.current_node.children[0].value=="choose":
-                self.nearest_id=self.current_node.children[2]
-                self.check.var()
-                self.check.var_value()
-                self.check.scope() 
+        leaves=self.current_node.leaves()
+        if leaves[2].type=="Identifier" and leaves[0].value=="choose":
+            self.nearest_id=self.current_node.children[2]
+            self.check.var()
+            self.check.var_value()
+            self.check.scope() 
         # except AttributeError:
         #     print(f"Attribute Error sa {self.current_node.root}, had {self.current_node.children}")if debug else None
         #     pass
@@ -331,9 +340,10 @@ class SemanticAnalyzer:
             self.check.var()
             print(self.nearest_id)if debug else None
             self.check.var_value()
+            self.create.load_type(self.nearest_id)
             self.check.var_type() 
             self.check.scope()
-            self.create.load_type(self.nearest_id)
+            
 
 
     def sheesh_declaration(self):
@@ -664,7 +674,10 @@ class Create:
             elif operator == '*':
                 result = operand1 * operand2
             elif operator == '/':
-                result = operand1 / operand2
+                try:
+                    result = operand1 / operand2
+                except ZeroDivisionError:
+                    self.semantic.semantic_error(se.ZERO_DIV, token, "Non-zero value")
             elif operator=='%':
                 result = operand1 % operand2
             operand_stack.append(result)
