@@ -129,9 +129,17 @@ class CodeGenerator:
             "whole":int,
             "decimal":float,
             "text":str,
-            "suspect":bool,
-            "char":charr
+            "sus":bool,
+            "charr":charr
         }
+        self.literal_types={
+            "Whole":int,
+            "Decimal":float,
+            "Text":str,
+            "Sus":bool,
+            "Charr":charr
+        }
+
         self.format_spec={
             "w":int,
             "d":float,
@@ -313,6 +321,7 @@ class CodeGenerator:
 #region Functionality
 #SECTION - FUNCTIONALITY
 
+
     def for_loop(self):
         
         children=self.current_node.children
@@ -357,7 +366,29 @@ class CodeGenerator:
         # cond_tail=
 
 
-        
+    def yeet(self):
+        raise NotImplementedError
+    
+    def based(self):
+        raise NotImplementedError
+    
+    def def_(self):
+        raise NotImplementedError
+    
+    def ehkung(self):
+        raise NotImplementedError
+    
+    def deins(self):
+        raise NotImplementedError
+    
+    def when(self):
+        raise NotImplementedError
+    
+    def default(self):
+        raise NotImplementedError
+    
+    def whilst(self):
+        raise NotImplementedError
 
     def bet(self):
         raise NotImplementedError
@@ -384,8 +415,8 @@ class CodeGenerator:
                 vars.append(self.get_value(match, id_dict))
                 type=match.dtype
                 print(type)
-            elif match.type in self.types:
-                vars.append(self.types[match.type](match.value))
+            elif match.type in self.literal_types and match.type!="Text":
+                vars.append(match)
             elif match.type=="Text":
                 text=match.value
                 print(text)
@@ -399,12 +430,23 @@ class CodeGenerator:
         # Check if the number of format specifiers matches the number of variables
         if len(format_specifiers) != len(vars):
             err_msg="Number of format specifiers does not match number of variables"
-            expected=f"{len(vars)} format specifiers of type"
-            for var in vars:
-                expected+=f" {var.dtype},"
-            self.runtime_errors.append(
-                RuntimeError(error=err_msg, token=self.current_node.children[0], expected=expected)
-                )
+            if len(vars)<len(format_specifiers):
+                expected=f"{len(format_specifiers)} variables of type"
+                for format in format_specifiers:
+                        expected+=f" {self.own_specifiers[format[1:]]},"
+                self.runtime_errors.append(
+                    RuntimeError(error=err_msg, token=self.current_node.children[0], expected=expected)
+                    )
+            elif len(vars)>len(format_specifiers):
+                expected=f"{len(vars)} format specifiers of type"
+                for var in vars:
+                    if var.type=="Identifier":
+                        expected+=f" {var.dtype},"
+                    else:
+                        expected+=f" {var.type},"
+                self.runtime_errors.append(
+                    RuntimeError(error=err_msg, token=self.current_node.children[0], expected=expected)
+                    )
         else:
 
         # For each format specifier, check if the corresponding variable has the correct type
