@@ -3,6 +3,7 @@
         "./source/LexicalAnalyzer",
         "./source/core"
     ],
+    "python.analysis.typeCheckingMode": "off",
     // "python.autoComplete.extraPaths": [
     //     "./source",
     // ]
