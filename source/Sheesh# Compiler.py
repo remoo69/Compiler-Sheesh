@@ -113,7 +113,7 @@ def run_lex():
         lex_table_pane.config(state="disabled")
         error_pane.config(state="disabled")
 
-    elif error:
+    if error:
         print_lex(compiler.lexer.no_tokens)
         print_error(error)
         lex_table_pane.config(state="disabled")
