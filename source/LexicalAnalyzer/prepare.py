@@ -29,7 +29,7 @@ class LexerCheck:
         return count
     
     @staticmethod    
-    def is_Text(Token: str) -> bool: #rewritten with gpt
+    def is_Text(Token: str) -> bool:
         quotes=['"','“',"”",'"']
         quote_counts = LexerCheck.count_chars_from_list(Token, quotes)  
 
@@ -38,7 +38,7 @@ class LexerCheck:
         else: return False
 
     @staticmethod    
-    def is_Identifier(Token): #rewritten
+    def is_Identifier(Token):
         try:
             if Token[0].isalpha() and all(char.isalnum() or char == '_' for char in Token[1:]):
                 if len(Token)<=const.MAX_IDEN_LENGTH:
@@ -51,8 +51,9 @@ class LexerCheck:
                 return True
             else:
                 return False
+            
     @staticmethod    
-    def is_Whole(Token: str): #rewritten; might contain problems
+    def is_Whole(Token: str): 
         if Token=="0" or ((Token.isdigit() and const.WHOLE_MIN<= int(Token)<=const.WHOLE_MAX)and not Token.startswith("0")) or (Token.startswith('(') and Token.endswith(')') and (Token[1]=="-" and Token[2:-1].isdigit() and Token[2]!="0")):
             return True
         else:
@@ -64,30 +65,17 @@ class LexerCheck:
             return True
         else:
             return False
+        
     @staticmethod    
     def is_Pos_Dec(Token: str):
         if "." in Token:
             parts=Token.split(".")
-            return (len(parts)==2 and ((parts[0].isdigit() and int(parts[0])!=0) or (parts[0]=="0")) and parts[1].isdigit() and const.DEC_MIN <= float(Token) <= const.DEC_MAX)
-            
-        # return Token == '0' or (Token.isdigit() and '.' in Token and 0 <= float(Token) <= 99999.999999)
+            return (len(parts)==2 and ((parts[0].isdigit() and int(parts[0])!=0) or (parts[0]=="0")) and parts[1].isdigit() and const.DEC_MIN <= float(Token) <= const.DEC_MAX)         
+
     @staticmethod    
     def is_Neg_Dec(Token: str):
         return (Token.startswith('(') and Token.endswith(')') and Token[1]=="-" and LexerCheck.is_Pos_Dec(Token[2:-1]))
 
-    #Needs further work
-    @staticmethod    
-    def keyword_type(Token, delimiter):
-        #This function already returns the tokentype, 
-        for i in const.keywords:
-            pass
-            # if Token==and delimiter in const.delimiters["delim3"]:
-            # return True
-
-            # else:
-            #     return False
-
-    #Might run into problems here because delimiters include characters as well, not just symbols
     @staticmethod    
     def is_Operator(Token):
         if Token in const.all_op:
@@ -136,8 +124,10 @@ class LexerCheck:
 
     @staticmethod    
     def categorize(lexeme:str):
-        #Categorizes each token based on their type and attribute
-        #Takes a list of tokenized lines
+        """ 
+        Categorizes each token based on their type and attribute
+        Takes a list of tokenized lines 
+        """
         if LexerCheck.is_Keyword(lexeme):
             return "Keyword"
         elif LexerCheck.is_Identifier(lexeme) and len(lexeme)<=const.MAX_IDEN_LENGTH:
@@ -174,15 +164,6 @@ class LexerCheck:
         else: return False
 
 #region functions
-
-def file_to_string(file):
-    try:
-        with open(file, "r") as f:
-            data = f.read()
-        return data
-    except FileNotFoundError:
-        print("File not found.")
-        return None
 
 def get_charr(token):
     token_cpy=''
@@ -227,14 +208,14 @@ def remove_comments(code):
 def get_block_comments(text:str):
     i = 0
     comment_buffer=''
+
     if symb.Token.in_comment:
         while i<len(text):
+
             if text[i:i+2]=="*/":
                 comment_buffer+=text[i:i+2]
                 symb.Token.block_comment_buffer+=text[i:i+2]
                 symb.Token.in_comment=False
-                # comment_buffer=symb.Token.block_comment_buffer
-                # symb.Token.block_comment_buffer=''
                 return comment_buffer, text.replace(comment_buffer, '', 1)
             
             else:
@@ -244,22 +225,21 @@ def get_block_comments(text:str):
             
     else:
         while i<len(text):
-            if text[0:2]=="/*" : #and not symb.Token.in_comment
+
+            if text[0:2]=="/*" : 
                 symb.Token.in_comment=True
                 comment_buffer+=text[i]
                 symb.Token.block_comment_buffer+=text[i]
-                # comment_buffer=symb.Token.block_comment_buffer
                 i+=1
+
                 if text[i:i+2]=="*/":
                     comment_buffer+=text[i:i+2]
                     symb.Token.block_comment_buffer+=text[i:i+2]
                     symb.Token.in_comment=False
-                    # comment_buffer=symb.Token.block_comment_buffer
-                    # symb.Token.block_comment_buffer=''
-                    print("end detected")
-                    return comment_buffer, text.replace(comment_buffer, '', 1)
-            
+                    return comment_buffer, text.replace(comment_buffer, '', 1)  
+                
             else: return None
+
         symb.Token.line_num+=1
         return comment_buffer, text.replace(comment_buffer, '', 1)
 
@@ -282,12 +262,7 @@ def get_inline_comments(input_code):
         else: return None
     return token, input_code.replace(token, '', 1)
 
-# def remove_comments(code):
-#     # Remove block comments
-#     code = remove_block_comments(code)
-#     # Remove inline comments
-#     code = remove_inline_comments(code)
-#     return code
+
     
 def remove_whitespace_type(tokens, category):
     new_tokens = []
@@ -299,7 +274,7 @@ def remove_whitespace_type(tokens, category):
     return new_tokens, new_category
 
 def getlines(code):
-    #Splits the code into lines
+    """ Splits the code into lines """
     lines=[]
     lines=code.split("\n")
     return lines
@@ -316,9 +291,7 @@ def get_whole(token):
     temp_token=''
 
     for char in token:
-        # if char is None:
-        #     print("charnone")
-        #     return '',token
+
         if char in const.delimiters["n_delim"] and LexerCheck.is_Whole(temp_token):
             token_cpy=token.replace(temp_token, '', 1)
             return temp_token, token_cpy       
@@ -331,24 +304,22 @@ def get_dec(token):
     dec_detected=False
     for char in token:
         if char in const.delimiters["n_delim"] and LexerCheck.is_Dec(temp_token):
-            # token_cpy=re.sub(re.escape(temp_token), '',token, count=1)
             token_cpy=token.replace(temp_token, '', 1) 
             return temp_token, token_cpy       
         else:
             temp_token+=char
 
-
-
-
 def get_keyword(token):
     token_cpy=''
     temp_token=''
     keyword_detected=False
+
     for i,char in enumerate(token):
+
         if temp_token is None:
             return '',token
+        
         elif ((temp_token in const.keywords) and (char in const.keywords_delims[temp_token])) or (temp_token=="when" and token[i:i+1]=="::"):
-            # token_cpy=re.sub(temp_token, '',token, count=1)
             token_cpy=token.replace(temp_token, '', 1)
             keyword_detected=True
             return temp_token, token_cpy
@@ -359,11 +330,13 @@ def get_keyword(token):
 def get_identifier(token):
     token_cpy=''
     temp_token=''
+
     for char in token:
+
         if char in const.delimiters["id_delim"] and LexerCheck.is_Identifier(temp_token) and temp_token not in const.keywords:
-            # token_cpy=re.sub(temp_token, '',token, count=1)
             token_cpy=token.replace(temp_token, '', 1)
             return temp_token, token_cpy       
+        
         else:
             temp_token+=char
             
@@ -376,8 +349,10 @@ def get_operator(tokencode:str):
     token_cpy=''
    
     char=tokencode[position]
+
     if char==".": #isolated case for ...
         token+=char
+
         if tokencode[position+1]==".":
             token+=tokencode[position+1]
             if tokencode[position+2]==".":
@@ -385,26 +360,32 @@ def get_operator(tokencode:str):
                 if tokencode[position+3] in const.symbols_delims["..."]:
                     token_cpy=tokencode.replace(token, '', 1)
                     return token, token_cpy
+                
     elif char in const.single_symbols:
         token+=char
+
         try:
             if tokencode[position+1] in const.symbols_delims[char]:
                 token_cpy=tokencode.replace(char, '', 1)
                 return char, token_cpy
+            
         except IndexError:
             return None
+        
         else: #else, it should be compound
             position+=1
-            token+=tokencode[position]    
+            token+=tokencode[position]   
+
             if token not in const.compound_symbols:
                 return None
-                # token_cpy=tokencode.replace(token, '', 1)
-                # return f"Invalid Delimiter {tokencode[position]}", token_cpy    
+
             else:
                 position+=1
                 token_cpy=tokencode.replace(token, '', 1)
+
                 if tokencode[position] in const.symbols_delims[token]: #if valid delim for compound symbol  
                     return token, token_cpy
+                
                 else:
                     return None
                 
@@ -431,9 +412,7 @@ def get_space(token):
     space_detected=False
     space=" "
     for char in token:
-        # if re.match(space, char):
-        #     token_cpy=re.sub(space, '',token, count=1)
-        #     return char, token_cpy       
+
         if char==" " or char=="\t" or char==' ':
             token_cpy=token.replace(char, '', 1)
             symb.Token.tok_num-=1
@@ -441,19 +420,21 @@ def get_space(token):
         else:return None
     
 def get_text(token):
-    #Returns the text token and the remaining code
+    """ Returns the text token and the remaining code """
     token_cpy=''
     temp_token=''
     text_detected=False
     for i,char in enumerate(token):
+
         try:
             check_concat=char+token[i+1]+token[i+2]
         except IndexError:
             check_concat=''
-        if (char in const.delimiters["txt_delim"] or check_concat=="...") and LexerCheck.is_Text(temp_token):
 
+        if (char in const.delimiters["txt_delim"] or check_concat=="...") and LexerCheck.is_Text(temp_token):
             token_cpy=token.replace(temp_token, '', 1)
-            return temp_token, token_cpy       
+            return temp_token, token_cpy      
+         
         else:
             temp_token+=char
 
@@ -483,18 +464,12 @@ def get_lit(token):
 
 
 def prepare(code):
-#Prepares the code for tokenization. Removes comments, extra newline characters, and extra spaces.
-# Returns each line of code as a list of strings; ignores empty lines.
+    """ 
+    Prepares the code for tokenization. Removes comments, extra newline characters, and extra spaces.
+    Returns each line of code as a list of strings; ignores empty lines. 
+    """
     templines=getlines(code) #remove_comments(
     lines=[] 
     for i in range(len(templines)):
-        # if templines[i]=="": #Skips empty lines
-        #     continue
         lines.append(templines[i])
     return lines
-
-
-
-if __name__=="__main__":
-    print(get_keyword("up(“The speed of the fluid is: $d m/s\n\","))
-    print(get_text("(“The speed of the fluid is: $d m/s\n\","))

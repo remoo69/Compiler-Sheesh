@@ -4,17 +4,23 @@ import source.LexicalAnalyzer.prepare as prep
 import source.core.error_handler as err
 import source.core.symbol_table as symb
 
-# This lexer follows the principle of longest match. It will match the longest possible token at each step.
+""" 
+This lexer follows the principle of longest match. It will match the longest possible token at each step.
 
-# Say for example that a token dec15# is passed. The lexer will detect the token line by line until a delimiter is found. Thus, 
-# Even if dec is a reserved word, the lexer will not detect it as such because it will be detected as an identifier due to the delimiter # being after the 15 value.
-# If dec were to be used as a keyword, the syntax should be: dec identifier=15#. Here, dec is detected as a keyword due to the delimiter {space}
+Say for example that a token dec15# is passed. The lexer will detect the token line by line until a delimiter is found. 
+Thus, Even if dec is a reserved word, the lexer will not detect it as such because it will be detected as an identifier 
+due to the delimiter # being after the 15 value. If dec were to be used as a keyword, the syntax should be: dec identifier=15#. 
+Here, dec is detected as a keyword due to the delimiter {space}
 
-# Each function checks if a token is within a valid token type based on their respective regular expressions and delimiters.
-# As such, the delimiter of the token should be passed along with the token itself. Do note that the delimiter itself should be considered a token.
+Each function checks if a token is within a valid token type based on their respective regular expressions and delimiters.
+As such, the delimiter of the token should be passed along with the token itself. Do note that the delimiter itself should 
+be considered a token.
 
-# Update: Let the inputs be a list of tokens per line. This way the lexer can check each token while keeping track of its delimiter while not having to include the delimiter itself in the detection.
-# This is so the lexer can detect the token type of the delimiters themselves.
+Update: Let the inputs be a list of tokens per line. This way the lexer can check each token while keeping track of its 
+delimiter while not having to include the delimiter itself in the detection.
+This is so the lexer can detect the token type of the delimiters themselves. 
+
+"""
 
 
 class Lexer:
@@ -33,14 +39,9 @@ class Lexer:
         errors = []
         current_token: str = ''
         tktype = ''
-        block_comment_buffer=''
         symb.Token.tok_num=1
-        # if symb.Token.in_comment:
-        #     if result:=prep.get_block_comments(code, symb.Token.in_comment):
-        #         current_token, code=result
-        # else:
+
         while code:
-            
             if result:=prep.get_block_comments(code):
                 current_token, code=result
                 symb.Token.block_start_line=symb.Token.line_num
@@ -120,19 +121,20 @@ class Lexer:
 
 
     def tokenize(self):
+
         print("Tokenizing...")
+
         symb.Token.tok_num=1
         symb.Token.idnum=1
         symb.Token.id_dict={}
         symb.Token.block_comment_buffer=''
         symb.Token.in_comment=False
         symb.Token.line_num=1
-
-        lines = prep.prepare(self.code)
         tokens = []
         errors = []
-        symb.Token.line_num=1
-        comment_buffer=''
+
+        lines = prep.prepare(self.code)
+
         for line in lines:
 
             if symb.Token.in_comment:
@@ -153,9 +155,8 @@ class Lexer:
             else:
                 lexemes, error = Lexer.gettokens(line)
                 errors.extend(error)
-                tokens.extend(lexemes)  # Use extend instead of append to add the lexemes to the list
+                tokens.extend(lexemes)
 
-        # error=error_handler
         if symb.Token.in_comment:
             error=err.Error(type= f"Invalid Block Comment", line=symb.Token.block_start_line, errorval=symb.Token.block_comment_buffer, remaining=None)
             errors.append(error)
@@ -163,8 +164,3 @@ class Lexer:
         self.errors=errors
         self.tokens=tokens
     
-
-
-
-if __name__=="__main__":
-    print(Lexer.gettokens("    up(“The speed of the fluid is: $d m/s\n\", v2)#"))

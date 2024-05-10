@@ -323,9 +323,6 @@ class SyntaxAnalyzer:
     def import_prog(self):
         self.Tree.initialize_new()
         if self.match("Identifier", True):
-
-            # sa.id_import(self.matched[-1])
-
             self.func_paren(); self.import_tail()
             self.Tree.end_branch()
             return self.success
@@ -341,9 +338,6 @@ class SyntaxAnalyzer:
         elif self.match("from", True):
             self.enforce()
             self.match("Identifier")
-
-            # sa.id_module(self.matched[-1])
-
             self.Tree.end_branch()
             return self.success
         else:
@@ -411,27 +405,15 @@ class SyntaxAnalyzer:
     def in_param(self):
         self.Tree.initialize_new()
         if self.match("charr", True):
-
-            # self.req_type=self.matched[-1].value
-
             self.enforce()
             self.match("text")
             self.match("Identifier")
-
-            # sa.id_decl_param(self.matched[-1], "charr")
-
             self.more_paramtail()
             self.Tree.end_branch(); return self.success
         elif self.seq_dtype() == self.success:
             self.enforce()
             self.match("Identifier")
-
-            # sa.id_decl_param(self.matched[-1], self.req_type)
-
             self.index_param()
-
-                # sa.id_as_sequence( self.matched[-1])
-
             self.more_paramtail()
             self.Tree.end_branch(); return self.success
         else:
@@ -558,18 +540,11 @@ class SyntaxAnalyzer:
     def id_tail(self):
         self.Tree.initialize_new()
         if self.match("(", True):
-
-            # self.check_func_declared()
-
             self.func_argument()
             self.match(")")
             self.match("#")
             self.Tree.end_branch(); return self.success
         elif self.one_dim() == self.success:
-
-            # self.check_var_declared()
-            # self.var_load_type(self.matched[-1].dtype)
-
             self.assign_op()
             self.assign_value()
             self.match("#")
@@ -577,9 +552,6 @@ class SyntaxAnalyzer:
         elif self.assign_op() == self.success:
 
 #FIXME - bug
-            # self.check_var_declared()
-            # self.var_load_type(self.matched[-2])
-
             self.enforce()
             self.assign_value()
             self.enforce()
@@ -651,25 +623,16 @@ class SyntaxAnalyzer:
 
 #endregion non-decl
 
-
-
-##region new implementation of vars
-
     def var_or_seq_dec(self):
         self.Tree.initialize_new()  
         if self.match("whole", True):
             self.match("Identifier")
-
-
             self.w_var_seq_tail()
             self.match("#")
-
             self.Tree.end_branch(); return self.success
         
         elif self.match("dec", True):
             self.match("Identifier")
-            
-
             self.d_var_seq_tail()
             self.match("#")
 

@@ -109,6 +109,13 @@ class charr:
         return len(self.value)
     
 class CodeGenerator:
+
+    """  
+    
+    General Code Generator Logic: Traverse all nodes in the AST. Go to respective routines based on the node's root.
+    
+
+    """
     def __init__(self, semantic:SemanticAnalyzer) -> None:
 
         self.semantic=semantic
@@ -199,6 +206,9 @@ class CodeGenerator:
             "pass":self.functionality.pass_,
 
 
+            "...":self.functionality.concat,
+
+
         }
         
 
@@ -213,7 +223,10 @@ class CodeGenerator:
             else:
                 self.routines[self.current_node.root]()
                 self.previous_node=self.current_node
-                self.current_node = self.semantic.parse_tree.traverse(self.current_node)
+                try:
+                    self.current_node = self.semantic.parse_tree.traverse(self.current_node)
+                except AttributeError:
+                    break
             if self.current_node is None:
                 break  # Exit the loop if the tree has been fully traversed
 
@@ -227,9 +240,15 @@ class CodeGenerator:
         #     self.previous_node=self.current_node
         #     self.current_node = self.semantic.parse_tree.traverse(self.current_node)
         # except KeyError:
+        try:
             self.previous_node=self.current_node
             self.current_node = self.semantic.parse_tree.traverse(self.current_node)
             self.routines[self.current_node.root]()
+
+        except KeyError:
+            if self.previous_node.children[0].type=="kung":
+                self.current_node=self.previous_node
+                self.functionality[self.current_node.children[0].type]()
             try:
                 if self.previous_node.parent.children[-1].root=="more_loop_body":
                     self.previous=self.current_node
@@ -300,7 +319,11 @@ class CodeGenerator:
 
     def loop_body(self):
         try:
-            self.functionality[self.current_node.root]()
+            self.functionality[self.current_node.children[0].children[0].children[0].value]()
+            self.previous_node=self.current_node
+            self.current_node = self.semantic.parse_tree.traverse(self.current_node)
+        except AttributeError: 
+            self.functionality[self.current_node.children[0]]()
             self.previous_node=self.current_node
             self.current_node = self.semantic.parse_tree.traverse(self.current_node)
         except KeyError:
@@ -325,26 +348,17 @@ class CodeGenerator:
 class Functionality:
     def __init__(self, codegen: CodeGenerator) -> None:
         self.codegen=codegen
-        self.current_node=self.codegen.current_node
-        self.previous_node=self.codegen.previous_node
-        self.semantic=self.codegen.semantic
-        self.id_dict=self.codegen.id_dict
-        self.literal_types=self.codegen.literal_types  
-        self.format_spec=self.codegen.format_spec
-        self.own_specifiers=self.codegen.own_specifiers
-        self.runtime_errors=self.codegen.runtime_errors
-        self.output_stream=self.codegen.output_stream
 
 
 
     def for_loop(self):
         
-        children=self.current_node.children
+        children=self.codegen.current_node.children
 
         iterator=None
         end=None
         step=1
-        loop_body=self.current_node.children[-1].children[1]
+        loop_body=self.codegen.current_node.children[-1].children[1]
 
         if children[3].type=="Identifier":
             iterator=children[3]
@@ -363,9 +377,9 @@ class Functionality:
 
         
         while iterator.numerical_value != end.numerical_value:
-            self.current_node = self.semantic.parse_tree.traverse(loop_body)
+            self.codegen.current_node = self.semantic.parse_tree.traverse(loop_body)
             # self.previous_node=self.current_node
-            self.routines[self.current_node.root]()
+            self.codegen.routines[self.codegen.current_node.root]()
         
             # self.routines["in_loop_body"]()
             iterator.numerical_value+=step
@@ -378,16 +392,31 @@ class Functionality:
 
         condition=self.codegen.current_node.children[2].leaves()
         success=self.codegen.current_node.children[4]
-        fail=self.codegen.current_node.children[-1] 
+        if len(self.codegen.current_node.children)==5:
+            fail=self.codegen.current_node.parent.children[0]
+            
+        else:
+            fail=self.codegen.current_node.children[-1] 
 
-        if self.evaluate_condition(condition):
-            self.coedgen.current_node = self.semantic.parse_tree.traverse(success)
-            self.codegen.routines[self.current_node.root]()
+        if self.evaluate_condition(condition)==True:
+            self.codegen.current_node = self.semantic.parse_tree.traverse(success)
+            self.codegen.routines[self.codegen.current_node.root]()
 
         else:
-            self.codegen.current_node = self.semantic.parse_tree.traverse(fail)
-            self.codegen.routines[self.codegen.current_node.root]()
-        # cond_tail=
+            if fail==None:
+                pass
+            else:
+                while True:
+                    try:
+                        self.codegen.current_node = self.semantic.parse_tree.traverse(fail)
+                        self.codegen.routines[self.codegen.current_node.root]()
+                        break  # if the above lines don't raise an exception, break the loop
+                    except KeyError:
+                        while self.codegen.current_node.root!="statement":
+                            print(self.codegen.current_node.root)
+                            self.codegen.current_node = self.codegen.previous_node
+                            self.codegen.previous_node=self.codegen.previous_node.parent
+                        fail= self.codegen.current_node=self.codegen.current_node.children[1].children[0].children[0]
 
     def evaluate_condition(self, condition):
         evaluate=""
@@ -396,11 +425,18 @@ class Functionality:
                 evaluate+=str(self.get_value(cond, self.id_dict).numerical_value)
             elif cond.type in ["kung", "ehkung"]:
                 break
-            else:
+            elif cond.type in ["whole", "dec", ]:
+                evaluate+=cond.numerical_value
+            else:     
                 evaluate+=cond.value
 
-        output=eval(evaluate)
-
+        
+        output= eval(evaluate)
+        return output
+    
+    def concat(self):
+        raise NotImplementedError
+    
     def yeet(self):
         raise NotImplementedError
     
@@ -445,7 +481,7 @@ class Functionality:
             raise Exception("Variable not found")
 
     def up(self):
-            matched=self.current_node.leaves()
+            matched=self.codegen.current_node.leaves()
             id_dict=self.id_dict
             vars=[]
             text=''
