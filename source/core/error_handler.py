@@ -347,15 +347,15 @@ class LexError:
                 if tokencode[len(tokencode)-1]=="'":
                     errobj.errorval=tokencode[0:len(tokencode)-1]
                     errobj.remaining=tokencode.replace(buffer, '', 1)
-                    errobj.error_type=f"Invalid Null Delimiter for Charr '{buffer}', expected {const.delimiters['txt_delim']}"
+                    errobj.error_type=f"Invalid Null Delimiter for Charr '{buffer}', expected {const.delimiters['charr_delim']}"
                     errobj.line=symb.Token.line_num
                     errobj.toknum=symb.Token.tok_num
                     return errobj
                 elif buffer.startswith("'") and buffer.endswith("'"):
-                    if len(buffer)<len(tokencode) and prep.LexerCheck.is_Charr(buffer) and tokencode[i+1] not in const.delimiters["txt_delim"] :
+                    if len(buffer)<len(tokencode) and prep.LexerCheck.is_Charr(buffer) and tokencode[i+1] not in const.delimiters["charr_delim"] :
                         errobj.errorval=buffer
                         errobj.remaining=tokencode.replace(buffer, '', 1)
-                        errobj.error_type=f"Invalid Delimiter for Charr ({buffer}): [' {tokencode[i+1]} '], expected {const.delimiters['txt_delim']}"
+                        errobj.error_type=f"Invalid Delimiter for Charr ({buffer}): [' {tokencode[i+1]} '], expected {const.delimiters['charr_delim']}"
                         errobj.line=symb.Token.line_num
                         errobj.toknum=symb.Token.tok_num
                         return errobj

@@ -1,6 +1,3 @@
-keywords = ["text", "charr","whole", "dec", "sus", "blank", "sheesh", "yeet", "based",
-            "kung", "ehkung", "deins", "when", "bet", "choose","for", "to", 
-            "step", "felloff", "pass", "use", "from", "nocap", "cap", "default", "up", "pa_mine", "def", "whilst"]
 # import source.helper as helper
 import sys
 sys.path.append( '.' )
@@ -9,6 +6,7 @@ from source.SyntaxAnalyzer.Parser import SyntaxAnalyzer as parser
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import *
+from source.core.constants import keywords
 from PIL import Image, ImageTk
 from tkinter import constants
 from tkinter import ttk
@@ -107,22 +105,28 @@ def run_lex():
     tokens=compiler.lexer.tokens
     error=compiler.lexer.errors
     tokens=remove_eol(tokens)
-    if tokens:
-        tokens=remove_whitespace_type(tokens)
-        print_lex(tokens)
-        lex_table_pane.config(state="disabled")
-        error_pane.config(state="disabled")
-
+    # print(f"Lexer: {tokens}")
     if error:
         print_lex(compiler.lexer.no_tokens)
         print_error(error)
         lex_table_pane.config(state="disabled")
         error_pane.config(state="disabled")
+        return
+    elif tokens:
+        tokens=remove_whitespace_type(tokens)
+        print_lex(tokens)
+        print_error(error)
+        lex_table_pane.config(state="disabled")
+        error_pane.config(state="disabled")
+        return
     else:
         print_lex(compiler.lexer.no_tokens)
         print_error(["Nothing to Lexically Analyze. Please input code."])
         lex_table_pane.config(state="disabled")
         error_pane.config(state="disabled")
+        return
+
+
 
 
 def remove_eol(tokens):

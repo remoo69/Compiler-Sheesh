@@ -3,7 +3,7 @@
 
 keywords = ["text", "charr","whole", "dec", "sus", "blank", "sheesh", "yeet", "based",
             "kung", "ehkung", "deins", "when", "bet", "choose","for", "to", #removed choice
-            "step", "felloff", "pass", "use", "from", "nocap", "cap", "default", "up", "pa_mine", "def", "whilst"] # added def and whilst     
+            "step", "felloff", "pass", "nocap", "cap", "default", "up", "pa_mine", "def", "whilst"] # added def and whilst     
 
 DATA_TYPES = ["text","charr", "whole", "dec", "sus", "blank"]
 valid_tokens = ["Keyword", "Identifier", "Dec", "Whole", "Symbol", "Operator", "Text", "Charr", "Sus", "Whitespace"]
@@ -68,26 +68,28 @@ delimiters = {
     "delim2": [" ","#"],
     "delim3": ["(", " "],
     "delim4": [" ","\\","{"],
-    "delim5": alph_num+[" ","(", "]", "["],
-    "delim6": alph_num+[" ", "(", "{", "\"", "\'"],             # added: (,{,",'}
+    "delim5": alph_num+[" ","("],
+    "delim6": alph_num+[" ", "(", "{", "\"", "\'"],             
     "delim7": [" ","\\","}", ""],
     "delim8": [" ","\\", ""],
-    "delim9": alph_num+[" ","(","{", "!", '"', '“', '"', '”', "\'"],           # added '
+    "delim9": alph_num+[" ","(","{", "!", '"', '“', '"', '”', "\'"],           
     "delim10": alph_all+[" ","(","!"],
     "delim11": alph_num+[" ","(","!", "\'"],
     "delim12": all_op+comma+[" ","#","[","]",")" ],
     "delim13": alph_num+[" ","\\","(", "{", "\"", None],
     "delim14": alph_all+comma+[" ","#", "}",None],
-    "delim15": alph_num+[" ", "!","(", ")", '"', '“', '"', '”', "-", "\'"],    # added '
-    "delim16": op+comma+[" ", "#", ")", "}", "{", ":", "]", "."], # added ] and : and .
+    "delim15": alph_num+[" ", "!","(", ")", '"', '“', '"', '”', "-", "\'"],    
+    "delim16": op+comma+[" ", "#", ")", "}", "{", ":", "]", "."], 
     "delim17": alph_num+[" ", '"', '“', '"', '”', "\\"],
-    "delim18": comma+[" ","#",")","|", "&","}"],                 # added delim18 for nocap and cap
+    "delim18": comma+[" ","#",")","|", "&","}"],                 
     "delim19": alph_num+[" ", "(", "\'"],
     "delim20": alph_num+[" ","\""],     
     "delim21": alph_num+op+comma+[" ","#","(",")","{","}","\"","\'"],
-    "delim22": [" ", ":","::"],                                 # added delim22 for default
-    "delim23": [" ", ")"],             # added delim23 for whole
-    "charr_delim": comma+[" ","#","=",")",":","::"],
+    "delim22": [" ", ":","::"],                                             # added delim22 for default
+    "delim23": [" ", ")"],                                                  
+    "delim24": alph_num+[" ","(", "]", "\'"],                               # added delim24 for '!=' 
+    "delim25": alph_num+[" ","(", "]", "]"],                                # added delim25 for '['    
+    "charr_delim": comma+[" ","#","==",")",":","::","!="],                  
     "txt_delim": comma+[" ", "#", ")", "}", ":", '=', ],
     "blk_delim": [" ", "\\",None],
     "id_delim": op+comma+[" ", "#", "(",")", "[", "]", "{", ".", ":"],
@@ -108,7 +110,6 @@ keywords_delims={
                 "ehkung":delimiters["delim3"],
                 "felloff":delimiters["delim2"],
                 "for":delimiters["delim3"],       
-                "from":delimiters["delim1"],  
                 "kung":delimiters["delim3"],  
                 "nocap":delimiters["delim18"], 
                 "pa_mine":delimiters["delim3"],
@@ -119,7 +120,6 @@ keywords_delims={
                 "text":delimiters["delim1"],  
                 "to":delimiters["delim1"],    
                 "up":delimiters["delim3"],    
-                "use":delimiters["delim1"],   
                 "when":delimiters["delim1"],  
                 "whole":delimiters["delim1"],
                 "whilst": delimiters["delim3"], 
@@ -145,12 +145,12 @@ symbols_delims={
                 "<":delimiters["delim5"],
                 "<=":delimiters["delim5"],
                 "!":delimiters["delim10"],
-                "!=":delimiters["delim5"],
+                "!=":delimiters["delim24"],
                 "&":delimiters["delim11"],
                 "|":delimiters["delim11"],
                 "...": ['"', '“', '"', '”'," ",]+alph_all, #added alph_all
 #------------------------------------- Symbols ------------------------------------------------------
-                "[":delimiters["delim5"],
+                "[":delimiters["delim25"],
                 "]":delimiters["delim12"],
                 "{":delimiters["delim13"],
                 "}":delimiters["delim14"],
