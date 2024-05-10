@@ -107,19 +107,21 @@ def run_lex():
     tokens=compiler.lexer.tokens
     error=compiler.lexer.errors
     tokens=remove_eol(tokens)
-    if tokens:
+    if tokens != []:
         tokens=remove_whitespace_type(tokens)
         print_lex(tokens)
         lex_table_pane.config(state="disabled")
         error_pane.config(state="disabled")
+    else:
+        tokens=compiler.lexer.no_tokens
 
-    if error:
-        print_lex(compiler.lexer.no_tokens)
+    if error !=[]:
+        print_lex(tokens)
         print_error(error)
         lex_table_pane.config(state="disabled")
         error_pane.config(state="disabled")
     else:
-        print_lex(compiler.lexer.no_tokens)
+        print_lex(tokens)
         print_error(["Nothing to Lexically Analyze. Please input code."])
         lex_table_pane.config(state="disabled")
         error_pane.config(state="disabled")

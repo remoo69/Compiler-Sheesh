@@ -53,7 +53,7 @@ other_symbols=["#", "::", ]
 all_symbols_nonop=grouping_symbols+other_symbols+[",", "."]
 invalid_id_char=op+comma+['#', '.', '@', '^', '&', '(', ')', '`', '~', ':', '?', '$', ';', '[', ']', '{', '}', '/', '\\', '`', '^', "'", '"', '“', '"', '”']
 invalid_text_char=[] #['"', '“', '"', '”', ]
-invalid_symbols=["@", "^", "&", "`", "~", "?", "$", ";", "'", '`',":"]
+invalid_symbols=["@", "^", "&", "`", "~", "?", "$", ";", "'", '`',":", "\\"]
 multi_charr=[r"'\0'", r"'\n'", r"'\t'",]
 
 # Delimiters used in the Transition Diagram/DFA
