@@ -1,26 +1,13 @@
 import sys
 sys.path.append( '.' )
-from source.core.symbol_table import Token, Identifiers
+from source.core.symbol_table import Token
 from source.core.error_handler import SemanticError as SemError
 from source.core.error_types import Semantic_Errors as se
 from source.core.AST import AST
-# from source.CodeGeneration.CodeGen import CodeGeneration2
+import source.core.constants as const
+from source.core.symbol_table import SymbolTable
 
 
-debug=False
-
-GBL="Global"
-LOCAL="Local"
-VAR="Variable"
-FUNC="Function"
-MOD="Module"
-SEQ="Sequence"
-IMP="Imported"
-PARAM="Parameter"
-
-CONST="Constant"
-
-ARG="Argument"
 
 
 class SemanticAnalyzer:
@@ -50,27 +37,55 @@ class SemanticAnalyzer:
         - Sequence Access
         - Sequence Assignment/ Init
 
-    """
+
+    BASTA TRABAHO NG SEMANTIC ANALYZER AY MAGINITIALIZE NG IDENTIFIERS SA SYMBOL TABLE.
+    SA CODE GEN NA YUNG MGA ASSIGNMENTS, ETC. TANDAAN MO YAN ROMEO PATENO.
+
+
+    ANG RUNTIME ERROR SUBSET NG SEMANTIC ERRORS. 
+
     
-    def __init__(self, parse_tree:AST) -> None:
+
+    #TODO - Function Declaration
+    #TODO - Function Use (Check Decl)
+    #TODO - Function Return Type
+    #TODO - Function Arguments
+    #TODO - Function Calls
+    #TODO - Variable Assignment (Check operands)
+    #TODO - Sequence Size
+    #TODO - Sequence Access
+    #TODO - Sequence Assignment
+    #TODO - Sequence Declaration
+
+    """
+
+
+    
+    def __init__(self, parse_tree:AST, debugMode=False) -> None:
+
+        self.debug=debugMode
+
         self.parse_tree:AST=parse_tree
+        self.symbol_table=SymbolTable()
         
-        # self.matched=matched
         self.semantic_expected=[]
 
         self.semantic_errors: list[SemError]=[]
-        self.id=Identifiers()
-        self.parse_tree.symbol_table=self.id
 
+
+
+
+        #for declarations
         self.req_type=None
+    
+        self.arr1=None
+        self.arr2=None
+        
 
         self.current_node:AST=self.parse_tree
         self.previous_node:AST=None
 
-        self.current_scope=GBL
-
-        self.check=Check(self)
-        self.create=Create(self)
+        self.current_scope=const.GBL
 
         self.buffer=[]
 
@@ -78,52 +93,51 @@ class SemanticAnalyzer:
 
         self.in_arg=False
 
-        self.data_types={
-            "whole": int,
-            "dec": float,
-            "sus": bool,
-            "text": str,
-            "charr": str, #idk pa dito
-        }
-
-        self.reverse_types={v: k for k, v in self.data_types.items()}
+        self.reverse_types={v: k for k, v in const.types.items()}
         
         self.routines={
 
-#SECTION: ID TYPE ENFORCEMENT 
-
-            "import_prog": self.import_prog,
-            "import_tail": self.import_tail,
             "in_param": self.in_param,
             "allowed_in_loop": self.allowed_in_loop,
-            "id_tail": self.id_tail,
+
             "var_or_seq_dec": self.var_or_seq_dec,
-            "more_whl_var": self.more_whl_var,
-            "more_dec_var": self.more_dec_var,
-            "more_sus_var": self.more_sus_var, 
-            "more_txt_var": self.more_txt_var, 
-            "more_chr_var": self.more_chr_var, 
+
+            "w_vardec_tail": self.vardec_tail,
+            "d_vardec_tail": self.vardec_tail,
+            "s_vardec_tail": self.vardec_tail,
+            "t_vardec_tail": self.vardec_tail,
+            "c_vardec_tail": self.c_vardec_tail,
+            # "w_seq_tail": self.w_seq_tail,
+
+            "more_whl_var": self.more_var,
+            "more_dec_var": self.more_var,
+            "more_sus_var": self.more_var,
+            "more_txt_var": self.more_var,
+            "more_chr_var": self.more_chr_var,
+
+            "w_const_tail": self.const_tail,
+            "d_const_tail": self.const_tail,
+            "s_const_tail": self.const_tail,
+            "t_const_tail": self.const_tail,
+            # "c_const_tail": self.c_const_tail,
+
             "charr_value": self.charr_value, 
             "const_type": self.const_type, 
-            "more_whl_const": self.more_whl_const, 
-            "more_dec_const": self.more_dec_const, 
-            "more_sus_const": self.more_sus_const, 
-            "more_txt_const": self.more_txt_const,
-            "more_chr_const": self.more_chr_const,
+            # "more_whl_const": self.more_whl_const, 
+            # "more_dec_const": self.more_dec_const, 
+            # "more_sus_const": self.more_sus_const, 
+            # "more_txt_const": self.more_txt_const,
+            # "more_chr_const": self.more_chr_const,
             "control_flow_statement": self.control_flow_statement,
-            "looping_statement": self.looping_statement,
-            "loop_body_statement": self.loop_body_statement,
-            "func_def": self.func_def,
+            # "looping_statement": self.looping_statement,
+            # "loop_body_statement": self.loop_body_statement,
+            # "func_def": self.func_def,
             "id_as_val": self.id_as_val,
-            "id_val_tail": self.id_val_tail,
+            # "id_val_tail": self.id_val_tail,
             "sheesh_declaration": self.sheesh_declaration,
             "math_op": self.math_op,
             "reg_body": self.reg_body,
             "assign_op": self.assign_op,
-            "condition": self.condition,
-            
-
-
 
             
             }
@@ -143,237 +157,297 @@ class SemanticAnalyzer:
                 self.current_node = self.parse_tree.traverse(self.current_node)
             if self.current_node is None:
                 # self.code_gen.generate_code()
+                print(self.symbol_table)
                 break  # Exit the loop if the tree has been fully traversed
 
-
-    def import_prog(self):
-        raise NotImplementedError
-
-    def import_tail(self):
-        raise NotImplementedError
-
-
-
     def in_param(self):
+
+
         if self.current_node.children[1].type=="Identifier":
-            self.nearest_id=self.current_node.children[1]
-            self.create.new_param(type=self.current_node.children[0].children[0].value)
+            id=self.current_node.children[1]
+            type=self.current_node.children[0].children[0].value
+            if self.current_node.children[2].type=="[":
+                param_type=const.SEQ
+            else:
+                param_type=const.VAR
+                
+            self.symbol_table.parameter(id=id, type=type, scope=self.current_scope, param_type=param_type)
 
         elif self.current_node.children[2].type=="Identifier":
-            self.nearest_id=self.current_node.children[2]
-            self.create.new_param( type="charr")
-        # raise NotImplementedError
+            id=self.current_node.children[2]
+            type="charr"
+            param_type=const.VAR
+            self.symbol_table.parameter(id=id, type=type, scope=self.current_scope, param_type=param_type)
 
-
+#FIXME - handle current scope
     def allowed_in_loop(self):
-        self.in_arg=False
         try:
-            if self.current_node.children[0].type=="Identifier":
-                self.nearest_id=self.current_node.children[0]
-            
-            if self.current_node.children[0].type=="up" or self.current_node.children[0].type in self.id.funcs.keys():
-                self.in_arg=True
-            else: 
-                # raise ValueError("No Identifier Found")
-                pass
-        except AttributeError:
-            print(f"Attribute Error in {self.current_node.root}, got {self.current_node.children}") if debug else None
-            pass
+            items= self.current_node.leaves()
+            if items[0].type=="Identifier":
+                self.nearest_id=items[0]
+                id_obj=items[0]
+                id=id_obj.value
 
-    def id_tail(self):
-        tail_map={
-            "(": self.check.func,
-            # "one_dim": self.check.seq,
-        }
-        # try:
-        self.create.explore(tail_map)
-        # except KeyError:
-        #     pass
+                if items[1].type=="[":
+                    self.symbol_table.find_seq(id, self.current_scope)
+                elif items[1].type=="(":
+                    self.symbol_table.find_func(id)
+                elif items[1].type in const.asop:
+                    var=self.symbol_table.find_var(id, self.current_scope)
 
-    
-    def id_val_tail(self):
-        tail_map={
-            "(": self.check.func,
-            "one_dim": self.check.seq,
-        }
+                
+                else: raise NameError("Bro What")
 
-        self.create.explore(tail_map)
+            else: pass
+
+        except AttributeError as e:
+            e=str(e)
+            self.semantic_error(error=getattr(se, e), token=id_obj, expected=se.expected[str(e)])
 
     def var_or_seq_dec(self):
-        # try:
-            if self.current_node.children[1].type=="Identifier":
-                self.nearest_id=self.current_node.children[1]
-                self.create.new_id(type=self.current_node.children[0].value, attribute=VAR)
-                self.create.load_type(self.current_node.children[1])
+            items=self.current_node.leaves()
+            self.req_type=items[0].value
+            try:
+                if len(self.current_node.children)>3 and self.current_node.children[0].value!="charr":
+                    try:
+                        if len(self.current_node.children[2].children)>1 or self.current_node.children[2].children[0].root=="index":
+                            if self.current_node.children[2].children[0].root=="index":
+                                ind=self.current_node.children[2].children[0].leaves()
+                                self.symbol_table.sequence(id=items[1].value, type=self.req_type, scope=self.current_scope)
+                            else:
+                                return
+                        else:
+                            self.symbol_table.variable(id=items[1].value, type=self.req_type, scope=self.current_scope) 
+                    except AttributeError:
+                        self.symbol_table.variable(id=items[2].value, type=self.req_type, scope=self.current_scope)
 
-                self.create.assign(self.current_node.children[1])
-                print(self.nearest_id)if debug else None
-                
+                else:
+                    # self.symbol_table.variable(id=items[1].value, type=self.req_type, scope=self.current_scope)
+                    return
 
-            elif self.current_node.children[2].type=="Identifier":
-                self.nearest_id=self.current_node.children[2]
-                self.create.new_id(type="charr", attribute=VAR)
-                self.create.load_type(self.current_node.children[2])
-
-                self.create.assign(self.current_node.children[2])
-            else:
-                raise ValueError("No Identifier Found")
-        # except AttributeError:
-        #     # raise AttributeError("No Identifier Found")
-        #     print(f"Attribute Error in {self.current_node.root}, got {self.current_node.children}")if debug else None
-        #     print("No Identifier Found")if debug else None
-        #     pass
+            except KeyError as e:
+                e=str(e)[1:-1]
+                print(e)
+                self.semantic_error(error=getattr(se, e), token=items[1], expected=se.expected[e])
+            
+   
     
+    def vardec_tail(self):
+    #TODO Find a way to reset reqtype
+        try:
+            id=self.current_node.parent.parent.children[1].value
+            id_obj=self.current_node.parent.parent.children[1]
+            # id=self.current_node.parent.children[1].value
+        except AttributeError:
+            id=self.current_node.parent.children[1].value
+            id_obj=self.current_node.parent.children[1]
 
-    def condition(self):
-        leaves=self.current_node.leaves()
-        print(leaves)
-        # for leaf in leaves:
+        except IndexError:
+            return
+        
+  
+        try:
+            if self.current_node.children[0].root=="one_dim":
+                self.symbol_table.sequence(id=id, type=self.req_type)
+
+            else:
+                # self.symbol_table.variable(id=id, type=self.req_type, scope=self.current_scope)
+                return
+
+        except KeyError as e:
+            e=str(e)[1:-1]
+            self.semantic_error(error=getattr(se, e), token=id_obj, expected=se.expected[str(e)])
+
+
+    def more_var(self):
+        try:
+            id=self.current_node.children[1].value
+            self.symbol_table.variable(id=id, type=self.req_type, scope=self.current_scope)
+
+        except KeyError as e:
+            e=str(e)
+            self.semantic_error(error=getattr(se, e), token=id, expected=se.expected[str(e)])
+
+
+    def c_vardec_tail(self):
+    #TODO Find a way to reset reqtype
+        try:
+            id=self.current_node.parent.children[2].value
+            id_obj=self.current_node.parent.children[2]
+
+        except AttributeError:
+            id=self.current_node.children[1].value
+
+        try:
+            self.symbol_table.variable(id=id, type=self.req_type, scope=self.current_scope)
+        except KeyError as e:
+            e=str(e)[1:-1]
+            self.semantic_error(error=getattr(se, e), token=id_obj, expected=se.expected[str(e)])
             
 
-    def more_whl_var(self):
-        if self.current_node.children[1].type=="Identifier":
-            self.nearest_id=self.current_node.children[1]
-            self.create.new_id( type="whole", attribute=VAR)
-    def more_dec_var(self):
-        if self.current_node.children[1].type=="Identifier":
-            self.nearest_id=self.current_node.children[1]
-            self.create.new_id(type="dec", attribute=VAR)
-    def more_sus_var(self):
-        if self.current_node.children[1].type=="Identifier":
-            self.nearest_id=self.current_node.children[1]
-            self.create.new_id( type="sus", attribute=VAR)
-    def more_txt_var(self):
-        if self.current_node.children[1].type=="Identifier":
-            self.nearest_id=self.current_node.children[1]
-            self.create.new_id( type="text", attribute=VAR)
     def more_chr_var(self):
-        if self.current_node.children[1].type=="Identifier":
-            self.nearest_id=self.current_node.children[1]
-            self.create.new_id( type="charr", attribute=VAR)
-    
+        try:
+            id=self.current_node.children[1].value
+            self.symbol_table.variable(id=id, type=self.req_type, scope=self.current_scope)
+
+        except KeyError as e:
+            e=str(e)
+            self.semantic_error(error=getattr(se, e), token=id, expected=se.expected[str(e)])
 
     def charr_value(self):
         if self.current_node.children[0].type=="Identifier":
             self.nearest_id=self.current_node.children[0]
-            self.check.var()
-            self.check.var_value()
-            self.check.var_type() 
-            self.check.scope() 
-    
+
+            if len(self.current_node.children)>1:
+                self.symbol_table.find_func(self.nearest_id)
+            else:
+                self.symbol_table.find_var(self.nearest_id, self.current_scope)
+
 
     def const_type(self):
         if self.current_node.children[1].type=="Identifier":
-            self.nearest_id=self.current_node.children[1]
-            self.create.new_id( type=self.current_node.children[0], attribute=CONST)
+            self.req_type=self.current_node.children[0].value
+
+    def const_tail(self):
+        try:
+            id=self.current_node.parent.children[1].value
+
+        except AttributeError:
+            id=self.current_node.children[1].value
+  
+        if self.current_node.children[0].root=="one_dim":
+            self.symbol_table.sequence(id=id, type=self.req_type)
+
+        else:
+            self.symbol_table.variable(id=id, type=self.req_type)
     
 
-    def more_whl_const(self):
-        if self.current_node.children[1].type=="Identifier":
-            self.nearest_id=self.current_node.children[1]
-            self.create.new_id( type="whole", attribute=CONST)
-    def more_dec_const(self):
-        if self.current_node.children[1].type=="Identifier":
-            self.nearest_id=self.current_node.children[1]
-            self.create.new_id(type="dec", attribute=CONST)
-    def more_sus_const(self):
-        if self.current_node.children[1].type=="Identifier":
-            self.nearest_id=self.current_node.children[1]
-            self.create.new_id(type="sus", attribute=CONST)
-    def more_txt_const(self):
-        if self.current_node.children[1].type=="Identifier":
-            self.nearest_id=self.current_node.children[1]
-            self.create.new_id( type="text", attribute=CONST)
-    def more_chr_const(self):
-        if self.current_node.children[1].type=="Identifier":
-            self.nearest_id=self.current_node.children[1]
-            self.create.new_id( type="charr", attribute=CONST)
+
+    # def more_whl_const(self):
+    #     if self.current_node.children[1].type=="Identifier":
+    #         self.nearest_id=self.current_node.children[1]
+    #         self.create.new_id( type="whole", attribute=CONST)
+    # def more_dec_const(self):
+    #     if self.current_node.children[1].type=="Identifier":
+    #         self.nearest_id=self.current_node.children[1]
+    #         self.create.new_id(type="dec", attribute=CONST)
+    # def more_sus_const(self):
+    #     if self.current_node.children[1].type=="Identifier":
+    #         self.nearest_id=self.current_node.children[1]
+    #         self.create.new_id(type="sus", attribute=CONST)
+    # def more_txt_const(self):
+    #     if self.current_node.children[1].type=="Identifier":
+    #         self.nearest_id=self.current_node.children[1]
+    #         self.create.new_id( type="text", attribute=CONST)
+    # def more_chr_const(self):
+    #     if self.current_node.children[1].type=="Identifier":
+    #         self.nearest_id=self.current_node.children[1]
+    #         self.create.new_id( type="charr", attribute=CONST)
     
 
     def control_flow_statement(self):
         # try:
         leaves=self.current_node.leaves()
         if leaves[2].type=="Identifier" and leaves[0].value=="choose":
-            self.nearest_id=self.current_node.children[2]
-            self.check.var()
-            self.check.var_value()
-            self.check.scope() 
+            var=self.symbol_table.find_var(leaves[2], self.current_scope)
+            if var.value==None:
+                self.semantic_error(se.VAR_UNDEF, var, se.expected[se.VAR_UNDEF])
+            if var.type!=const.WHOLE:
+                self.semantic_error(se.WRONG_INDEX_TYPE, var, se.expected[se.WRONG_INDEX_TYPE].format(const.WHOLE))
+            if var.scope !=self.current_scope:
+                self.semantic_error(se.VAR_SCOPE_INVALID, var, se.expected[se.VAR_SCOPE_INVALID].format(self.current_scope))
         # except AttributeError:
-        #     print(f"Attribute Error sa {self.current_node.root}, had {self.current_node.children}")if debug else None
+        #     print(f"Attribute Error sa {self.current_node.root}, had {self.current_node.children}")if self.debug else None
         #     pass
 
-    def looping_statement(self):
-        if self.current_node.children[3].type=="Identifier" and self.current_node.children[0].value=="for" and self.current_node.children[2].type=="whole":
-            self.nearest_id=self.current_node.children[3]
-            self.create.new_id(type="whole", attribute=VAR)
-            self.create.assign()
+    # def looping_statement(self):
+    #     if self.current_node.children[3].type=="Identifier" and self.current_node.children[0].value=="for" and self.current_node.children[2].type=="whole":
+    #         self.nearest_id=self.current_node.children[3]
+    #         self.create.new_id(type="whole", attribute=VAR)
+    #         self.create.assign()
 
-    def loop_body_statement(self):
-        # try:
-            leaves=self.current_node.leaves()
-            if leaves[2].type=="Identifier" and leaves[0].value=="choose":
-                self.nearest_id=self.current_node.children[2]
-                self.check.var()
-                self.check.var_value()
-                self.check.scope()
-            else:
-                pass
-        # except IndexError as e:
-        #     print(f"Index Error sa {self.current_node.root}, had {self.current_node.children}")if debug else None
-        #     pass
+    # def loop_body_statement(self):
+    #     # try:
+    #         leaves=self.current_node.leaves()
+    #         if leaves[2].type=="Identifier" and leaves[0].value=="choose":
+    #             self.nearest_id=self.current_node.children[2]
+    #             self.check.var()
+    #             self.check.var_value()
+    #             self.check.scope()
+    #         else:
+    #             pass
+    #     # except IndexError as e:
+    #     #     print(f"Index Error sa {self.current_node.root}, had {self.current_node.children}")if self.debug else None
+    #     #     pass
 
-    def func_def(self):
+    # def func_def(self):
 
-        self.current_scope=FUNC
+    #     self.current_scope=FUNC
 
-        if self.current_node.children[2].type=="Identifier":
-            self.nearest_id=self.current_node.children[2]
-            self.create.new_func( type=self.current_node.children[1].children[0].value)
-        elif self.current_node.children[3].type=="Identifier":
-            self.nearest_id=self.current_node.children[3]
-            self.create.new_func( type=self.current_node.children[1].children[0].value)
+    #     if self.current_node.children[2].type=="Identifier":
+    #         self.nearest_id=self.current_node.children[2]
+    #         self.create.new_func( type=self.current_node.children[1].children[0].value)
+    #     elif self.current_node.children[3].type=="Identifier":
+    #         self.nearest_id=self.current_node.children[3]
+    #         self.create.new_func( type=self.current_node.children[1].children[0].value)
     
 
     def id_as_val(self):
-        if self.current_node.children[0].type=="Identifier":
-            self.nearest_id=self.current_node.children[0]
-            self.check.var()
-            print(self.nearest_id)if debug else None
-            self.check.var_value()
-            self.create.load_type(self.nearest_id)
-            self.check.var_type() 
-            self.check.scope()
+        items= self.current_node.leaves()
+        if items[0].type=="Identifier":
+            self.nearest_id=items[0]
+            id_obj=items[0]
+            id=id_obj.value
+            try:
+                if len(items)>1:
+                    if items[1].type=="[":
+                        self.symbol_table.find_seq(id, self.current_scope)
+                    elif items[1].type=="(":
+                        self.symbol_table.find_func(id)
+                        
+
+                else: 
+                    self.symbol_table.find_var(id, self.current_scope)
+            except AttributeError as e:
+                e=str(e)
+                self.semantic_error(error=getattr(se, e), token=id_obj, expected=se.expected[str(e)])
+
+        else: pass
+
+
+            
             
 
 
     def sheesh_declaration(self):
         if self.current_node.children[0].type=="sheesh":
-            self.current_scope=LOCAL
+            self.current_scope="sheesh"
 
     def assign_op(self):
-        assign_ops={
-            "=": self.create.assign,
-            "+=": self.create.assign,
-            "-=": self.create.assign,
-            "*=": self.create.assign,
-            "/=": self.create.assign,
-            "%=": self.create.assign,
-        }
+        # assign_ops={
+        #     "=": self.create.assign,
+        #     "+=": self.create.assign,
+        #     "-=": self.create.assign,
+        #     "*=": self.create.assign,
+        #     "/=": self.create.assign,
+        #     "%=": self.create.assign,
+        # }
 
         # self.create.explore(assign_ops)
         
-        try:
-            assign_ops[self.current_node.children[0].root]()
-        except AttributeError:
-            if self.current_node.children[0].value=="/=":
-                operand=self.check.next_operand()
-                if (operand.numerical_value<1 and operand.numerical_value >-1) and operand.numerical_value %1 == 0:
+        # try:
+        #     assign_ops[self.current_node.children[0].root]()
+        # except AttributeError:
+        #     if self.current_node.children[0].value=="/=":
+        #         operand=self.check.next_operand()
+        #         if (operand.numerical_value<1 and operand.numerical_value >-1) and operand.numerical_value %1 == 0:
 
-                    self.semantic_error(se.ZERO_DIV, operand, "Non-zero value")
-                else:
-                    assign_ops[self.current_node.children[0].value]()
-            else:
-                assign_ops[self.current_node.children[0].value]()
+        #             self.semantic_error(se.ZERO_DIV, operand, "Non-zero value")
+        #         else:
+        #             assign_ops[self.current_node.children[0].value]()
+        #     else:
+        #         assign_ops[self.current_node.children[0].value]()
+        pass
 
 
     def math_op(self):
@@ -392,7 +466,9 @@ class SemanticAnalyzer:
         self.semantic_expected.append(expected)
         self.semantic_errors.append(SemError(error=error, line=token.line, toknum=token.position, value=token.value, expected=expected))
         
-    
+    def reset_arr(self):
+        self.arr1=None
+        self.arr2=None
 
 
 
@@ -455,7 +531,7 @@ class Check:
                 exp=f"In {self.semantic.current_scope} Scope"
                 err=se.VAR_SCOPE_INVALID
                 self.semantic.semantic_error(err, id, exp)
-                print(id.scope, self.semantic.current_scope)if debug else None
+                print(id.scope, self.semantic.current_scope)if self.debug else None
                 return
 
 
@@ -576,7 +652,7 @@ class Create:
         return True
 
 
-    def new_id(self, type, scope=LOCAL,  attribute=None):
+    def new_id(self, type, scope=const.LOCAL,  attribute=None):
         id=self.semantic.nearest_id #NOTE - idk if this is the right way to do this
         if id.value not in self.semantic.id.accessible_ids():
             id.dtype=type
@@ -589,19 +665,19 @@ class Create:
             self.semantic.semantic_error(se.VAR_REDECL_INSCOPE, id, f"Other Identifier. Current: {id.value}")
 
 
-    def new_func(self,type, attribute=FUNC):
+    def new_func(self,type, attribute=const.FUNC):
         id=self.semantic.nearest_id
         if id.value not in self.semantic.id.accessible_ids():
             id.dtype=type
             id.attribute=attribute
-            id.scope=GBL
+            id.scope=const.GBL
 
             self.semantic.id.funcs.add(id)
         else:
             self.semantic.semantic_error(se.FUNC_REDECL_INSCOPE, id, f"Function {id.value}")
 
     
-    def new_param(self,  type, scope=FUNC, attribute=PARAM):
+    def new_param(self,  type, scope=const.FUNC, attribute=const.PARAM):
         id=self.semantic.nearest_id
         if id.value not in self.semantic.id.params.keys():
             id.dtype=type
@@ -682,7 +758,7 @@ class Create:
                 result = operand1 % operand2
             operand_stack.append(result)
 
-        print(operand_stack[0]) if debug else None
+        print(operand_stack[0]) if self.debug else None
         return operand_stack[0]
     
     def eval_arithm(self, expr):

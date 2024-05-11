@@ -6,7 +6,7 @@ sys.path.append('.')
 # import networkx as nx
 # import matplotlib.pyplot as plt
 from graphviz import Digraph
-from source.core.symbol_table import Token, Identifiers
+from source.core.symbol_table import Token
 
 debug=True
 
@@ -29,7 +29,7 @@ class AST:
         self.root= root
         self.children = []
         self.stack:list[AST]=[]
-        self.symbol_table:Identifiers=None
+
         
         self.buffer=None
 
@@ -157,7 +157,10 @@ class AST:
         
 
     def add_children(self, children:Token):
-         self.buffer.children.append(children)
+        if children.type!="Newline":
+            self.buffer.children.append(children)
+        else:
+            pass
         # pass
 
     def end_branch(self):
