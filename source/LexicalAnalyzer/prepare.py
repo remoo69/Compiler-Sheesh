@@ -170,13 +170,13 @@ def get_charr(token):
     temp_token=''
     for i in range(len(token)):
         try:
-            if (token[i] in const.delimiters["charr_delim"] or token[i] in ['!','='] and token[i+1] == '=') and LexerCheck.is_Charr(temp_token):
+            if (token[i] in const.delimiters["charr_delim"] or (token[i] in ['!','='] and token[i+1] == '=')) and LexerCheck.is_Charr(temp_token):
                 token_cpy=token.replace(temp_token, '', 1)
                 return temp_token, token_cpy       
             else:
                 temp_token+=token[i]
         except IndexError:
-            return temp_token, token_cpy
+            temp_token += token[i]
     
 
 def remove_comments(code):

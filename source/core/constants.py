@@ -53,8 +53,8 @@ other_symbols=["#", "::", ]
 all_symbols_nonop=grouping_symbols+other_symbols+[",", "."]
 invalid_id_char=op+comma+['#', '.', '@', '^', '&', '(', ')', '`', '~', ':', '?', '$', ';', '[', ']', '{', '}', '/', '\\', '`', '^', "'", '"', '“', '"', '”']
 invalid_text_char=[] #['"', '“', '"', '”', ]
-invalid_symbols=["@", "^", "&", "`", "~", "?", "$", ";", "'", '`',":"]
-multi_charr=[r"'\0'", r"'\n'", r"'\t'",]
+invalid_symbols=["@", "^", "&", "`", "~", "?", "$", ";", "'", '`',":", "\\"]
+multi_charr=[r"'\0'", r"'\n'", r"'\t'"]
 
 # Delimiters used in the Transition Diagram/DFA
 
@@ -89,6 +89,7 @@ delimiters = {
     "delim23": [" ", ")"],                                                  
     "delim24": alph_num+[" ","(", "]", "\'"],                               # added delim24 for '!=' 
     "delim25": alph_num+[" ","(", "]", "]"],                                # added delim25 for '['    
+    "delim26": [" ", None,"{"],                                # test bet and deins    
     "charr_delim": comma+[" ","#","==",")",":","::","!="],                  
     "txt_delim": comma+[" ", "#", ")", "}", ":", '=', ],
     "blk_delim": [" ", "\\",None],
@@ -98,7 +99,7 @@ delimiters = {
 }   
 keywords_delims={
                 "based":delimiters["delim1"],
-                "bet":delimiters["delim4"],   
+                "bet":delimiters["delim26"],   
                 "blank":delimiters["delim23"], 
                 "cap":delimiters["delim18"],   
                 "charr":delimiters["delim1"], 
