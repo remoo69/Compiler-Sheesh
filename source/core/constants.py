@@ -89,7 +89,6 @@ delimiters = {
     "delim23": [" ", ")"],                                                  
     "delim24": alph_num+[" ","(", "]", "\'"],                               # added delim24 for '!=' 
     "delim25": alph_num+[" ","(", "]", "]"],                                # added delim25 for '['    
-    "delim26": [" ", None,"{"],                                # test bet and deins    
     "charr_delim": comma+[" ","#","==",")",":","::","!="],                  
     "txt_delim": comma+[" ", "#", ")", "}", ":", '=', ],
     "blk_delim": [" ", "\\",None],
@@ -99,7 +98,7 @@ delimiters = {
 }   
 keywords_delims={
                 "based":delimiters["delim1"],
-                "bet":delimiters["delim26"],   
+                "bet":delimiters["delim4"],   
                 "blank":delimiters["delim23"], 
                 "cap":delimiters["delim18"],   
                 "charr":delimiters["delim1"], 

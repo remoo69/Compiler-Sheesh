@@ -37,7 +37,7 @@ class LexError:
             errobj.toknum=symb.Token.tok_num
             
             return errobj
-        if tokencode[0:3]=="..." and i+4<len(tokencode) and tokencode[i+4] not in const.symbols_delims["..."]:
+        if tokencode[0:3]=="..." and i+3<len(tokencode) and tokencode[i+3] not in const.symbols_delims["..."]:
             buffer=tokencode[0:3]
             errobj.errorval=buffer
             errobj.remaining=tokencode.replace(buffer, '', 1)

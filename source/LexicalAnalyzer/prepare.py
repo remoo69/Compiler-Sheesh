@@ -23,8 +23,13 @@ class LexerCheck:
             The total count of characters from the list found in the text.
         """
         count = 0
-        for char in text:
+        for i,char in enumerate(text):
             if char in char_list:
+                try:
+                    if text[i-1] == '\\':
+                        continue
+                except IndexError:
+                    pass
                 count += 1
         return count
     
@@ -329,6 +334,11 @@ def get_keyword(token):
                
         else:   
             temp_token+=char
+    # temporary solution
+    if temp_token in ["deins", "bet"]:
+        token_cpy=token.replace(temp_token, '', 1)
+        keyword_detected=True
+        return temp_token, token_cpy 
    
 def get_identifier(token):
     token_cpy=''
@@ -355,15 +365,16 @@ def get_operator(tokencode:str):
 
     if char==".": #isolated case for ...
         token+=char
-
-        if tokencode[position+1]==".":
-            token+=tokencode[position+1]
-            if tokencode[position+2]==".":
-                token+=tokencode[position+2]
-                if tokencode[position+3] in const.symbols_delims["..."]:
-                    token_cpy=tokencode.replace(token, '', 1)
-                    return token, token_cpy
-                
+        try:
+            if tokencode[position+1]==".":
+                token+=tokencode[position+1]
+                if tokencode[position+2]==".":
+                    token+=tokencode[position+2]
+                    if tokencode[position+3] in const.symbols_delims["..."]:
+                        token_cpy=tokencode.replace(token, '', 1)
+                        return token, token_cpy
+        except IndexError:
+            return None                
     elif char in const.single_symbols:
         token+=char
 
