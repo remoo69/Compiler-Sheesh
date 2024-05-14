@@ -98,6 +98,7 @@ class Semantic_Errors:
         PARAM_UNDECL_INSCOPE="Undeclared Parameter Identifier in Scope"
 
         EMPTY_BODY="Empty Body"
+        EWAN="Placeholder Error"
 
 
         expected={

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import source.core.constants as const
 from source.core.error_handler import SemanticError
 from source.core.error_types import Semantic_Errors as se
+from source.core.AST import AST
 """ 
 Scope System:
     The scopes of the variables in the program will follow a scope system where the scope of the variable would be the id of the
@@ -29,11 +30,6 @@ Block IDs:
         iterates per invocation. For example, the main sheesh function would have the Block id of FUNCTION sheesh.
         Another case for this would be the first invocation of a conditional like the kung statement. 
         The block if for it would be KUNG 1.
-
-    
-
- 
- 
  
 """
 
@@ -62,7 +58,6 @@ class Token:
 
     numerical_value:float=None
 
-
     idnum=1
     tok_num=1
     line_num=1
@@ -81,7 +76,18 @@ class Variable:
         self.value=None
         
     def assign(self, op, value):
-
+        print(type(value))
+        print(const.types[self.type])
+        if type(value)==const.types[self.type]:
+            pass
+        else:
+            if  type(value)!=const.py_types[self.type] :
+                if type(value) in [str, float] and value.isdigit() and value%1==0:
+                    value=type(value)(value)
+                else:
+                    raise ValueError(se.VAL_OPERAND_INVALID)
+            if isinstance(value, const.types[self.type]):
+                pass
         if op=="=":
             self.value=value
         else:
@@ -128,8 +134,8 @@ class Sequence(Variable):
     def append(self, value):
         self.values.append(value)
 
-    def index_getvalue(self, index):
-        return self.values[index]
+    def index_getvalue(self, index, index2):
+        return self.values[index][index2]
 
 
     def __repr__(self):
@@ -148,11 +154,11 @@ class Constant(Sequence):
         self.set_scope=const.GBL
 
 class Function:
-    def __init__(self, id, return_type, parameters:list) -> None:
+    def __init__(self, id, return_type, parameters:AST) -> None:
         self.id=id
         self.return_type=return_type
         self.parameters=parameters
-        self.statements=[]
+        self.statements:AST=parameters
 
 
     def new_statement(self, statement):
@@ -162,14 +168,40 @@ class Function:
     def execute(self):
         """  
         This method should execute the statements in the function. Idk how to do that yet tho.
+        
+        Algorithm:
+        1. Get block node
+        2. Set args (series of var inits)
+        3. Execute code until end.
+
         """
-        raise NotImplementedError
+        print("Generating code...")
+        while True:
+            if self.current_node.root not in self.routines.keys():
+                self.previous_node=self.current_node
+                self.current_node = self.semantic.parse_tree.traverse(self.current_node)
+            else:
+                self.routines[self.current_node.root]()
+                self.previous_node=self.current_node
+                try:
+                    self.current_node = self.semantic.parse_tree.traverse(self.current_node)
+                except AttributeError:
+                    break
+            if self.current_node is None:
+                break  # Exit the loop if the tree has been fully traversed
     
 class Parameter(Variable):
     def __init__(self, id, type, param_type) -> None:
         super().__init__(id, type)
         #regular var or sequence
         self.param_type=param_type
+
+class ScopeTree:
+    def __init__(self, root, children) -> None:
+        self.root=root
+        self.children:list=children
+    def __repr__(self) -> str:
+        return "Scope()"
 
 class SymbolTable:
 
@@ -180,6 +212,7 @@ class SymbolTable:
     """
     def __init__(self):
         self.symbols = {}
+        self.scope_tree=ScopeTree()
 
     def keys(self):
         return self.symbols.keys()
@@ -220,43 +253,53 @@ class SymbolTable:
             self.symbols[id]=Parameter(id=id, type=type, param_type=param_type).set_scope(scope=scope)
 
 
-    def find(self,id):
-        if id in self.symbols.keys():
+    def find(self,id, scope):
+        if id in self.symbols.keys() and self.symbols[id].scope==scope:
             return self.symbols[id]
         else:
             raise KeyError("VAR_UNDECL")
         
 
-    def find_var(self, id, scope):
+    def find_var(self, id, scope)->Variable:
         if id in self.symbols.keys() and type(self.symbols[id])==Variable and self.symbols[id].scope==scope:
             return self.symbols[id]
         else:
             raise AttributeError("VAR_UNDECL")
         
-    def find_seq(self, id, scope):
+    def find_seq(self, id, scope)->Sequence:
         if id in self.symbols.keys() and type(self.symbols[id])==Sequence  and self.symbols[id].scope==scope:
             return self.symbols[id]
         else:
             raise AttributeError("SEQ_UNDECL")
         
-    def find_const(self, id):
+    def find_const(self, id)->Constant:
         if id in self.symbols.keys() and type(self.symbols[id])==Constant:
             return self.symbols[id]
         else:
             raise AttributeError("CONST_UNDECL")
         
-    def find_func(self, id):
+    def find_func(self, id)->Function:
         if id in self.symbols.keys() and type(self.symbols[id])==Function:
             return self.symbols[id]
         else:
             raise AttributeError("FUNC_UNDECL")
         
-    def find_param(self, id, scope):
+    def find_param(self, id, scope)->Parameter:
         if id in self.symbols.keys() and type(self.symbols[id])==Parameter and self.symbols[id].scope==scope:
             return self.symbols[id]
         else:
             raise AttributeError("PARAM_UNDECL_INSCOPE")
-        
+
+#FIXME - UNIMPLEMENTED
+    def  get_var_inscope(self, scope)->dict:
+        vars={}
+        raise NotImplementedError
+        for key in self.symbols.keys():
+            if self.symbols[key].scope==scope:
+                vars.update(self.symbols[key])
+            elif self.symbols[3]:pass
+            
+
         
     def get_all(self, type):
         return [sym for sym in self.symbols.values() if isinstance(sym, type)]

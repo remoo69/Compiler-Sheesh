@@ -5,37 +5,37 @@ sys.path.append('.')
 from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer
 from source.core.error_handler import RuntimeError
 from source.core.error_types import Semantic_Errors as se
-from source.CodeGeneration.Functionality.Functionality import Functionality
+import source.core.constants as const
+from source.core.symbol_table import SymbolTable
+
+from source.CodeGeneration.Functionality.ControlFlow import ControlFlow
+from source.CodeGeneration.Functionality.Loops import Loops
+from source.CodeGeneration.Functionality.Declarations import Identifier, Expression
+from source.CodeGeneration.Functionality.Evaluators import Evaluators
+from source.CodeGeneration.Functionality.InOut import InOut
 
 
-
-
-#TODO - Implement the code generation logic here
-#TODO - KUNG
-#TODO - EH KUNG
-#TODO - DEINS
-#TODO - CHOOSE
-#TODO - WHEN
-#TODO - DEFAULT
-#TODO - BET
-#TODO - WHILST
-#TODO - FOR
-#TODO - TO
-#TODO - FELLOFF
-#TODO - STEP
-#TODO - PASS
-#TODO - UP
-#TODO - PA MINE
-#TODO - CONCAT
-#TODO - YET
-#TODO - BASED
-#TODO - DEF
 
 
 
 class CodeGenerator:
     """  
     General Code Generator Logic: Traverse all nodes in the AST. Go to respective routines based on the node's root.
+    Algorithm:
+    * The Code Generator Functions like a Depth First Search Traversal.
+    * The code gen executes routines based on the current node's leaf or root, depending on the implementation for that type.
+    1. Traverse the tree
+    2. If a root with a routine is found, execute routine.
+    3. If success, go to the next node.
+    4. If fail, raise runtime error.
+
+
+    Update:
+        A routine exists for each node where the node's first set is a terminal. This is to ensure that all possible outcomes in the code generator has an output.
+        In some cases, however, multiple nodes are agreggated into one if their functions are similar. This is to reduce redundancy in the code generator.
+    
+    Functionalities will be direct calls to their respective modules. This is to ensure that the code generator is modular and can be easily updated.
+    
     """
     def __init__(self, semantic:SemanticAnalyzer, debugMode) -> None:
 
@@ -43,6 +43,7 @@ class CodeGenerator:
 
         self.semantic=semantic
         self.symbol_table=self.semantic.symbol_table
+        
         self.output_stream={}
 
         self.matched=self.semantic.parse_tree.leaves()
@@ -53,19 +54,16 @@ class CodeGenerator:
 
         self.previous_node = None # Store the previous node to handle loops
         
-        self.functionality=Functionality(self.debug)
+        self.current_scope="sheesh"
 
-
+        """  
+        Routines act as the entry point for the functions in the program. As such, each routine should contain their respective
+        functionalities. 
+        """
         self.routines={
 
-            """  
-            Routines act as the entry point for the functions in the program. As such, each routine should contain teir respective
-            functionalities. 
-            """
+       
 
-
-            "allowed_in_loop":self.allowed_in_loop,
-            "var_or_seq_dec":self.var_or_seq_dec,
             "looping_statement":self.looping_statement,
             "loop_body_statement":self.loop_body_statement,
             "in_loop_body":self.in_loop_body,
@@ -73,43 +71,70 @@ class CodeGenerator:
             "more_loop_body":self.more_loop_body,
             "control_flow_statement":self.control_flow_statement,
             "statement":self.statement,
+            # "in_param":self.in_param,
+            # "more_param":self.more_param,
+            # "sheesh_declaration":self.sheesh_declaration,
+            "allowed_in_loop":self.allowed_in_loop,
+            # "id_tail":self.id_tail,
+            # "id_next_tail":self.id_next_tail,
+            # "up_argument":self.up_argument, #NOTE - idk
+            # "reg_body":self.reg_body,
+            # "in_loop_body":self.in_loop_body,
+            "var_or_seq_dec":self.var_or_seq_dec,
+            # "w_val_assign":self.w_val_assign,
+            # "more_whl_var":self.more_whl_var,
+            # "whl_all_value":self.whl_all_value,
+            # "whl_value":self.whl_value,
+            # "whl_val_withparen":self.whl_val_withparen,
+            # "w_seq_tail":self.w_seq_tail,
+            # "w_seq_init":self.w_seq_init,
+            # "w_elem_init":self.w_elem_init,
+            # "w_two_d_init":self.w_two_d_init, #NOTE - might not get detected?
+            # "next_whl_init":self.next_whl_init,
+            # "d_val_assign":self.d_val_assign,
+            # "more_dec_var":self.more_dec_var,
+            # "dec_all_value":self.dec_all_value,
+            # "dec_value":self.dec_value,
+            # "dec_val_withparen":self.dec_val_withparen,
+            # "d_seq_tail":self.d_seq_tail,
+            # "d_seq_init":self.d_seq_init,
+            # "d_elem_init":self.d_elem_init,
+            # "d_two_d_init":self.d_two_d_init, #NOTE - might not get detected?
+            # "next_dec_init":self.next_dec_init,
+            # "s_val_assign":self.s_val_assign,
+            # "more_sus_var":self.more_sus_var,
+            # "sus_all_value":self.sus_all_value,
+            # "sus_value":self.sus_value,
+            # "sus_val_withparen":self.sus_val_withparen,
+            # "s_seq_tail":self.s_seq_tail,
+            # "s_seq_init":self.s_seq_init,
+            # "s_elem_init":self.s_elem_init,
+            # "s_two_d_init":self.s_two_d_init, #NOTE - might not get detected?
+            # "next_sus_init":self.next_sus_init,
+            # "t_val_assign":self.t_val_assign,
+            # "more_txt_var":self.more_txt_var,
+            # "txt_all_value":self.txt_all_value,
+            # "txt_value":self.txt_value,
+            # "txt_val_withparen":self.txt_val_withparen,
+            # "t_seq_tail":self.t_seq_tail,
+            # "t_seq_init":self.t_seq_init,
+            # "t_elem_init":self.t_elem_init,
+            # "t_two_d_init":self.t_two_d_init, #NOTE - might not get detected?
+            # "next_txt_init":self.next_txt_init,
+            # "c_val_assign":self.c_val_assign,
+            # "more_chr_var":self.more_chr_var,
+            # "charr_all_value":self.charr_all_value,
+            # "charr_value":self.charr_value,
+            # "func_call" : self.func_call,
+            # "index":self.index,
+            # "constant_declaration":self.constant_declaration,
 
+    
         }
-
-        # self.functionality={
-
-        #     "yeet":self.functionality.yeet,
-        #     "def":self.functionality.def_,
-        #     "based":self.functionality.based,
-        #     "up":self.functionality.up,
-        #     "pa_mine":self.functionality.pa_mine,
-            
-            
-        #     "pass":self.functionality.pass_,
-        #     "kung":self.functionality.kung,
-        #     "ehkung":self.functionality.ehkung,
-        #     "deins":self.functionality.deins,
-        #     "choose":self.functionality.choose,
-        #     "when":self.functionality.when,
-        #     "default":self.functionality.default,
-            
-        #     "bet":self.functionality.loops.bet,
-        #     "whilst":self.functionality.loops.whilst,
-        #     "for":self.functionality.loops.for_loop,
-        #     # "to":self.to_loop,
-        #     "felloff":self.functionality.felloff,
-        #     # "step":self.step,
-        #     "pass":self.functionality.pass_,
-
-
-        #     "...":self.functionality.concat,
-
-
-        # }
-        
 
     def statement(self):
         pass
+
     def generate_code(self):
         print("Generating code...")
         while True:
@@ -144,7 +169,7 @@ class CodeGenerator:
         except KeyError:
             if self.previous_node.children[0].type=="kung":
                 self.current_node=self.previous_node
-                self.functionality[self.current_node.children[0].type]()
+                ControlFlow(self).kung()
             try:
                 if self.previous_node.parent.children[-1].root=="more_loop_body":
                     self.previous=self.current_node
@@ -156,16 +181,22 @@ class CodeGenerator:
 
     def looping_statement(self):
         if self.current_node.children[0].value=="for":
-            self.functionality["for"]()
+            # Loops(self.current_node, self.output_stream, self.symbol_table, self.current_scope, self.runtime_errors).for_()
+            Loops(self).for_()
 
         elif self.current_node.children[0].value=="bet":
             self.functionality["bet"]()
 
     def var_or_seq_dec(self):
-        # try:
-            if self.current_node.children[-1].value=="#":
-                pass
-                # self.eval_arithm()
+        try:
+            if self.current_node.children[1].type=="Identifier":
+                # expr= ''.join([str(x.value) for x in self.current_node.leaves()[2:] if x.type not in ["#"]])
+                # self.symbol_table.find_var(self.current_node.children[1].value, self.current_scope).assign("=", Evaluators(self.current_node.children[0], runtime_errors=self.runtime_errors, scope=self.current_scope, symbol_table=self.symbol_table).general_evaluator(expr=expr))
+                id=self.current_node.children[1]
+                Evaluators(self.current_node.leaves(), runtime_errors=self.runtime_errors, scope=self.current_scope, symbol_table=self.symbol_table).assign(id)
+        except AttributeError:
+            if self.current_node.children[2].type=="Identifier":
+                self.symbol_table.find_var(self.current_node.children[2].value, self.current_scope).assign("=", Evaluators(self.current_node.children[0]).general_evaluator(self.current_node.children))
     def more_loop_body(self):
         try:
             if self.current_node.children[0].root in  self.routines.keys():
@@ -183,41 +214,24 @@ class CodeGenerator:
 
     def allowed_in_loop(self):
 
-        # try:
-        #     if self.current_node.children[0].value in self.functionality.keys():
-        #         self.functionality[self.current_node.children[0].value]()
-        #         self.previous_node=self.current_node
-        #         self.current_node = self.semantic.parse_tree.traverse(self.current_node)
-        #     elif self.current_node.children[0].type=="Identifier":
-
-        #         self.assign(self.current_node.children[0])
-
-        #     else:
-        #         # raise Exception("Routine not found")
-        #         print(f'Functionality {self.current_node.children[0].value} not found')
-        #         pass
-        # except AttributeError as e:
-        #     # print(e)
-        #     # print(f"No Functionality for {self.current_node.children[0].root} in {self.current_node.root}")
-            
-        #     pass
-
-        routines={
-            "up":self.functionality.io.up,
-        }
-        items=self.current_node.leaves()
-        if self.current_node.children[0].value in routines:
-            routines[self.current_node.children[0].value]()
-
+        try:
+            val=self.current_node.children[0].type
+            if val =="up":
+                InOut(self.current_node, self.output_stream, self.symbol_table, self.current_scope, self.runtime_errors).up()
+            elif val=="Identifier":
+                Identifier(node=self.current_node,output_stream= self.output_stream, symbol_table=self.symbol_table, runtime_errors=self.runtime_errors, current_scope=self.current_scope).id_tail()
+        except AttributeError:
+            pass
+        
     def in_loop_body(self):
         try:
-            self.functionality[self.current_node.root]()
+            # self.functionality[self.current_node.root]()
             self.previous_node=self.current_node
             self.current_node = self.semantic.parse_tree.traverse(self.current_node)
         except KeyError:
             self.previous_node=self.current_node
             self.current_node = self.semantic.parse_tree.traverse(self.current_node)
-            self.routines["loop_body"]()
+            # self.routines["loop_body"]()
             
 
     def loop_body(self):
@@ -235,8 +249,11 @@ class CodeGenerator:
             self.routines["loop_body_statement"]()  
             
     def control_flow_statement(self):
-        if self.current_node.children[0].value in ["choose", "kung"]:
-            self.functionality[self.current_node.children[0].value]()
+        if self.current_node.children[0].value =="choose":
+            ControlFlow(self).choose()
+        elif self.current_node.children[0].value =="kung":
+
+            ControlFlow(self).kung()
             self.previous_node=self.current_node
             self.current_node = self.semantic.parse_tree.traverse(self.current_node)
 

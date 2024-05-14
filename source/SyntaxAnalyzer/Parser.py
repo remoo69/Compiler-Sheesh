@@ -28,7 +28,8 @@ class SyntaxAnalyzer:
         self.matched=[]
 
         self.semantic=None
-
+        
+        debugMode=True
         if debugMode:
             self.debug=True
             self.debug_fail=True

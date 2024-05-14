@@ -144,24 +144,28 @@ class charr:
         return len(self.value)
     
 class whole(int):
-    def __init__(self) -> None:
+    def __init__(self,value=0) -> None:
         super().__init__()
         self.type="whole"
 
 class dec(float):
-    def __init__(self) -> None:
+    def __init__(self, value=0.0) -> None:
         super().__init__()
         self.type="dec"
 
 class text(str):
-    def __init__(self) -> None:
+    def __init__(self, value="") -> None:
         super().__init__()
         self.type="text"
 
 class sus:
     def __init__(self, value) -> None:
         self.value=value
-        self.type="text"
+        self.type="sus"
+        self.values={
+            True:"nocap",
+            False:"cap"
+        }
     
 types={
             "whole":whole,
@@ -171,6 +175,13 @@ types={
             "charr":charr
             }
 
+py_types={
+            "whole":int,
+            "dec":float,
+            "text":str,
+            "sus":bool,
+            "charr":charr
+            }
 literal_types={
             "Whole":int,
             "Decimal":float,
@@ -178,6 +189,16 @@ literal_types={
             "Sus":bool,
             "Charr":charr
             }
+
+py_to_types={
+            int:whole,
+            float:dec,
+            str:text,
+            bool:sus,
+            charr:charr
+            }
+
+
 
 format_spec={
             "w":int,
