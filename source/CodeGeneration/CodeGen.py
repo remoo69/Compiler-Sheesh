@@ -10,14 +10,26 @@ from source.core.symbol_table import SymbolTable
 
 from source.CodeGeneration.Functionality.ControlFlow import ControlFlow
 from source.CodeGeneration.Functionality.Loops import Loops
-from source.CodeGeneration.Functionality.Declarations import Identifier, Expression
+from source.CodeGeneration.Functionality.Declarations import Identifier
 from source.CodeGeneration.Functionality.Evaluators import Evaluators
 from source.CodeGeneration.Functionality.InOut import InOut
 
 
 
 
+"""  
+TODO
+1. Literal Limits
+2. Choose-when-default
+3. Func def,call, as expr, prototype
+4. Sequence def, init, call, as expr
+5. Multiple init
+6. Seq bounds checking
+7. Seq size enforcement
 
+8. LEX: sheesh()<-Null delim for ) not working
+
+"""
 class CodeGenerator:
     """  
     General Code Generator Logic: Traverse all nodes in the AST. Go to respective routines based on the node's root.

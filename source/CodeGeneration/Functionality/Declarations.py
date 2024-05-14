@@ -32,18 +32,7 @@ class Identifier:
             else:
                 self.runtime_errors.append(
                     RuntimeError(error=se.VAL_OPERAND_INVALID, token=self.leaves[1], expected=se.expected["VAL_OPERAND_INVALID"] ))
-
-            
-
-    def assignment(self):
-        pass
-
-    def function_call(self):
-        pass
-    
-    def sequence(self):
-        pass
-
+        
 
     def id_tail(self):
         leaves=self.node.leaves()
@@ -58,10 +47,10 @@ class Identifier:
     
 
 
-class Expression:
-    """ All expressions are contained here. Expression evaluations, and operations are performed here."""
-    def __init__(self, node) -> None:
-        self.node=node
+# class Expression:
+#     """ All expressions are contained here. Expression evaluations, and operations are performed here."""
+#     def __init__(self, node) -> None:
+#         self.node=node
 
-    def evaluate(self):
-        pass
+#     def evaluate(self):
+#         pass

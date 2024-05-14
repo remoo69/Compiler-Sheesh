@@ -50,7 +50,7 @@ class ControlFlow:
 
         else:
             if fail==None:
-                pass
+                return
             else:
                 while True:
                     try:
@@ -66,18 +66,34 @@ class ControlFlow:
 
 
     def ehkung(self):
-        condition=None
-        body=None
+        """ 
+        Expects call from ehkung statement.
+        """
+        condition=self.codegen.current_node.children[2]
+        body=self.codegen.current_node.children[-1]
+
+        if Evaluators(condition, self.codegen.runtime_errors, self.codegen.scope, self.codegen.symbol_table):
+            self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(body)
+            self.previous_node=self.codegen.current_node
+            self.codegen.routines[self.codegen.current_node.root]()
+        else:
+            return
+
     
     def deins(self):
-        body=None
+        """ Expects call from a condtail node """
+        body=self.codegen.current_node.children[1]
+        self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(body)
+        self.previous_node=self.codegen.current_node
+        self.codegen.routines[self.codegen.current_node.root]()
     
-    def choose(self):
+    def choose_when_default(self):
         checker=None
         body=None
+        conditions=None
     
-    def when(self):
-        raise NotImplementedError
+    # def when(self):
+    #     raise NotImplementedError
     
-    def default(self):
-        raise NotImplementedError
+    # def default(self):
+    #     raise NotImplementedError

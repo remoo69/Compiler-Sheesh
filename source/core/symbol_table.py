@@ -116,7 +116,6 @@ class Variable:
 class Sequence(Variable):
     def __init__(self, id, type, scope) -> None:
         super().__init__(id, type, scope=scope)
-        # self.set_scope(scope=scope)
         self.size1=None
         self.size2=None
         self.values=[]
@@ -137,12 +136,14 @@ class Sequence(Variable):
     def index_getvalue(self, index, index2):
         return self.values[index][index2]
 
-
+    def initialize(self, values):
+        return NotImplementedError
+    
     def __repr__(self):
         return f"Sequence({self.id}, {self.type}, {self.values})"
     
 
-#medj sus
+#NOTE- medj sus
 class Constant(Variable):
     def __init__(self, id, type) -> None:
         super().__init__(id, type)
@@ -201,7 +202,7 @@ class ScopeTree:
         self.root=root
         self.children:list=children
     def __repr__(self) -> str:
-        return "Scope()"
+        return "Scope()" #FIXME - ayusin mo to
 
 class SymbolTable:
 

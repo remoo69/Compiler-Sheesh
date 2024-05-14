@@ -32,7 +32,9 @@ class Loops:
         condition=self.codegen.current_node.children[5]
         loop_body=self.codegen.current_node.children[1]
         while Evaluators(condition).logic_rel()==False:
-            loop_body
+            self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(loop_body)
+            self.previous_node=self.codegen.current_node
+            self.codegen.routines[self.codegen.current_node.root]()
 
 
     def for_(self):
@@ -79,16 +81,18 @@ class Loops:
         if self.debug:
             print(f"For Loop: \n\tIterator: {iterator}\n\t End: {end}\n\t Step: {step}")
 
-    def to(self):
-        raise NotImplementedError
+    # def to(self):
+    #     raise NotImplementedError
     
     def felloff(self):
         #statement that should break loops
-        raise NotImplementedError
+        self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(self.codegen.parent.children[1])
+        self.previous_node=self.codegen.current_node
+        self.codegen.routines[self.codegen.current_node.root]()
     
 
-    def step(self):
-        raise NotImplementedError
+    # def step(self):
+    #     raise NotImplementedError
     
     def pass_(self):
         pass

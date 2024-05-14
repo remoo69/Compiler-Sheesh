@@ -152,29 +152,25 @@ class Evaluators:
                             final_expression+=var.index_getvalue(index1, index2)
                         elif isinstance(var, st.Variable):
                             if var.type in ["whole", "dec",]:
-                                final_expression+=str(var.value)
-                            elif var.type in ["sus", "text", "charr"]:
-                                final_expression+=var.value 
+                                self.runtime_errors.append(RuntimeError(se.VAR_OPERAND_INVALID, expr, se.expected["VAR_OPERAND_INVALID"]))
+                            elif var.type in ["sus"]:
+                                self.runtime_errors.append(RuntimeError(se.VAR_OPERAND_INVALID, expr, se.expected["VAR_OPERAND_INVALID"]))
+                            elif var.type in [ "text", "charr"]:
+                                final_expression+=var.value
                                 #NOTE - idk what to do here. ito muna lagay ko
                         elif isinstance(var, st.Function):
                             final_expression+=var.execute() #NOTE - IMPLEMENT FUNC EXECUTION
                         elif isinstance(var, Token):
                             if var.type in ["Whole", "Dec"]:
-                                final_expression+=var.numerical_value
+                                self.runtime_errors.append(RuntimeError(se.VAR_OPERAND_INVALID, expr, se.expected["VAR_OPERAND_INVALID"]))
                             else:
                                 self.runtime_errors.append(RuntimeError(se.EWAN, expr, "Invalid Expression"))
 
-                    elif expr.type in ["Whole", "Dec", ]:
-                        final_expression+=expr.value
                     elif expr.type in ["Text", "Charr"]:
                         final_expression+=expr.value
-                    elif expr.type in ["Sus"]:
-                        if expr.value =="nocap":
-                            final_expression+="True" 
-                        else:
-                            final_expression+="False"
-                    elif expr.type in const.all_op:
-                        final_expression+=expr.value
+                   
+                    elif expr.type in const.concat:
+                        final_expression+="+"
                     elif expr.type=="#":
                         break
                     else:
