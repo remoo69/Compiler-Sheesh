@@ -4,6 +4,7 @@ from source.core.error_types import Semantic_Errors as se
 import source.core.constants as const
 import source.core.symbol_table as st
 from source.core.symbol_table import SymbolTable, Token 
+from source.core.error_handler import RuntimeError
 
 class Evaluators:
     """  
@@ -28,8 +29,7 @@ class Evaluators:
         final_expression=""
         eq_found=False
         for expr in self.expression:
-            if expr.type in const.asop or (expr.type in const.keywords and expr.type not in const.DATA_TYPES):
-                eq_found=True
+            
             if eq_found:
                 if expr.type not in const.keywords:
                     if expr.type=="Identifier":
@@ -67,9 +67,12 @@ class Evaluators:
                     elif expr.type=="#":
                         break
                     else:
-                        self.runtime_errors.append(RuntimeError(se.EWAN, expr, "Invalid Expression"))
+                        self.runtime_errors.append(RuntimeError(error=se.EWAN,token= expr, expected="Invalid Expression"))
                 else:
                     pass
+                
+            if expr.type in const.asop or (expr.type in const.keywords and expr.type not in const.DATA_TYPES):
+                eq_found=True
             
             else:
                 pass
@@ -87,7 +90,8 @@ class Evaluators:
         eq_found=False
         for expr in self.expression:
                 
-            if eq_found:
+            # if eq_found:
+            try:
                 if expr.type not in const.keywords:
                     if expr.type=="Identifier":
                         var= self.symbol_table.find(expr.value, self.scope)
@@ -98,9 +102,9 @@ class Evaluators:
                             final_expression+=var.index_getvalue(index1, index2)
                         elif isinstance(var, st.Variable):
                             if var.type in ["whole", "dec",]:
-                                final_expression+=str(var.value)
+                                final_expression+=str(var.get_val())
                             elif var.type in ["sus", "text", "charr"]:
-                                final_expression+=var.value 
+                                final_expression+=var.get_val()
                                 #NOTE - idk what to do here. ito muna lagay ko
                         elif isinstance(var, st.Function):
                             final_expression+=var.execute() #NOTE - IMPLEMENT FUNC EXECUTION
@@ -124,17 +128,20 @@ class Evaluators:
                     elif expr.type=="#":
                         break
                     else:
-                        self.runtime_errors.append(RuntimeError(se.EWAN, expr, "Invalid Condition"))
+                        self.runtime_errors.append(RuntimeError(error=se.EWAN,token= expr, expected="Invalid Condition"))
                 else:
                     pass
             
-            else:
-                if expr.type in const.asop or (expr.type in const.keywords and expr.type not in const.DATA_TYPES):
-                    eq_found=True
-                    pass
+            except ValueError as e:
+                e=str(e)
+                self.runtime_errors.append(RuntimeError(error=getattr(se,e), token=expr, expected=se.expected[e]))
+                return
+            # else:
+            #     if expr.type in const.asop or (expr.type in const.keywords and expr.type not in const.DATA_TYPES):
+            #         eq_found=True
+            #         pass
         return final_expression
             
-        return final_expression
     
     def build_concat(self):
         final_expression=""
@@ -201,10 +208,13 @@ class Evaluators:
     
     def general_evaluator(self, expr:str):
         """ TRIES to evaluate expressions using python's eval() """
-        if not any(op in expr for op in const.all_op):
-            return expr
+        if expr!=None and expr!="":
+            if not any(op in expr for op in const.all_op):
+                return expr
+            else:
+                return eval(expr)
         else:
-            return eval(expr)
+            return None
     
     def assign(self, id):
         """  
@@ -221,7 +231,8 @@ class Evaluators:
         value=None
         if id.value in self.symbol_table.keys():
             items=self.expression
-            if id.type in ["dec", "whole"]:
+            var=self.symbol_table.find(id.value, self.scope)
+            if var.type in ["dec", "whole"]:
                 temp=self.build_expression()
             else:
                 temp=self.build_condition()
@@ -269,7 +280,7 @@ class Evaluators:
                         self.runtime_errors.append(RuntimeError(se.VAR_OPERAND_INVALID, id, f"Value of Type {id.dtype}, got {self.semantic.reverse_types[type(value)]}"))
             else:
                 # self.semantic.semantic_error(se.VAR_UNDEF, id, "Value pare")
-                self.runtime_errors.append(RuntimeError(se.VAR_UNDEF, id, "Value pare"))
+                self.runtime_errors.append(RuntimeError(error=se.VAR_UNDEF,token= id, expected="Value pare"))
 
     def evaluate(self, expr):
         new_expr=self.build_expression()
@@ -278,12 +289,15 @@ class Evaluators:
         else:
             return eval(new_expr)
         
-    def evaluate_cond(self, expr)->bool:
+    def evaluate_cond(self)->bool:
         new_expr=self.build_condition()
-        if not any(op in new_expr for op in const.all_op):
-            return new_expr
+        if new_expr!=None and new_expr!="":
+            if not any(op in new_expr for op in const.all_op):
+                return new_expr
+            else:
+                return eval(new_expr)
         else:
-            return eval(new_expr)
+            return None
     
     def arithm(self, expr):
 

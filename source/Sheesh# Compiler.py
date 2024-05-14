@@ -355,7 +355,14 @@ def print_error(error):
 
 
 def load_file():
-    filepath = filedialog.askopenfilename(initialdir="/", title="Select a File", filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
+    filepath = filedialog.askopenfilename(initialdir="/", title="Select a File", filetypes=[( "Sheesh Files", "*.sheesh"),("Text Files", "*.txt"), ("All Files", "*.*"),])
+    if filepath:
+        with open(filepath, "r") as file:
+            txt_editor_pane.delete("1.0", END)
+            txt_editor_pane.insert("1.0", file.read())
+
+def template():
+    filepath=r"source\core\template.sheesh"
     if filepath:
         with open(filepath, "r") as file:
             txt_editor_pane.delete("1.0", END)
@@ -434,6 +441,8 @@ txt_editor_pane = Text(
 
 txt_editor_pane.place(x=30, y=40, width=870, height=400)
 txt_editor_pane.bind("<Tab>", tab_pressed)
+template()
+
 
 lex_table_pane = Text(
     bd=0,

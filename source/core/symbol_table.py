@@ -108,36 +108,44 @@ class Variable:
 
     def set_scope(self, scope):
         self.scope=scope
+    
+    def get_val(self):
+        if self.value!=None:
+            return self.value
+        else:
+            raise ValueError("VAR_UNDEF")
 
     def __repr__(self):
         return f"Variable({self.id}, {self.type}, {self.value})"
     
 
 class Sequence(Variable):
-    def __init__(self, id, type, scope) -> None:
+    def __init__(self, id, type, scope, rows, cols) -> None:
         super().__init__(id, type, scope=scope)
-        self.size1=None
-        self.size2=None
-        self.values=[]
-    
-    def set_sizes(self, size1, size2):
-        self.size1=size1
-        self.size2=size2
+        self.array=[[None]*cols for _ in range(rows)]
+        self.rows=rows
+        self.cols=cols
+    def set(self, rows, cols, value):
+        self.array[rows][cols]=value
 
     def initialize(self, values):
-        raise NotImplementedError
+        """ This assumes that values is also a list. Interface accordingly. """
+        if len(values)!=self.rows:
+            raise ValueError(se.WRONG_NUM_VALUES)
+        
+        for i in range(self.rows):
+            if len(values[i])!=self.cols:
+                raise ValueError(se.WRONG_NUM_VALUES)
+            for j in range(len(self.cols)):
+                self.array[i][j]=values[i][j]
 
-    def index_assign(self, index, value):
-        self.values[index]=value
-
-    def append(self, value):
-        self.values.append(value)
-
-    def index_getvalue(self, index, index2):
-        return self.values[index][index2]
-
-    def initialize(self, values):
-        return NotImplementedError
+    def get(self, row, col):
+        if row>=self.rows or col>=self.cols:
+            raise ValueError(se.OUT_OF_BOUNDS)
+        if col==None:
+            return self.array[row]
+        else:
+            return self.values[row][col]
     
     def __repr__(self):
         return f"Sequence({self.id}, {self.type}, {self.values})"
@@ -213,7 +221,7 @@ class SymbolTable:
     """
     def __init__(self):
         self.symbols = {}
-        self.scope_tree=ScopeTree()
+        # self.scope_tree=ScopeTree()
 
     def keys(self):
         return self.symbols.keys()

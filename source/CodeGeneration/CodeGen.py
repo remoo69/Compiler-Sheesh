@@ -13,7 +13,7 @@ from source.CodeGeneration.Functionality.Loops import Loops
 from source.CodeGeneration.Functionality.Declarations import Identifier
 from source.CodeGeneration.Functionality.Evaluators import Evaluators
 from source.CodeGeneration.Functionality.InOut import InOut
-
+from source.core.AST import AST
 
 
 
@@ -140,6 +140,7 @@ class CodeGenerator:
             # "func_call" : self.func_call,
             # "index":self.index,
             # "constant_declaration":self.constant_declaration,
+            "id_as_val":self.id_as_val,
 
     
         }
@@ -199,13 +200,42 @@ class CodeGenerator:
         elif self.current_node.children[0].value=="bet":
             self.functionality["bet"]()
 
+    def id_as_val(self):
+        items= self.current_node.leaves()
+        if items[0].type=="Identifier":
+            id_obj=items[0]
+            id=id_obj.value
+            try:
+                if len(items)>1:
+                    if items[1].type=="[":
+                        self.symbol_table.find_seq(id, self.current_scope)
+                    elif items[1].type=="(":
+                        self.symbol_table.find_func(id)
+                        
+
+                else: 
+                    var=self.symbol_table.find_var(id, self.current_scope)
+                    if var==None:
+                        self.semantic_error(se.VAR_UNDEF, id_obj, se.expected["VAR_UNDEF"])
+            except AttributeError as e:
+                e=str(e)
+                self.semantic_error(error=getattr(se, e), token=id_obj, expected=se.expected[str(e)])
+
+        else: pass
     def var_or_seq_dec(self):
         try:
             if self.current_node.children[1].type=="Identifier":
                 # expr= ''.join([str(x.value) for x in self.current_node.leaves()[2:] if x.type not in ["#"]])
                 # self.symbol_table.find_var(self.current_node.children[1].value, self.current_scope).assign("=", Evaluators(self.current_node.children[0], runtime_errors=self.runtime_errors, scope=self.current_scope, symbol_table=self.symbol_table).general_evaluator(expr=expr))
-                id=self.current_node.children[1]
-                Evaluators(self.current_node.leaves(), runtime_errors=self.runtime_errors, scope=self.current_scope, symbol_table=self.symbol_table).assign(id)
+                if isinstance(self.current_node.children[2], AST):
+                    samp=self.current_node.children[2].leaves()[0].value
+                    print(samp)
+                    if samp in const.asop:
+                        id=self.current_node.children[1]
+                        Evaluators(self.current_node.leaves(), runtime_errors=self.runtime_errors, scope=self.current_scope, symbol_table=self.symbol_table).assign(id)
+                        print(self.symbol_table)
+                else:
+                    self.symbol_table.find_var(self.current_node.children[1].value, self.current_scope)
         except AttributeError:
             if self.current_node.children[2].type=="Identifier":
                 self.symbol_table.find_var(self.current_node.children[2].value, self.current_scope).assign("=", Evaluators(self.current_node.children[0]).general_evaluator(self.current_node.children))

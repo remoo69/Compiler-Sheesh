@@ -44,13 +44,18 @@ class ControlFlow:
         else:
             fail=self.codegen.current_node.children[-1] 
 
-        if Evaluators(expression=condition, runtime_errors=self.codegen.runtime_errors, scope=self.codegen.current_scope, symbol_table=self.codegen.symbol_table).evaluate_cond(condition)==True:
-            self.codegen.current_node = self.semantic.parse_tree.traverse(success)
+        if Evaluators(expression=condition, runtime_errors=self.codegen.runtime_errors, scope=self.codegen.current_scope, symbol_table=self.codegen.symbol_table).evaluate_cond()==True:
+            self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(success)
             self.codegen.routines[self.codegen.current_node.root]()
 
         else:
             if fail==None:
-                return
+                try:
+                    fail=self.codegen.current_node.parent.parent.children[1]
+                except IndexError:
+                    return
+                self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(fail)
+                self.codegen.routines[self.codegen.current_node.root]()
             else:
                 while True:
                     try:
