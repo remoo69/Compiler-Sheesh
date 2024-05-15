@@ -1,6 +1,3 @@
-keywords = ["text", "charr","whole", "dec", "sus", "blank", "sheesh", "yeet", "based",
-            "kung", "ehkung", "deins", "when", "bet", "choose","for", "to", 
-            "step", "felloff", "pass", "use", "from", "nocap", "cap", "default", "up", "pa_mine", "def", "whilst"]
 # import source.helper as helper
 import sys
 sys.path.append( '.' )
@@ -9,6 +6,7 @@ from source.SyntaxAnalyzer.Parser import SyntaxAnalyzer as parser
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import *
+from source.core.constants import keywords
 from PIL import Image, ImageTk
 from tkinter import constants
 from tkinter import ttk
@@ -107,6 +105,7 @@ def run_lex():
     tokens=compiler.lexer.tokens
     error=compiler.lexer.errors
     tokens=remove_eol(tokens)
+
     if tokens != []:
         tokens=remove_whitespace_type(tokens)
         print_lex(tokens)
@@ -127,6 +126,7 @@ def run_lex():
         error_pane.config(state="disabled")
 
 
+
 def remove_eol(tokens):
     new_tokens = []
     for token in tokens:
@@ -140,7 +140,7 @@ def run_parser():
     print("Parsing...")
     code = txt_editor_pane.get("1.0", END)
     compiler=Compiler(code)
-    compiler.compile()
+    compiler.parse()
     # print_lex(remove_eol(tokens))
     lex_errors=compiler.lex_errors
     syntax_errors=compiler.syntax_errors

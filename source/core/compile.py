@@ -73,3 +73,16 @@ class Compiler:
         else:
             self.lex_errors=self.lexer.errors
             return
+
+    def parse(self):
+        print("Start Parsing...")
+        self.lexer.tokenize()
+        if not self.lexer.errors:
+            self.parser=SyntaxAnalyzer(
+                Compiler.remove_whitespace_type(self.lexer.tokens))
+            self.parser.parse()
+            if self.parser.syntax_errors:
+                self.syntax_errors=self.parser.syntax_errors
+        else:
+            self.lex_errors=self.lexer.errors
+    
