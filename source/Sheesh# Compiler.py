@@ -116,7 +116,7 @@ def run_lex():
     print("Lexical Analysis...")
     code = txt_editor_pane.get("1.0", END)
     compiler=Compiler(code)
-    compiler.compile()
+    compiler.parse()
     tokens=compiler.lexer.tokens
     error=compiler.lexer.errors
     tokens=remove_eol(tokens)
@@ -156,6 +156,7 @@ def run_parser():
     code = txt_editor_pane.get("1.0", END)
     compiler=Compiler(code)
     compiler.parse()
+    tokens = compiler.lexer.tokens
     # print_lex(remove_eol(tokens))
     lex_errors=compiler.lex_errors
     syntax_errors=compiler.syntax_errors
@@ -195,7 +196,9 @@ def run_parser():
                 error_pane.insert(constants.END, f"{error}\n")
             # error_pane.config(state="disabled")
 
-
+        tokens = remove_eol(compiler.lexer.tokens)
+        tokens = remove_whitespace_type(tokens)
+        print_lex(tokens)
         lex_table_pane.config(state="disabled")
         error_pane.config(state="disabled")
 
