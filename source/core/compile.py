@@ -8,9 +8,9 @@ from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer
 from source.CodeGeneration.CodeGen import CodeGenerator
 
 # from source.core.AST import AST
-from source.core.symbol_table import Identifiers
+# from source.core.symbol_table import Identifiers
 class Compiler:
-    def __init__(self, code) -> None:
+    def __init__(self, code, debugMode=False) -> None:
 
 
         self.lexer=Lexer(code)
@@ -27,6 +27,8 @@ class Compiler:
         self.semantic_errors=[]
         self.runtime_errors=[]
 
+        self.debug=debugMode
+
     @staticmethod
     def remove_whitespace_type(tokens):
         new_tokens = []
@@ -38,27 +40,36 @@ class Compiler:
     def compile(self):
         print("Compiler Function...")
         self.lexer.tokenize()
+
         if not self.lexer.errors:
             self.parser=SyntaxAnalyzer(
-                Compiler.remove_whitespace_type(self.lexer.tokens))
+                Compiler.remove_whitespace_type(self.lexer.tokens), self.debug)
             self.parser.parse()
+
             if not self.parser.syntax_errors:
-                self.semantic=SemanticAnalyzer(self.parser.Tree)
+                self.semantic=SemanticAnalyzer(self.parser.Tree, self.debug)
                 self.semantic.analyze()
+
                 if not self.semantic.semantic_errors:
-                    self.codegen=CodeGenerator(self.semantic)
+                    self.codegen=CodeGenerator(self.semantic, self.debug)
                     self.codegen.generate_code()
+
                     if self.codegen.runtime_errors:
                         self.runtime_errors=self.codegen.runtime_errors
                         return
+                    
                     else:
                         self.output=self.codegen.output_stream
                         return
+                    
                 else:
                     self.semantic_errors=self.semantic.semantic_errors
                     return
+                
             else:
                 self.syntax_errors=self.parser.syntax_errors
+                return
+            
         else:
             self.lex_errors=self.lexer.errors
             return
