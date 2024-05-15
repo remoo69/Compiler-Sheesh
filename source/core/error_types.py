@@ -96,6 +96,7 @@ class Semantic_Errors:
 
         PARAM_REDECL_INSCOPE="Redeclaration of Parameter Identifier in Scope"
         PARAM_UNDECL_INSCOPE="Undeclared Parameter Identifier in Scope"
+        SEQ_REDECL_INSCOPE="Redeclaration of Sequence in Scope"
 
         EMPTY_BODY="Empty Body"
         EWAN="Placeholder Error"
@@ -112,7 +113,7 @@ class Semantic_Errors:
         "VAR_SCOPE_INVALID": "Valid Scope",
 
         "SEQ_UNDECL": "Declared Sequence",
-
+        "SEQ_REDECL_INSCOPE": "Different Sequence Identifier",
         
         "FUNC_UNDECL": "Declared Function",
         "FUNC_UNDEF":"Defined Function",

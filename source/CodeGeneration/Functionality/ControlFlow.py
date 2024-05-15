@@ -51,7 +51,7 @@ class ControlFlow:
         else:
             if fail==None:
                 try:
-                    fail=self.codegen.current_node.parent.parent.children[1]
+                    fail=self.codegen.current_node.parent.children[1]
                 except IndexError:
                     return
                 self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(fail)

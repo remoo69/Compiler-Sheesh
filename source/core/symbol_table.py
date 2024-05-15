@@ -122,11 +122,16 @@ class Variable:
 class Sequence(Variable):
     def __init__(self, id, type, scope, rows, cols) -> None:
         super().__init__(id, type, scope=scope)
-        self.array=[[None]*cols for _ in range(rows)]
+        self.array=[[None]*cols for _ in range(int(rows))]
         self.rows=rows
         self.cols=cols
+
     def set(self, rows, cols, value):
-        self.array[rows][cols]=value
+        if rows>self.rows or cols>self.cols:
+            raise ValueError("OUT_OF_BOUNDS")
+        else:
+            
+            self.array[rows][cols]=value
 
     def initialize(self, values):
         """ This assumes that values is also a list. Interface accordingly. """
@@ -148,7 +153,7 @@ class Sequence(Variable):
             return self.values[row][col]
     
     def __repr__(self):
-        return f"Sequence({self.id}, {self.type}, {self.values})"
+        return f"Sequence({self.id}, {self.type}, {self.array})"
     
 
 #NOTE- medj sus
@@ -237,11 +242,11 @@ class SymbolTable:
 
 
 #FIXME - IDK WHAT TO DO WITH THIS
-    def sequence(self, id, type, scope):
+    def sequence(self, id, type, scope, rows, cols):
         if id not in self.symbols.keys():
-            self.symbols[id]=Sequence(id=id, type=type, scope=scope)
+            self.symbols[id]=Sequence(id=id, type=type, scope=scope, rows=rows, cols=cols)
         else:
-            raise KeyError("VAR_REDECL_INSCOPE")
+            raise KeyError("SEQ_REDECL_INSCOPE")
         
 
     def function(self,*,id, return_type, parameters, body=None):

@@ -142,6 +142,7 @@ class CodeGenerator:
             # "constant_declaration":self.constant_declaration,
             "id_as_val":self.id_as_val,
             "func_def":self.func_def,
+            "loop_body_statement": self.loop_body_statement,
 
     
         }
@@ -199,7 +200,7 @@ class CodeGenerator:
             Loops(self).for_()
 
         elif self.current_node.children[0].value=="bet":
-            self.functionality["bet"]()
+            Loops(self).bet_whilst()
 
     def id_as_val(self):
         items= self.current_node.leaves()
@@ -235,11 +236,14 @@ class CodeGenerator:
                         id=self.current_node.children[1]
                         Evaluators(self.current_node.leaves(), runtime_errors=self.runtime_errors, scope=self.current_scope, symbol_table=self.symbol_table).assign(id)
                         print(self.symbol_table)
+                    elif self.current_node.children[2].root=="index": #FIXME - medj sus
+                        self.symbol_table.find_seq(id=self.current_node.children[1].value).initialize()
                 else:
                     self.symbol_table.find_var(self.current_node.children[1].value, self.current_scope)
         except AttributeError:
             if self.current_node.children[2].type=="Identifier":
                 self.symbol_table.find_var(self.current_node.children[2].value, self.current_scope).assign("=", Evaluators(self.current_node.children[0]).general_evaluator(self.current_node.children))
+    
     def more_loop_body(self):
         try:
             if self.current_node.children[0].root in  self.routines.keys():
@@ -279,17 +283,27 @@ class CodeGenerator:
 
     def loop_body(self):
         try:
-            self.functionality[self.current_node.children[0].children[0].children[0].value]()
+            # self.functionality[self.current_node.children[0].children[0].children[0].value]()
+            first=self.current_node.children[0]
+            next=None
+            if len(self.current_node.children)==2:
+                next=self.current_node.children[1]
+
             self.previous_node=self.current_node
-            self.current_node = self.semantic.parse_tree.traverse(self.current_node)
-        except AttributeError: 
-            self.functionality[self.current_node.children[0]]()
-            self.previous_node=self.current_node
-            self.current_node = self.semantic.parse_tree.traverse(self.current_node)
+            self.current_node = self.semantic.parse_tree.traverse(first)
+            self.routines[self.current_node.root]()
+
+            if next:
+                self.previous_node=self.current_node
+                self.current_node = self.semantic.parse_tree.traverse(next)
+                self.routines[self.current_node.root]()
+            
         except KeyError:
             self.previous_node=self.current_node
             self.current_node = self.semantic.parse_tree.traverse(self.current_node) 
-            self.routines["loop_body_statement"]()  
+            self.routines["loop_body_statement"]()
+        
+
             
     def control_flow_statement(self):
         if self.current_node.children[0].value =="choose":
@@ -299,6 +313,32 @@ class CodeGenerator:
             ControlFlow(self).kung()
             self.previous_node=self.current_node
             self.current_node = self.semantic.parse_tree.traverse(self.current_node)
+
+    def loop_body_statement(self):
+        first=self.current_node.children[0]
+        if isinstance(first, AST):
+            if first.root in self.routines.keys():
+                self.previous_node=self.current_node
+                self.current_node=first
+                self.routines[first.root]()
+                # self.previous_node=self.current_node
+                # self.current_node = self.semantic.parse_tree.traverse(self.current_node)
+        else:
+            if first.value =="choose":
+                ControlFlow(self).choose_when_default()
+            elif first.value  =="kung":
+
+                ControlFlow(self).kung()
+                self.previous_node=self.current_node
+                self.current_node = self.semantic.parse_tree.traverse(self.current_node)
+            elif first.value=="felloff":
+                Loops(self).felloff()
+                self.previous_node=self.current_node
+                self.current_node = self.semantic.parse_tree.traverse(self.current_node)
+            elif first.value=="pass":
+                Loops(self).pass_()
+                self.previous_node=self.current_node
+                self.current_node = self.semantic.parse_tree.traverse(self.current_node)
 
     def func_def(self):
         type=self.current_node.children[1].leaves()[0].value

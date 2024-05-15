@@ -38,7 +38,7 @@ class Identifier:
         leaves=self.node.leaves()
         if leaves[1].type=="(":
             self.function_call()
-        elif leaves[1].type=="=":
+        elif leaves[1].type in const.asop:
             Evaluators(self.leaves, self.runtime_errors, self.current_scope, self.symbol_table).assign(self.node.children[0])
         else:
             pass

@@ -226,8 +226,21 @@ class SemanticAnalyzer:
                     try:
                         if len(self.current_node.children[2].children)>1 or self.current_node.children[2].children[0].root=="index":
                             if self.current_node.children[2].children[0].root=="index":
-                                ind=self.current_node.children[2].children[0].leaves()
-                                self.symbol_table.sequence(id=items[1].value, type=self.req_type, scope=self.current_scope)
+                                # ind=self.current_node.children[2].children[0].leaves()
+                                # rows=self.current_node.children[2].children[0].leaves()
+                                try:
+                                    rows=self.current_node.children[2].children[0].leaves()[1].numerical_value
+                                    if isinstance(self.current_node.children[2].children[1].children[0], AST):
+                                        cols=self.current_node.children[2].children[1].children[0].children[1].numerical_value
+                                    else:
+                                        cols=0
+                                except AttributeError:
+                                    rows=21
+                                    if isinstance(self.current_node.children[2].children[1].children[0], AST):
+                                        cols=21
+                                    else:
+                                        cols=0
+                                self.symbol_table.sequence(id=items[1].value, type=self.req_type, scope=self.current_scope, rows=rows, cols=cols)
                             else:
                                 return
                         else:

@@ -29,11 +29,13 @@ class Loops:
         self.debug=True
 
     def bet_whilst(self):
-        condition=self.codegen.current_node.children[5]
+        condition=self.codegen.current_node.children[4].leaves()
+        #need makuha si loop body para makuha next statements
         loop_body=self.codegen.current_node.children[1]
-        while Evaluators(condition).logic_rel()==False:
-            self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(loop_body)
+        while Evaluators(runtime_errors=self.codegen.runtime_errors, expression=condition, scope=self.codegen.current_scope, symbol_table=self.codegen.symbol_table).evaluate_cond()==True:
             self.previous_node=self.codegen.current_node
+            self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(loop_body)
+            
             self.codegen.routines[self.codegen.current_node.root]()
 
 
@@ -70,8 +72,9 @@ class Loops:
 
         
         while iterator.value != end:
+            self.codegen.previous_node=self.codegen.current_node
             self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(loop_body)
-            self.previous_node=self.codegen.current_node
+           
             self.codegen.routines[self.codegen.current_node.root]()
         
             # self.routines["in_loop_body"]()
