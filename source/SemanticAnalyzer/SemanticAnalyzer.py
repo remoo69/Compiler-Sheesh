@@ -139,7 +139,7 @@ class SemanticAnalyzer:
             "reg_body": self.reg_body,
             "assign_op": self.assign_op,
             "looping_statement": self.looping_statement,
-            # "function_definition":self.function_definition,
+            "func_def":self.func_def,
 
             
             }
@@ -161,6 +161,32 @@ class SemanticAnalyzer:
                 # self.code_gen.generate_code()
                 print(self.symbol_table)
                 break  # Exit the loop if the tree has been fully traversed
+
+    def func_def(self):
+        items=self.current_node.leaves()
+        
+        type=items[1].value
+        if type=="charr":
+            id=items[3].value
+        else:
+            id=items[2].value
+
+        parameter=self.current_node.children[4].leaves()
+
+        params=[]
+        for i, param in enumerate(parameter):
+            if param.type in const.DATA_TYPES:
+                param_type=param.type
+                param_id=parameter[i+1].value
+                params.append(param_id)
+                self.symbol_table.parameter(id=param_id, type=param_type, scope=self.current_scope, param_type="Variable")
+            elif param.type==")":
+                break
+
+        body=self.current_node.find_node("func_def_tail")
+
+        self.symbol_table.function(id=id, return_type=type, parameters=params, body=body)
+
 
     def in_param(self):
 
@@ -454,7 +480,7 @@ class SemanticAnalyzer:
 
 
             
-            
+      
 
 
     def sheesh_declaration(self):
@@ -490,7 +516,7 @@ class SemanticAnalyzer:
 
     def math_op(self):
         if self.current_node.children[0].type=="/":
-            operand=self.check.next_operand()
+            operand=self.current_node.parent.children[1].leaves()[0]
             if (operand.numerical_value<1 and operand.numerical_value >-1) and operand.numerical_value%1 == 0:
                 self.semantic_error(se.ZERO_DIV, operand, "Non-zero value")
             

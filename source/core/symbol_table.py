@@ -174,6 +174,8 @@ class Function:
         self.parameters:list[Parameter]=parameters
         self.func_body:AST=None
 
+    def __repr__(self) -> str:
+        return f"Function({self.id}, {self.return_type}, {self.parameters}, {self.func_body})"
 
     # def new_statement(self, statement):
     #     self.statements.append(statement)
@@ -208,10 +210,13 @@ class Function:
         return self.func_body #FIXME - di pa ayos to
     
 class Parameter(Variable):
-    def __init__(self, id, type, param_type) -> None:
-        super().__init__(id, type)
+    def __init__(self, id, type, param_type, scope) -> None:
+        super().__init__(id, type, scope)
         #regular var or sequence
         self.param_type=param_type
+    
+    def __repr__(self):
+        return f"Parameter({super().__repr__()})"
 
 class ScopeTree:
     def __init__(self, root, children) -> None:
@@ -252,7 +257,9 @@ class SymbolTable:
     def function(self,*,id, return_type, parameters, body=None):
         if id not in self.symbols.keys():
             if body:
-                self.symbols[id]=Function(id=id, return_type=return_type, parameters=parameters).body(body)
+                self.symbols[id]=Function(id=id, return_type=return_type, parameters=parameters)
+                self.symbols[id].body(body)
+                print(self.symbols)
             else:
                 self.symbols[id]=Function(id=id, return_type=return_type, parameters=parameters)
         else:
@@ -270,7 +277,7 @@ class SymbolTable:
         if id in self.symbols.keys() and isinstance(self.symbols[id], Parameter) and self.symbols[id].scope==scope:
             raise KeyError("PARAM_REDECL_INSCOPE")
         else:
-            self.symbols[id]=Parameter(id=id, type=type, param_type=param_type).set_scope(scope=scope)
+            self.symbols[id]=Parameter(id=id, type=type, param_type=param_type, scope=scope)
 
 
     def find(self,id, scope):

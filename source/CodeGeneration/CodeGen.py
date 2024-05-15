@@ -301,7 +301,7 @@ class CodeGenerator:
         except KeyError:
             self.previous_node=self.current_node
             self.current_node = self.semantic.parse_tree.traverse(self.current_node) 
-            self.routines["loop_body_statement"]()
+            self.routines["loop_body_statement"]() #NOTE - might cause issue
         
 
             
