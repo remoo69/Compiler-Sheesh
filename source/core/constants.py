@@ -73,9 +73,9 @@ delimiters = {
     "delim7": [" ","\\","}", ""],
     "delim8": [" ","\\", ""],
     "delim9": alph_num+[" ","(","{", "!", '"', '“', '"', '”', "\'"],           
-    "delim10": alph_all+[" ","(","!"],
+    "delim10": alph_num+[" ","(","!"],
     "delim11": alph_num+[" ","(","!", "\'"],
-    "delim12": all_op+comma+[" ","#","[","]",")" ],
+    "delim12": all_op+comma+[" ","#","[","]",")", "."],
     "delim13": alph_num+[" ","\\","(", "{", "\"", None],
     "delim14": alph_all+comma+[" ","#", "}",None],
     "delim15": alph_num+[" ", "!","(", ")", '"', '“', '"', '”', "-", "\'"],    
@@ -89,7 +89,7 @@ delimiters = {
     "delim23": [" ", ")"],                                                  
     "delim24": alph_num+[" ","(", "]", "\'"],                               # added delim24 for '!=' 
     "delim25": alph_num+[" ","(", "]", "]"],                                # added delim25 for '['    
-    "charr_delim": comma+[" ","#","==",")",":","::","!="],                  
+    "charr_delim": comma+[" ","#","==",")",":","::","!=", "&", "|"],                  
     "txt_delim": comma+[" ", "#", ")", "}", ":", '=', ],
     "blk_delim": [" ", "\\",None],
     "id_delim": op+comma+[" ", "#", "(",")", "[", "]", "{", ".", ":"],
