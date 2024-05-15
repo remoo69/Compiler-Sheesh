@@ -25,20 +25,45 @@ Automata Theory and Formal Languages & Compiler Design as part of the programs i
 
 
 
-Developers: 
-
-```
-Pateno, Romeo II
-
-David, Jed Laurence
-
-Rivera, Greg Andrew
-
-Cerezo, Christelle
-
-Linghon, Patricia
-
-Pascual, Kaye Alex
-
-Vallar, Vanessa
-```
+<h2 align="center" valign="top">Group Members</h2>
+<table align="center" valign="top">
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14%"><a href="https://github.com/remoo69">
+         <img src="https://avatars.githubusercontent.com/u/121857724?v=4" width="100px;" alt="Romeo Pateno"/>
+         <br /><sub><b>Romeo Pateno</b></sub></a><br />
+         <span>Lead Programmer</span>
+      </td>
+      <td align="center" valign="top" width="14%"><a href="https://github.com/Vivamusmagna">
+         <img src="https://avatars.githubusercontent.com/u/148524793?v=4" width="100px;" alt="Greg Andrew Rivera"/>
+         <br /><sub><b>Greg Rivera</b></sub></a><br />
+         <span>Member</span>
+      </td>    
+      <td align="center" valign="top" width="14%"><a href="https://github.com/1202DREAMSCAPE">
+         <img src="https://avatars.githubusercontent.com/u/88035813?v=4" width="100px;" alt="Christelle Cerezo"/>
+         <br /><sub><b>Christelle Cerezo</b></sub></a><br />
+         <span>Member</span>
+      </td>
+      <td align="center" valign="top" width="14%"><a href="https://github.com/remoo69/Compiler-Sheesh">
+         <img src="https://i.stack.imgur.com/frlIf.png" width="100px;" alt="Pat Linghon"/>
+         <br /><sub><b>Pat Linghon</b></sub></a><br />
+         <span>Member</span>
+      </td>
+      <td align="center" valign="top" width="14%"><a href="https://github.com/remoo69/Compiler-Sheesh">
+         <img src="https://i.stack.imgur.com/frlIf.png" width="100px;" alt="Vanessa Vallar"/>
+         <br /><sub><b>Vanessa Vallar</b></sub></a><br />
+         <span>Member</span>
+      </td>
+      <td align="center" valign="top" width="14%"><a href="https://github.com/remoo69/Compiler-Sheesh">
+         <img src="https://i.stack.imgur.com/frlIf.png" width="100px;" alt="Kaye Pascual"/>
+         <br /><sub><b>Kaye Pascual</b></sub></a><br />
+         <span>Member</span>
+      </td>
+       <td align="center" valign="top" width="14%"><a href="https://github.com/jldav1d">
+         <img src="https://avatars.githubusercontent.com/u/92510338?v=4" width="100px;" alt="Jed David"/>
+         <br /><sub><b>Jed David</b></sub></a><br />
+         <span>Documenter</span>
+      </td>
+    </tr>
+</tbody>
+</table>
