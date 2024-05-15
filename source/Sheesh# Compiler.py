@@ -105,18 +105,27 @@ def run_lex():
     tokens=compiler.lexer.tokens
     error=compiler.lexer.errors
     tokens=remove_eol(tokens)
-    if error:
+
+    if tokens != []:
         tokens=remove_whitespace_type(tokens)
-    elif tokens:
-        tokens=remove_whitespace_type(tokens)
+        print_lex(tokens)
+        lex_table_pane.config(state="disabled")
+        error_pane.config(state="disabled")
     else:
-        tokens = compiler.lexer.no_tokens
-        error = ["Nothing to Lexically Analyze. Please input code."]
-    
-    print_lex(tokens)
-    print_error(error)
-    lex_table_pane.config(state="disabled")
-    error_pane.config(state="disabled")
+        tokens=compiler.lexer.no_tokens
+
+    if error !=[]:
+        print_lex(tokens)
+        print_error(error)
+        lex_table_pane.config(state="disabled")
+        error_pane.config(state="disabled")
+    else:
+        print_lex(tokens)
+        print_error(["Nothing to Lexically Analyze. Please input code."])
+        lex_table_pane.config(state="disabled")
+        error_pane.config(state="disabled")
+
+
 
 def remove_eol(tokens):
     new_tokens = []
@@ -234,7 +243,7 @@ def compile():
     
     print("Compiling...")
     code = txt_editor_pane.get("1.0", END)
-    compiler=Compiler(code)
+    compiler=Compiler(code, False)
     compiler.compile()
     # print_lex(remove_eol(tokens))
     lex_errors=compiler.lex_errors
@@ -346,7 +355,14 @@ def print_error(error):
 
 
 def load_file():
-    filepath = filedialog.askopenfilename(initialdir="/", title="Select a File", filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
+    filepath = filedialog.askopenfilename(initialdir="/", title="Select a File", filetypes=[( "Sheesh Files", "*.sheesh"),("Text Files", "*.txt"), ("All Files", "*.*"),])
+    if filepath:
+        with open(filepath, "r") as file:
+            txt_editor_pane.delete("1.0", END)
+            txt_editor_pane.insert("1.0", file.read())
+
+def template():
+    filepath=r"source\core\template.sheesh"
     if filepath:
         with open(filepath, "r") as file:
             txt_editor_pane.delete("1.0", END)
@@ -425,6 +441,8 @@ txt_editor_pane = Text(
 
 txt_editor_pane.place(x=30, y=40, width=870, height=400)
 txt_editor_pane.bind("<Tab>", tab_pressed)
+template()
+
 
 lex_table_pane = Text(
     bd=0,
@@ -466,6 +484,7 @@ run_lex_img = PhotoImage(file="source/assets/run_lex.png")
 run_syn_img = PhotoImage(file="source/assets/run_syntax.png") 
 load_img=PhotoImage(file="source/assets/load.png")
 run_sem_img=PhotoImage(file="source/assets/run.png")
+compile_img=PhotoImage(file="source/assets/run.png")
 
 lex_btn = Button(
         image=run_lex_img,
@@ -523,9 +542,29 @@ semantic_btn = Button(
         fg="#079AD2",
         activeforeground="#FFFFFF",
         justify="center",
+        command=run_semantic,
+)
+semantic_btn.place(x=900,y=40,width=50,height=50)
+
+
+compile_btn = Button(
+        image=compile_img,
+        compound=LEFT,
+        bg="#282822",
+        borderwidth=0,
+        highlightthickness=0,
+        activebackground="#AAAAAA",
+        fg="#079AD2",
+        activeforeground="#FFFFFF",
+        justify="center",
         command=compile,
 )
-semantic_btn.place(x=800,y=40,width=50,height=50)
+compile_btn.place(x=800,y=40,width=50,height=50)
+
+
+
+
+
 line_numbers = Text(bd=0, bg=clr_black, fg="#FFFFFF", font=('Open Sans', 12), width=4, wrap="none", state="disabled")
 line_numbers.place(x=5,y=50,width=20,height=390)
 scrollbar = ttk.Scrollbar(

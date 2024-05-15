@@ -5,18 +5,11 @@ from source.core.error_handler import SyntaxError as Error
 from time import perf_counter
 from collections import deque
 from source.core.AST import AST
-from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer as semantic
-
-
-debug=False
-debug_fail=False
-tree_debug=True
-status_report=False
 
 class SyntaxAnalyzer:
 
     
-    def __init__(self, tokens:list[Token]) -> None:
+    def __init__(self, tokens:list[Token], debugMode=False) -> None:
 
         
 
@@ -35,8 +28,26 @@ class SyntaxAnalyzer:
         self.matched=[]
 
         self.semantic=None
+        
+        debugMode=True
+        if debugMode:
+            self.debug=True
+            self.debug_fail=True
+            self.tree_debug=True
+            self.status_report=True
+        else:
+            #Mode 1
+            # self.debug=False
+            # self.debug_fail=False
+            # self.tree_debug=True
+            # self.status_report=False
 
+            self.debug=False
+            self.debug_fail=False
+            self.tree_debug=False
+            self.status_report=False
 
+    
 
         
 
@@ -96,7 +107,7 @@ class SyntaxAnalyzer:
             return self.syntax_errors
         else:
             try:
-                if status_report:
+                if self.status_report:
                     start=perf_counter()
 
                     self.program()
@@ -111,7 +122,7 @@ class SyntaxAnalyzer:
                 else:
                     self.program()
                     self.Tree.end_tree() 
-                if tree_debug:
+                if self.tree_debug:
                     print(self.Tree)
 
                 # self.semantic=semantic(self.Tree)
@@ -217,7 +228,7 @@ class SyntaxAnalyzer:
 
         if len(self.tokens) == 0:
             self.expectset.append(self.expected)
-            print(f"EOF, nothing to match {consumable} with.") if debug_fail else None
+            print(f"EOF, nothing to match {consumable} with.") if self.debug_fail else None
             self.failed()
             # self.Tree.end_branch()
             self.expected = None
@@ -227,11 +238,10 @@ class SyntaxAnalyzer:
         consumed = self.see(consumable)
 
         if consumed is None: 
-            #ANCHOR - removed   and not self.isnullable
             if not skippable :
                 self.enforce()
 
-                if debug_fail:
+                if self.debug_fail:
                     try:
                         print(
                             f"Failed Match: {self.expected} FROM {self.Tree.current_func()}, got {self.tokens[0].type}")
@@ -242,7 +252,7 @@ class SyntaxAnalyzer:
                 self.failed()
                 return False
             else:
-                print(f"No {self.expected} FROM {self.Tree.current_func()} detected. Skipping.") if debug_fail else None
+                print(f"No {self.expected} FROM {self.Tree.current_func()} detected. Skipping.") if self.debug_fail else None
                 self.expectset.append(self.expected)
                 self.expected = None
                 return
@@ -252,7 +262,7 @@ class SyntaxAnalyzer:
             
             self.expected = None
             self.expectset = []
-            print("Matched:", consumed, "FROM ", self.Tree.current_func()) if debug else None
+            print("Matched:", consumed, "FROM ", self.Tree.current_func()) if self.debug else None
             if consumed == "#":
                 if self.peek() == "}":
                     self.Tree.add_children(self.matched[-1])
@@ -451,7 +461,7 @@ class SyntaxAnalyzer:
         self.Tree.initialize_new()
         if self.match("[", True):
             self.enforce()
-            # self.match("Whole") #FIXME - HUH?
+            # self.match("Whole") #NOTE - HUH?
             self.match("]")
             self.two_d_param()
             self.Tree.end_branch(); return self.success

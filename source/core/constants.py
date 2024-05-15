@@ -6,6 +6,7 @@ keywords = ["text", "charr","whole", "dec", "sus", "blank", "sheesh", "yeet", "b
             "step", "felloff", "pass", "nocap", "cap", "default", "up", "pa_mine", "def", "whilst"] # added def and whilst     
 
 DATA_TYPES = ["text","charr", "whole", "dec", "sus", "blank"]
+
 valid_tokens = ["Keyword", "Identifier", "Dec", "Whole", "Symbol", "Operator", "Text", "Charr", "Sus", "Whitespace"]
 
 valid_cfg_terminals = ["Identifier", "Dec", "Whole", "Text", "Charr", "Sus", "null", "sheesh", "text_literal", "dec_literal", "whole_literal", "sus_literal",
@@ -14,12 +15,209 @@ valid_cfg_terminals = ["Identifier", "Dec", "Whole", "Text", "Charr", "Sus", "nu
 operators_and_symbols = ['=', '+=', '-=', '*=', '/=', '%=', '==', '>', '>=', '<', '<=', '!=', '!', '&', 
                          '|', '+', '-', '*', '/', '%', '…', '#', '[',']', '{','}', '(',')', '/*', '*/', '//', '“', 
                          '”', '.', '::', ',', '$', '\n', '\t', '\"', '\\', '\\$']
+
 terminals=valid_cfg_terminals
 terminals.extend(operators_and_symbols)
 terminals.extend(keywords)
 
 
-#Regular Definitions
+MAX_IDEN_LENGTH=30
+WHOLE_MIN=-32768
+WHOLE_MAX=32767
+DEC_MIN=-32768.999999
+DEC_MAX=32767.999999
+
+GBL="Global"
+LOCAL="Local"
+
+VAR="Variable"
+FUNC="Function"
+MOD="Module"
+SEQ="Sequence"
+CONST="Constant"
+
+IMP="Imported"
+PARAM="Parameter"
+ARG="Argument"
+
+
+
+
+
+
+class charr:
+    def __init__(self, value):
+        self.value=value
+        self.type="char"
+
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return self.value
+
+    def __add__(self, other):
+        return charr(self.value+other.value)
+
+    def __sub__(self, other):
+        return charr(self.value-other.value)
+
+    def __mul__(self, other):
+        return charr(self.value*other.value)
+
+    def __truediv__(self, other):
+        return charr(self.value/other.value)
+
+    def __mod__(self, other):
+        return charr(self.value%other.value)
+
+    def __eq__(self, other):
+        return self.value==other.value
+
+    def __ne__(self, other):
+        return self.value!=other.value
+
+    def __lt__(self, other):
+        return self.value<other.value
+
+    def __le__(self, other):
+        return self.value<=other.value
+
+    def __gt__(self, other):
+        return self.value>other.value
+
+    def __ge__(self, other):
+        return self.value>=other.value
+
+    def __and__(self, other):
+        return self.value and other.value
+
+    def __or__(self, other):
+        return self.value or other.value
+
+    def __xor__(self, other):
+        return self.value ^ other.value
+
+    def __lshift__(self, other):
+        return self.value << other.value
+
+    def __rshift__(self, other):
+        return self.value >> other.value
+
+    def __invert__(self):
+        return ~self.value
+
+    def __neg__(self):
+        return -self.value
+
+    def __pos__(self):
+        return +self.value
+
+    def __abs__(self):
+        return abs(self.value)
+
+    def __round__(self, n):
+        return round(self.value, n)
+
+    def __floor__(self):
+        return self.value.floor()
+
+    def __ceil__(self):
+        return self.value.ceil()
+
+    def __trunc__(self):
+        return self.value.trunc()
+
+    def __int__(self):
+        return int(self.value)
+
+    def __float__(self):
+        return float(self.value)
+
+    def __bool__(self):
+        return bool(self.value)
+
+    def __hash__(self):
+        return hash(self.value)
+
+    def __len__(self):
+        return len(self.value)
+    
+class whole(int):
+    def __init__(self,value=0) -> None:
+        super().__init__()
+        self.type="whole"
+
+class dec(float):
+    def __init__(self, value=0.0) -> None:
+        super().__init__()
+        self.type="dec"
+
+class text(str):
+    def __init__(self, value="") -> None:
+        super().__init__()
+        self.type="text"
+
+class sus:
+    def __init__(self, value) -> None:
+        self.value=value
+        self.type="sus"
+        self.values={
+            True:"nocap",
+            False:"cap"
+        }
+    
+types={
+            "whole":whole,
+            "dec":dec,
+            "text":text,
+            "sus":sus,
+            "charr":charr
+            }
+
+py_types={
+            "whole":int,
+            "dec":float,
+            "text":str,
+            "sus":bool,
+            "charr":charr
+            }
+literal_types={
+            "Whole":int,
+            "Decimal":float,
+            "Text":str,
+            "Sus":bool,
+            "Charr":charr
+            }
+
+py_to_types={
+            int:whole,
+            float:dec,
+            str:text,
+            bool:sus,
+            charr:charr
+            }
+
+
+
+format_spec={
+            "w":int,
+            "d":float,
+            "t":str,
+            "s":bool,
+            "c":charr
+            }
+
+own_specifiers={
+            "w":"whole",
+            "d":"dec",
+            "t":"text",
+            "s":"sus",
+            "c":"charr"
+            }
+
+
+#region Regular Definitions
 zero = ['0']
 digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 abc_small = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
@@ -54,9 +252,15 @@ all_symbols_nonop=grouping_symbols+other_symbols+[",", "."]
 invalid_id_char=op+comma+['#', '.', '@', '^', '&', '(', ')', '`', '~', ':', '?', '$', ';', '[', ']', '{', '}', '/', '\\', '`', '^', "'", '"', '“', '"', '”']
 invalid_text_char=[] #['"', '“', '"', '”', ]
 invalid_symbols=["@", "^", "&", "`", "~", "?", "$", ";", "'", '`',":", "\\"]
-multi_charr=[r"'\0'", r"'\n'", r"'\t'"]
 
-# Delimiters used in the Transition Diagram/DFA
+multi_charr=[r"'\0'", r"'\n'", r"'\t'",]
+
+
+
+#endregion
+
+
+# region Delimiters used in the Transition Diagram/DFA
 
 delimiters = {
     "op": op,
@@ -95,7 +299,8 @@ delimiters = {
     "id_delim": op+comma+[" ", "#", "(",")", "[", "]", "{", ".", ":"],
     "n_delim": op+comma+[" ", "#", "(", ")", ":", "]", "}"],
     "space_delim": alph_num+[" ", "#", "(", ")", ":", "}", "]", ","]
-}   
+}  
+
 keywords_delims={
                 "based":delimiters["delim1"],
                 "bet":delimiters["delim4"],   
@@ -168,18 +373,7 @@ symbols_delims={
                 ' ': delimiters["space_delim"], 
                 ".": alph_all}
 
-RE_Literals={"text": r'^\"(?:(?!(?<!\\)").|\\")*\"$',
-              "whole": r"^(0|([1-9]\d{0,4})|\(-[1-9]\d{0,4}\))$", 
-              "pos_dec":   r'^(?:[0-9]\d{0,4}|0)\.\d{1,6}$', 
-              "neg_dec": r'^\(-(?!0+(\.0+)?)\d{1,5}\.\d{1,6}\)$',
-              "sus": boolean}
+#endregion
 
-RE_Identifier=r'[a-zA-Z][a-zA-Z0-9_]*$' #removed {0,8}
-RE_BlockComment=r'/\*.*?\*/'
-RE_InlineComment=r'//.*?\n'
 
-MAX_IDEN_LENGTH=30
-WHOLE_MIN=-32768
-WHOLE_MAX=32767
-DEC_MIN=-32768.999999
-DEC_MAX=32767.999999
+

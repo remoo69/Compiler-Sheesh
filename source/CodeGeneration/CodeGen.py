@@ -5,171 +5,77 @@ sys.path.append('.')
 from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer
 from source.core.error_handler import RuntimeError
 from source.core.error_types import Semantic_Errors as se
- 
+import source.core.constants as const
+from source.core.symbol_table import SymbolTable
+
+from source.CodeGeneration.Functionality.ControlFlow import ControlFlow
+from source.CodeGeneration.Functionality.Loops import Loops
+from source.CodeGeneration.Functionality.Declarations import Identifier
+from source.CodeGeneration.Functionality.Evaluators import Evaluators
+from source.CodeGeneration.Functionality.InOut import InOut
+from source.core.AST import AST
 
 
-debug=False
 
-class charr:
-    def __init__(self, value):
-        self.value=value
-        self.type="char"
+"""  
+TODO
+1. Literal Limits
+2. Choose-when-default
+3. Func def,call, as expr, prototype
+4. Sequence def, init, call, as expr
+5. Multiple init
+6. Seq bounds checking
+7. Seq size enforcement
 
-    def __str__(self):
-        return self.value
+8. LEX: sheesh()<-Null delim for ) not working
 
-    def __repr__(self):
-        return self.value
-
-    def __add__(self, other):
-        return charr(self.value+other.value)
-
-    def __sub__(self, other):
-        return charr(self.value-other.value)
-
-    def __mul__(self, other):
-        return charr(self.value*other.value)
-
-    def __truediv__(self, other):
-        return charr(self.value/other.value)
-
-    def __mod__(self, other):
-        return charr(self.value%other.value)
-
-    def __eq__(self, other):
-        return self.value==other.value
-
-    def __ne__(self, other):
-        return self.value!=other.value
-
-    def __lt__(self, other):
-        return self.value<other.value
-
-    def __le__(self, other):
-        return self.value<=other.value
-
-    def __gt__(self, other):
-        return self.value>other.value
-
-    def __ge__(self, other):
-        return self.value>=other.value
-
-    def __and__(self, other):
-        return self.value and other.value
-
-    def __or__(self, other):
-        return self.value or other.value
-
-    def __xor__(self, other):
-        return self.value ^ other.value
-
-    def __lshift__(self, other):
-        return self.value << other.value
-
-    def __rshift__(self, other):
-        return self.value >> other.value
-
-    def __invert__(self):
-        return ~self.value
-
-    def __neg__(self):
-        return -self.value
-
-    def __pos__(self):
-        return +self.value
-
-    def __abs__(self):
-        return abs(self.value)
-
-    def __round__(self, n):
-        return round(self.value, n)
-
-    def __floor__(self):
-        return self.value.floor()
-
-    def __ceil__(self):
-        return self.value.ceil()
-
-    def __trunc__(self):
-        return self.value.trunc()
-
-    def __int__(self):
-        return int(self.value)
-
-    def __float__(self):
-        return float(self.value)
-
-    def __bool__(self):
-        return bool(self.value)
-
-    def __hash__(self):
-        return hash(self.value)
-
-    def __len__(self):
-        return len(self.value)
-    
+"""
 class CodeGenerator:
-
     """  
-    
     General Code Generator Logic: Traverse all nodes in the AST. Go to respective routines based on the node's root.
-    
+    Algorithm:
+    * The Code Generator Functions like a Depth First Search Traversal.
+    * The code gen executes routines based on the current node's leaf or root, depending on the implementation for that type.
+    1. Traverse the tree
+    2. If a root with a routine is found, execute routine.
+    3. If success, go to the next node.
+    4. If fail, raise runtime error.
 
+
+    Update:
+        A routine exists for each node where the node's first set is a terminal. This is to ensure that all possible outcomes in the code generator has an output.
+        In some cases, however, multiple nodes are agreggated into one if their functions are similar. This is to reduce redundancy in the code generator.
+    
+    Functionalities will be direct calls to their respective modules. This is to ensure that the code generator is modular and can be easily updated.
+    
     """
-    def __init__(self, semantic:SemanticAnalyzer) -> None:
+    def __init__(self, semantic:SemanticAnalyzer, debugMode) -> None:
+
+        self.debug=debugMode
 
         self.semantic=semantic
+        self.symbol_table=self.semantic.symbol_table
+        
         self.output_stream={}
-        self.id_list=self.semantic.parse_tree.symbol_table
 
-        self.id_dict=self.semantic.parse_tree.symbol_table.accessible_ids()
         self.matched=self.semantic.parse_tree.leaves()
 
         self.current_node = self.semantic.parse_tree
 
-        
-
-        self.runtime_errors = []
+        self.runtime_errors:list[RuntimeError] = []
 
         self.previous_node = None # Store the previous node to handle loops
+        
+        self.current_scope="sheesh"
 
-        self.types={
-            "whole":int,
-            "decimal":float,
-            "text":str,
-            "sus":bool,
-            "charr":charr
-        }
-        self.literal_types={
-            "Whole":int,
-            "Decimal":float,
-            "Text":str,
-            "Sus":bool,
-            "Charr":charr
-        }
-
-        self.format_spec={
-            "w":int,
-            "d":float,
-            "t":str,
-            "s":bool,
-            "c":charr
-        }
-
-        self.own_specifiers={
-            "w":"whole",
-            "d":"dec",
-            "t":"text",
-            "s":"sus",
-            "c":"charr"
-
-
-        }
-        self.functionality=Functionality(self)
-
+        """  
+        Routines act as the entry point for the functions in the program. As such, each routine should contain their respective
+        functionalities. 
+        """
         self.routines={
-            "allowed_in_loop":self.allowed_in_loop,
-            "var_or_seq_dec":self.var_or_seq_dec,
+
+       
+
             "looping_statement":self.looping_statement,
             "loop_body_statement":self.loop_body_statement,
             "in_loop_body":self.in_loop_body,
@@ -177,43 +83,72 @@ class CodeGenerator:
             "more_loop_body":self.more_loop_body,
             "control_flow_statement":self.control_flow_statement,
             "statement":self.statement,
+            # "in_param":self.in_param,
+            # "more_param":self.more_param,
+            # "sheesh_declaration":self.sheesh_declaration,
+            "allowed_in_loop":self.allowed_in_loop,
+            # "id_tail":self.id_tail,
+            # "id_next_tail":self.id_next_tail,
+            # "up_argument":self.up_argument, #NOTE - idk
+            # "reg_body":self.reg_body,
+            # "in_loop_body":self.in_loop_body,
+            "var_or_seq_dec":self.var_or_seq_dec,
+            # "w_val_assign":self.w_val_assign,
+            # "more_whl_var":self.more_whl_var,
+            # "whl_all_value":self.whl_all_value,
+            # "whl_value":self.whl_value,
+            # "whl_val_withparen":self.whl_val_withparen,
+            # "w_seq_tail":self.w_seq_tail,
+            # "w_seq_init":self.w_seq_init,
+            # "w_elem_init":self.w_elem_init,
+            # "w_two_d_init":self.w_two_d_init, #NOTE - might not get detected?
+            # "next_whl_init":self.next_whl_init,
+            # "d_val_assign":self.d_val_assign,
+            # "more_dec_var":self.more_dec_var,
+            # "dec_all_value":self.dec_all_value,
+            # "dec_value":self.dec_value,
+            # "dec_val_withparen":self.dec_val_withparen,
+            # "d_seq_tail":self.d_seq_tail,
+            # "d_seq_init":self.d_seq_init,
+            # "d_elem_init":self.d_elem_init,
+            # "d_two_d_init":self.d_two_d_init, #NOTE - might not get detected?
+            # "next_dec_init":self.next_dec_init,
+            # "s_val_assign":self.s_val_assign,
+            # "more_sus_var":self.more_sus_var,
+            # "sus_all_value":self.sus_all_value,
+            # "sus_value":self.sus_value,
+            # "sus_val_withparen":self.sus_val_withparen,
+            # "s_seq_tail":self.s_seq_tail,
+            # "s_seq_init":self.s_seq_init,
+            # "s_elem_init":self.s_elem_init,
+            # "s_two_d_init":self.s_two_d_init, #NOTE - might not get detected?
+            # "next_sus_init":self.next_sus_init,
+            # "t_val_assign":self.t_val_assign,
+            # "more_txt_var":self.more_txt_var,
+            # "txt_all_value":self.txt_all_value,
+            # "txt_value":self.txt_value,
+            # "txt_val_withparen":self.txt_val_withparen,
+            # "t_seq_tail":self.t_seq_tail,
+            # "t_seq_init":self.t_seq_init,
+            # "t_elem_init":self.t_elem_init,
+            # "t_two_d_init":self.t_two_d_init, #NOTE - might not get detected?
+            # "next_txt_init":self.next_txt_init,
+            # "c_val_assign":self.c_val_assign,
+            # "more_chr_var":self.more_chr_var,
+            # "charr_all_value":self.charr_all_value,
+            # "charr_value":self.charr_value,
+            # "func_call" : self.func_call,
+            # "index":self.index,
+            # "constant_declaration":self.constant_declaration,
+            "id_as_val":self.id_as_val,
+            "func_def":self.func_def,
 
+    
         }
-
-        self.functionality={
-
-            "yeet":self.functionality.yeet,
-            "def":self.functionality.def_,
-            "based":self.functionality.based,
-            "up":self.functionality.up,
-            "pa_mine":self.functionality.pa_mine,
-            
-            
-            "pass":self.functionality.pass_,
-            "kung":self.functionality.kung,
-            "ehkung":self.functionality.ehkung,
-            "deins":self.functionality.deins,
-            "choose":self.functionality.choose,
-            "when":self.functionality.when,
-            "default":self.functionality.default,
-            
-            "bet":self.functionality.bet,
-            "whilst":self.functionality.whilst,
-            "for":self.functionality.for_loop,
-            # "to":self.to_loop,
-            "felloff":self.functionality.felloff,
-            # "step":self.step,
-            "pass":self.functionality.pass_,
-
-
-            "...":self.functionality.concat,
-
-
-        }
-        
 
     def statement(self):
         pass
+
     def generate_code(self):
         print("Generating code...")
         while True:
@@ -248,7 +183,7 @@ class CodeGenerator:
         except KeyError:
             if self.previous_node.children[0].type=="kung":
                 self.current_node=self.previous_node
-                self.functionality[self.current_node.children[0].type]()
+                ControlFlow(self).kung()
             try:
                 if self.previous_node.parent.children[-1].root=="more_loop_body":
                     self.previous=self.current_node
@@ -260,16 +195,51 @@ class CodeGenerator:
 
     def looping_statement(self):
         if self.current_node.children[0].value=="for":
-            self.functionality["for"]()
+            # Loops(self.current_node, self.output_stream, self.symbol_table, self.current_scope, self.runtime_errors).for_()
+            Loops(self).for_()
 
         elif self.current_node.children[0].value=="bet":
             self.functionality["bet"]()
 
+    def id_as_val(self):
+        items= self.current_node.leaves()
+        if items[0].type=="Identifier":
+            id_obj=items[0]
+            id=id_obj.value
+            try:
+                if len(items)>1:
+                    if items[1].type=="[":
+                        self.symbol_table.find_seq(id, self.current_scope)
+                    elif items[1].type=="(":
+                        self.symbol_table.find_func(id)
+                        
+
+                else: 
+                    var=self.symbol_table.find_var(id, self.current_scope)
+                    if var==None:
+                        self.semantic_error(se.VAR_UNDEF, id_obj, se.expected["VAR_UNDEF"])
+            except AttributeError as e:
+                e=str(e)
+                self.semantic_error(error=getattr(se, e), token=id_obj, expected=se.expected[str(e)])
+
+        else: pass
     def var_or_seq_dec(self):
-        # try:
-            if self.current_node.children[-1].value=="#":
-                pass
-                # self.eval_arithm()
+        try:
+            if self.current_node.children[1].type=="Identifier":
+                # expr= ''.join([str(x.value) for x in self.current_node.leaves()[2:] if x.type not in ["#"]])
+                # self.symbol_table.find_var(self.current_node.children[1].value, self.current_scope).assign("=", Evaluators(self.current_node.children[0], runtime_errors=self.runtime_errors, scope=self.current_scope, symbol_table=self.symbol_table).general_evaluator(expr=expr))
+                if isinstance(self.current_node.children[2], AST):
+                    samp=self.current_node.children[2].leaves()[0].value
+                    print(samp)
+                    if samp in const.asop:
+                        id=self.current_node.children[1]
+                        Evaluators(self.current_node.leaves(), runtime_errors=self.runtime_errors, scope=self.current_scope, symbol_table=self.symbol_table).assign(id)
+                        print(self.symbol_table)
+                else:
+                    self.symbol_table.find_var(self.current_node.children[1].value, self.current_scope)
+        except AttributeError:
+            if self.current_node.children[2].type=="Identifier":
+                self.symbol_table.find_var(self.current_node.children[2].value, self.current_scope).assign("=", Evaluators(self.current_node.children[0]).general_evaluator(self.current_node.children))
     def more_loop_body(self):
         try:
             if self.current_node.children[0].root in  self.routines.keys():
@@ -288,33 +258,23 @@ class CodeGenerator:
     def allowed_in_loop(self):
 
         try:
-            if self.current_node.children[0].value in self.functionality.keys():
-                self.functionality[self.current_node.children[0].value]()
-                self.previous_node=self.current_node
-                self.current_node = self.semantic.parse_tree.traverse(self.current_node)
-            elif self.current_node.children[0].type=="Identifier":
-
-                self.assign(self.current_node.children[0])
-
-            else:
-                # raise Exception("Routine not found")
-                print(f'Functionality {self.current_node.children[0].value} not found')
-                pass
-        except AttributeError as e:
-            # print(e)
-            # print(f"No Functionality for {self.current_node.children[0].root} in {self.current_node.root}")
-            
+            val=self.current_node.children[0].type
+            if val =="up":
+                InOut(self.current_node, self.output_stream, self.symbol_table, self.current_scope, self.runtime_errors).up()
+            elif val=="Identifier":
+                Identifier(node=self.current_node,output_stream= self.output_stream, symbol_table=self.symbol_table, runtime_errors=self.runtime_errors, current_scope=self.current_scope).id_tail()
+        except AttributeError:
             pass
-
+        
     def in_loop_body(self):
         try:
-            self.functionality[self.current_node.root]()
+            # self.functionality[self.current_node.root]()
             self.previous_node=self.current_node
             self.current_node = self.semantic.parse_tree.traverse(self.current_node)
         except KeyError:
             self.previous_node=self.current_node
             self.current_node = self.semantic.parse_tree.traverse(self.current_node)
-            self.routines["loop_body"]()
+            # self.routines["loop_body"]()
             
 
     def loop_body(self):
@@ -328,455 +288,39 @@ class CodeGenerator:
             self.current_node = self.semantic.parse_tree.traverse(self.current_node)
         except KeyError:
             self.previous_node=self.current_node
-            self.current_node = self.semantic.parse_tree.traverse(self.current_node)
+            self.current_node = self.semantic.parse_tree.traverse(self.current_node) 
             self.routines["loop_body_statement"]()  
             
     def control_flow_statement(self):
-        if self.current_node.children[0].value in ["choose", "kung"]:
-            self.functionality[self.current_node.children[0].value]()
+        if self.current_node.children[0].value =="choose":
+            ControlFlow(self).choose()
+        elif self.current_node.children[0].value =="kung":
+
+            ControlFlow(self).kung()
             self.previous_node=self.current_node
             self.current_node = self.semantic.parse_tree.traverse(self.current_node)
 
-#region Functionality
-#SECTION - FUNCTIONALITY
-
-
-    
-    
-    
-
-class Functionality:
-    def __init__(self, codegen: CodeGenerator) -> None:
-        self.codegen=codegen
-
-
-
-    def for_loop(self):
+    def func_def(self):
+        type=self.current_node.children[1].leaves()[0].value
+        id=self.current_node.children[2].value
+        parameters=self.current_node.children[4]
+        body=None
         
-        children=self.codegen.current_node.children
-
-        iterator=None
-        end=None
-        step=1
-        loop_body=self.codegen.current_node.children[-1].children[1]
-
-        if children[3].type=="Identifier":
-            iterator=children[3]
-
-        if children[7].root=="whl_value":
-            end=children[7].leaves()[0]
-            print(end)
-
-        try:
-            if children[8].root=="step_statement":
-                step=children[8].leaves()[1]
-                print(step)
-        except AttributeError as e:
-            print(e)
-            print("No step statement")
-
-        
-        while iterator.numerical_value != end.numerical_value:
-            self.codegen.current_node = self.semantic.parse_tree.traverse(loop_body)
-            # self.previous_node=self.current_node
-            self.codegen.routines[self.codegen.current_node.root]()
-        
-            # self.routines["in_loop_body"]()
-            iterator.numerical_value+=step
-            print("Iterator: ", iterator.numerical_value, "End: ", end.numerical_value, "Step: ", step)
-
-        if debug:
-            print(f"For Loop: \n\tIterator: {iterator}\n\t End: {end}\n\t Step: {step}")
-        
-    def kung(self):
-
-        condition=self.codegen.current_node.children[2].leaves()
-        success=self.codegen.current_node.children[4]
-        if len(self.codegen.current_node.children)==5:
-            fail=self.codegen.current_node.parent.children[0]
+        if isinstance(self.current_node.children[-1].children[0], AST):
+            body=self.current_node.children[-1].children[0]
             
-        else:
-            fail=self.codegen.current_node.children[-1] 
-
-        if self.evaluate_condition(condition)==True:
-            self.codegen.current_node = self.semantic.parse_tree.traverse(success)
-            self.codegen.routines[self.codegen.current_node.root]()
-
-        else:
-            if fail==None:
-                pass
-            else:
-                while True:
-                    try:
-                        self.codegen.current_node = self.semantic.parse_tree.traverse(fail)
-                        self.codegen.routines[self.codegen.current_node.root]()
-                        break  # if the above lines don't raise an exception, break the loop
-                    except KeyError:
-                        while self.codegen.current_node.root!="statement":
-                            print(self.codegen.current_node.root)
-                            self.codegen.current_node = self.codegen.previous_node
-                            self.codegen.previous_node=self.codegen.previous_node.parent
-                        fail= self.codegen.current_node=self.codegen.current_node.children[1].children[0].children[0]
-
-    def evaluate_condition(self, condition):
-        evaluate=""
-        for cond in condition:
-            if cond.type=="Identifier":
-                evaluate+=str(self.get_value(cond, self.id_dict).numerical_value)
-            elif cond.type in ["kung", "ehkung"]:
-                break
-            elif cond.type in ["whole", "dec", ]:
-                evaluate+=cond.numerical_value
-            else:     
-                evaluate+=cond.value
-
-        
-        output= eval(evaluate)
-        return output
-    
-    def concat(self):
-        raise NotImplementedError
-    
-    def yeet(self):
-        raise NotImplementedError
-    
-    def based(self):
-        raise NotImplementedError
-    
-    def def_(self):
-        raise NotImplementedError
-    
-    def ehkung(self):
-        raise NotImplementedError
-    
-    def deins(self):
-        raise NotImplementedError
-    
-    def when(self):
-        raise NotImplementedError
-    
-    def default(self):
-        raise NotImplementedError
-    
-    def whilst(self):
-        raise NotImplementedError
-
-    def bet(self):
-        raise NotImplementedError
-
-    def choose(self):
-        raise NotImplementedError
-    
-    def felloff(self):
-        raise NotImplementedError
-    
-    def pass_(self):
-        raise NotImplementedError
+        self.symbol_table.function(id=id, return_type=type, parameters=parameters, body=body)
 
 
-    def get_value(self, id, id_dict):
-        if id.value in id_dict.keys():
-            return id_dict[id.value]
-        else:
-            raise Exception("Variable not found")
 
-    def up(self):
-            matched=self.codegen.current_node.leaves()
-            id_dict=self.id_dict
-            vars=[]
-            text=''
-            val=[]
-            type=None
 
-            for match in reversed(matched):
-                if match.type=="Identifier":
-                    vars.append(self.get_value(match, id_dict))
-                    type=match.dtype
-                    print(type)
-                elif match.type in self.literal_types and match.type!="Text":
-                    vars.append(match)
-                elif match.type=="Text":
-                    text=match.value
-                    print(text)
-                elif match.type=="(":
-                    break
+    
+    
     
 
-            # Find all format specifiers in the text
-            format_specifiers = re.findall(f"\$[{''.join(self.format_spec.keys())}]", text)
-            # print(format_specifiers)
-            # Check if the number of format specifiers matches the number of variables
-            if len(format_specifiers) != len(vars):
-                err_msg="Number of format specifiers does not match number of variables"
-                if len(vars)<len(format_specifiers):
-                    expected=f"{len(format_specifiers)} variables of type"
-                    for format in format_specifiers:
-                            expected+=f" {self.own_specifiers[format[1:]]},"
-                    self.runtime_errors.append(
-                        RuntimeError(error=err_msg, token=self.current_node.children[0], expected=expected)
-                        )
-                elif len(vars)>len(format_specifiers):
-                    expected=f"{len(vars)} format specifiers of type"
-                    for var in vars:
-                        if var.type=="Identifier":
-                            expected+=f" {var.dtype},"
-                        else:
-                            expected+=f" {var.type},"
-                    self.runtime_errors.append(
-                        RuntimeError(error=err_msg, token=self.current_node.children[0], expected=expected)
-                        )
-            else:
-
-            # For each format specifier, check if the corresponding variable has the correct type
-                vars=list(reversed(vars))
-                for i in range(len(format_specifiers)):
-                    # Get the format specifier (remove the dollar sign)
-                    format_specifier = format_specifiers[i][1:]
-                    # Get the corresponding variable
-                    var = vars[i].numerical_value
-                    if (var >1 or var<-1) and var%1==0:
-                            var=self.format_spec[format_specifier](var)
-                    val.append(var)
-                    # Check if the variable has the correct type
-                    if not isinstance(var, self.format_spec[format_specifier]):
-                        
-                        err_msg=f"Variable {vars[i].value} does not match format specifier {format_specifier}"
-                        expected=f"{self.own_specifiers[format_specifier]} for format specifier ${format_specifier}"
-                        self.runtime_errors.append(
-                    RuntimeError(error=err_msg, token=self.current_node.children[0], expected=expected)
-                    )
-                        # raise TypeError(f"Variable {var} does not match format specifier {format_specifier}")
-
-                # Replace the format specifiers with {} for string formatting
-                for format_specifier in format_specifiers:
-                    text = text.replace(format_specifier, "{}")
-
-                # Format the string with the variables
-                formatted_text = text.format(*val)
-
-                occurrence=0
-                # Print the formatted string
-                if formatted_text in self.output_stream.keys():
-                    self.output_stream[formatted_text]+=1
-                else:
-                    occurence=1
-                    self.output_stream[formatted_text]=occurence
-                print(self.output_stream)
 
 
-    def assign(self, id):
-        assign_ops=["=", "+=", "-=", "*=", "/=", "%="]
-        op=None
-        for index, vals in enumerate(self.current_node.leaves()):
-            if vals.type in assign_ops:
-                op=self.current_node.leaves()[index].value
-                break
-        
-        expr=[]
-        value=None
-        if id.value in self.semantic.id.accessible_ids().keys():
-            items=self.current_node.parent.leaves()
-            temp=self.current_node.parent.values()
-            
-            eq_index=temp.index(op)
-            for children in items[eq_index+1:]:
-                # try:
-                    if children.type not in ["#", ",", "Newline", "whole", "dec", "sus", "text", "charr", "for" ]:
-                        if children.type=="Identifier":
-                                expr.append(self.semantic.id.accessible_ids()[children.value])
-                        elif children.type=="to":
-                            break
-                        else: expr.append(children)
-                    
-                # except AttributeError:
-                #     raise AttributeError("No Identifier Found")
-            
-        
-            value=self.eval_arithm(expr)
 
-            id_ref=self.semantic.id.accessible_ids()[id.value]
-            if id_ref.numerical_value==None:
-                id_ref.numerical_value=0
-            if op != "=":
-                if op=="+=":
-                    value+=id_ref.numerical_value
-                elif op=="-=":
-                    value-=id_ref.numerical_value
-                elif op=="*=":
-                    value*=id_ref.numerical_value
-                elif op=="/=":
-                    value/=id_ref.numerical_value
-                elif op=="%=":
-                    value%=id_ref.numerical_value
-    
-            
-            if value != None:
-                if type(value)==self.semantic.data_types[id.dtype]:
-                    self.semantic.id.accessible_ids()[id.value].numerical_value=value
-                    return True
-                else:
-                
-                    if value%1==0:
-                        value=self.semantic.data_types[id.dtype](value)
-                        self.semantic.id.accessible_ids()[id.value].numerical_value=value
-                        return True
-                    else:
-                        # self.semantic.semantic_error(se.VAR_OPERAND_INVALID, id, f"Value of Type {id.dtype}, got {self.semantic.reverse_types[type(value)]}")
-                        self.runtime_errors.append(RuntimeError(se.VAR_OPERAND_INVALID, id, f"Value of Type {id.dtype}, got {self.semantic.reverse_types[type(value)]}"))
-            else:
-                # self.semantic.semantic_error(se.VAR_UNDEF, id, "Value pare")
-                self.runtime_errors.append(RuntimeError(se.VAR_UNDEF, id, "Value pare"))
 
-    def evaluate(self, eval:list):
-        precedence = {'+':1, '-':1, '*':2, '/':2, '%':2}
-        operator_stack = []
-        operand_stack = []
 
-        for token in reversed(eval):
-            if token.type == "Identifier":
-                operand_stack.append(token.numerical_value)
-            elif token.type not in ['+', '-', '*', '/', '^', '(', ')', "=", "%", "Newline"]:
-                try:
-                    operand_stack.append(float(token.numerical_value))
-                except ValueError:
-                    operand_stack.append(float(token.numerical_value[1:-1]))
-            elif token.type == '(':
-                operator_stack.append(token)
-            elif token.type == ')':
-                while operator_stack[-1].type != '(':
-                    operator = operator_stack.pop().value
-                    operand2 = operand_stack.pop()
-                    operand1 = operand_stack.pop()
-                    if operator == '+':
-                        result = operand1 + operand2
-                    elif operator == '-':
-                        result = operand1 - operand2
-                    elif operator == '*':
-                        result = operand1 * operand2
-                    elif operator == '/':
-                        result = operand1 / operand2
-                    elif operator=='%':
-                        result = operand1 % operand2
-                    operand_stack.append(result)
-                operator_stack.pop()  # Remove the '(' from the stack
-            else:
-                while (operator_stack and operator_stack[-1].type != '(' and 
-                    precedence[operator_stack[-1].type] >= precedence[token.type]):
-                    operator = operator_stack.pop().value
-                    operand2 = operand_stack.pop()
-                    operand1 = operand_stack.pop()
-                    if operator == '+':
-                        result = operand1 + operand2
-                    elif operator == '-':
-                        result = operand1 - operand2
-                    elif operator == '*':
-                        result = operand1 * operand2
-                    elif operator == '/':
-                        result = operand1 / operand2
-                    elif operator=='%':
-                        result = operand1 % operand2
-                    operand_stack.append(result)
-                operator_stack.append(token)
 
-        while operator_stack:
-            operator = operator_stack.pop().value
-            operand2 = operand_stack.pop()
-            operand1 = operand_stack.pop()
-            if operator == '+':
-                result = operand1 + operand2
-            elif operator == '-':
-                result = operand1 - operand2
-            elif operator == '*':
-                result = operand1 * operand2
-            elif operator == '/':
-                result = operand1 / operand2
-            elif operator=='%':
-                result = operand1 % operand2
-            operand_stack.append(result)
-
-        print(operand_stack[0]) if debug else None
-        return operand_stack[0]
-    
-    def eval_arithm(self, expr):
-
-        eval=[]
-        for match in reversed(expr):
-            if match.type in ["#", "Newline"]:
-                pass
-            else:
-                eval.append(match)
-
-        return self.evaluate(eval)
-    
-    def eval_logic(self, expr):
-        eval=[]
-        for match in reversed(expr):
-            if match.type in ["#", "Newline"]:
-                pass
-            else:
-                eval.append(match)
-        return self.evaluate_logic(eval)
-    
-    def evaluate_logic(self, eval):
-        precedence = {'&':1, '|':1, '!':2}
-        operator_stack = []
-        operand_stack = []
-
-        for token in reversed(eval):
-            if token.type == "Identifier":
-                operand_stack.append(token.numerical_value)
-            elif token.type not in ['&', '|', '!', '(', ')', "=", "Newline"]:
-                try:
-                    operand_stack.append(float(token.numerical_value))
-                except ValueError:
-                    operand_stack.append(float(token.numerical_value[1:-1]))
-            elif token.type == '(':
-                operator_stack.append(token)
-            elif token.type == ')':
-                while operator_stack[-1].type != '(':
-                    operator = operator_stack.pop().value
-                    operand2 = operand_stack.pop()
-                    operand1 = operand_stack.pop()
-                    if operator == '&':
-                        result = operand1 and operand2
-                    elif operator == '|':
-                        result = operand1 or operand2
-                    operand_stack.append(result)
-                operator_stack.pop()
-
-    def evaluate_relational(self, eval):
-        precedence = {'<':1, '>':1, '<=':1, '>=':1, '==':2, '!=':2}
-        operator_stack = []
-        operand_stack = []
-
-        for token in reversed(eval):
-            if token.type == "Identifier":
-                operand_stack.append(token.numerical_value)
-            elif token.type not in ['<', '>', '<=', '>=', '==', '!=', '(', ')', "=", "Newline"]:
-                try:
-                    operand_stack.append(float(token.numerical_value))
-                except ValueError:
-                    operand_stack.append(float(token.numerical_value[1:-1]))
-            elif token.type == '(':
-                operator_stack.append(token)
-            elif token.type == ')':
-                while operator_stack[-1].type != '(':
-                    operator = operator_stack.pop().value
-                    operand2 = operand_stack.pop()
-                    operand1 = operand_stack.pop()
-                    if operator == '<':
-                        result = operand1 < operand2
-                    elif operator == '>':
-                        result = operand1 > operand2
-                    elif operator == '<=':
-                        result = operand1 <= operand2
-                    elif operator == '>=':
-                        result = operand1 >= operand2
-                    elif operator == '==':
-                        result = operand1 == operand2
-                    elif operator == '!=':
-                        result = operand1 != operand2
-                    operand_stack.append(result)
-                operator_stack.pop()
-    def pa_mine(self):
-        raise NotImplementedError

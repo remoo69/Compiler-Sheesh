@@ -6,7 +6,7 @@ sys.path.append('.')
 # import networkx as nx
 # import matplotlib.pyplot as plt
 from graphviz import Digraph
-from source.core.symbol_table import Token, Identifiers
+# from source.core.symbol_table import Token
 
 debug=True
 
@@ -29,7 +29,7 @@ class AST:
         self.root= root
         self.children = []
         self.stack:list[AST]=[]
-        self.symbol_table:Identifiers=None
+
         
         self.buffer=None
 
@@ -124,7 +124,18 @@ class AST:
     #     plt.show()
 
     # draw_graph(self)
-
+    def find_node(self, root):
+        if self.root==root:
+            return self
+        else:
+            for child in self.children:
+                if isinstance(child, AST):
+                    return child.find_node(root)
+                else:
+                    if child==root:
+                        return child
+                    else:
+                        return None
 
     def current_func(self, elem=2):
 
@@ -156,15 +167,17 @@ class AST:
         AST.unended.append(self.stack[-1].root)
         
 
-    def add_children(self, children:Token):
-         self.buffer.children.append(children)
-        # pass
+    def add_children(self, children):
+        if children.type!="Newline":
+            self.buffer.children.append(children)
+        else:
+            pass
+
 
     def end_branch(self):
         """ 
         End branch should add the function to the previous function's children
         """
-        # pass
         try:
             print(f"Ended from {self.stack[-1].root}") if debug else None
             AST.branches_ended+=1
@@ -180,16 +193,10 @@ class AST:
                 AST.unended.pop(-1)
         except IndexError as e:
             print(e)
-            # print(self.stack)
-            # self.stack.pop(-1)
-            # self.buffer=self.stack[-1]
-            # AST.unended.pop(-1)
-            # print("End of Trees")
             return
 
     
     def end_tree(self):
-        # pass
         print(f"Created: {AST.created}, Ended: {AST.branches_ended}, Unended Branches: {AST.unended}") if debug else None
         if len(self.stack)==1:
             self.buffer=self.stack[0]
