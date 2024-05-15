@@ -23,14 +23,28 @@ def highlight_reserve_word(*args):
     txt_editor_pane.tag_remove('reserveidenti', '1.0', tk.END)
     
     text = txt_editor_pane.get('1.0', tk.END)
-
+    
     in_quotes = False
+    in_block_comment = False
+    in_inline_comment = False
     for i, char in enumerate(text):
         if char == '"':
             in_quotes = not in_quotes
-        elif not in_quotes:
+        elif char == '/' and i + 1 < len(text) and text[i+1] == '*':
+            in_block_comment = True
+            i += 1 
+        elif char == '*' and i + 1 < len(text) and text[i+1] == '/':
+            in_block_comment = False
+            i += 1
+        elif char == '/' and i + 1 < len(text) and text[i+1] == '/':
+            in_inline_comment = True
+            i += 1
+        elif char == '\n':
+            in_inline_comment = False
+        elif not in_quotes and not in_block_comment and not in_inline_comment:
             for word in keywords:
                 if text[i:i+len(word)] == word:
+                    # Check if the keyword is not part of a larger word
                     if i + len(word) == len(text) or not text[i+len(word)].isalnum() and text[i+len(word)] != '_':
                         start_index = f'1.0+{i}c'
                         end_index = f'1.0+{i+len(word)}c'
@@ -41,6 +55,7 @@ def highlight_reserve_word(*args):
 
     txt_editor_pane.tag_config('found', foreground='yellow')
     txt_editor_pane.tag_config('reserveidenti', foreground='white')
+
 
 
 def highlight_comment(*args):
