@@ -163,16 +163,18 @@ class Constant(Sequence):
         self.set_scope=const.GBL
 
 class Function:
-    def __init__(self, id, return_type, parameters:AST) -> None:
+    def __init__(self, id, return_type, parameters) -> None:
         self.id=id
         self.return_type=return_type
-        self.parameters=parameters
-        self.statements:AST=parameters
+        self.parameters:list[Parameter]=parameters
+        self.func_body:AST=None
 
 
-    def new_statement(self, statement):
-        self.statements.append(statement)
+    # def new_statement(self, statement):
+    #     self.statements.append(statement)
 
+    def body(self, statements):
+        self.func_body=statements
 
     def execute(self):
         """  
@@ -185,19 +187,20 @@ class Function:
 
         """
         print("Generating code...")
-        while True:
-            if self.current_node.root not in self.routines.keys():
-                self.previous_node=self.current_node
-                self.current_node = self.semantic.parse_tree.traverse(self.current_node)
-            else:
-                self.routines[self.current_node.root]()
-                self.previous_node=self.current_node
-                try:
-                    self.current_node = self.semantic.parse_tree.traverse(self.current_node)
-                except AttributeError:
-                    break
-            if self.current_node is None:
-                break  # Exit the loop if the tree has been fully traversed
+        # while True:
+        #     if self.current_node.root not in self.routines.keys():
+        #         self.previous_node=self.current_node
+        #         self.current_node = self.semantic.parse_tree.traverse(self.current_node)
+        #     else:
+        #         self.routines[self.current_node.root]()
+        #         self.previous_node=self.current_node
+        #         try:
+        #             self.current_node = self.semantic.parse_tree.traverse(self.current_node)
+        #         except AttributeError:
+        #             break
+        #     if self.current_node is None:
+        #         break  # Exit the loop if the tree has been fully traversed
+        return self.func_body #FIXME - di pa ayos to
     
 class Parameter(Variable):
     def __init__(self, id, type, param_type) -> None:
@@ -241,9 +244,12 @@ class SymbolTable:
             raise KeyError("VAR_REDECL_INSCOPE")
         
 
-    def function(self,id, return_type, parameters):
+    def function(self,*,id, return_type, parameters, body=None):
         if id not in self.symbols.keys():
-            self.symbols[id]=Function(id=id, return_type=return_type, parameters=parameters)
+            if body:
+                self.symbols[id]=Function(id=id, return_type=return_type, parameters=parameters).body(body)
+            else:
+                self.symbols[id]=Function(id=id, return_type=return_type, parameters=parameters)
         else:
             raise KeyError("FUNC_REDECL_INSCOPE")
         

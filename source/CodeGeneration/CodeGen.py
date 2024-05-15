@@ -141,6 +141,7 @@ class CodeGenerator:
             # "index":self.index,
             # "constant_declaration":self.constant_declaration,
             "id_as_val":self.id_as_val,
+            "func_def":self.func_def,
 
     
         }
@@ -287,7 +288,7 @@ class CodeGenerator:
             self.current_node = self.semantic.parse_tree.traverse(self.current_node)
         except KeyError:
             self.previous_node=self.current_node
-            self.current_node = self.semantic.parse_tree.traverse(self.current_node)
+            self.current_node = self.semantic.parse_tree.traverse(self.current_node) 
             self.routines["loop_body_statement"]()  
             
     def control_flow_statement(self):
@@ -298,6 +299,17 @@ class CodeGenerator:
             ControlFlow(self).kung()
             self.previous_node=self.current_node
             self.current_node = self.semantic.parse_tree.traverse(self.current_node)
+
+    def func_def(self):
+        type=self.current_node.children[1].leaves()[0].value
+        id=self.current_node.children[2].value
+        parameters=self.current_node.children[4]
+        body=None
+        
+        if isinstance(self.current_node.children[-1].children[0], AST):
+            body=self.current_node.children[-1].children[0]
+            
+        self.symbol_table.function(id=id, return_type=type, parameters=parameters, body=body)
 
 
 

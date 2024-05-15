@@ -64,8 +64,7 @@ class Functionality:
 
 
    
-    def pa_mine(self):
-        raise NotImplementedError
+
 
 class Function:
     def __init__(self, parameters, return_type, body):

@@ -97,7 +97,7 @@ class SemanticAnalyzer:
         
         self.routines={
 
-            "in_param": self.in_param,
+            # "in_param": self.in_param,
             "allowed_in_loop": self.allowed_in_loop,
 
             "var_or_seq_dec": self.var_or_seq_dec,
