@@ -6,6 +6,14 @@ import source.core.symbol_table as st
 from source.core.symbol_table import SymbolTable, Token 
 from source.core.error_handler import RuntimeError
 
+
+"""  
+THIS IS ONE OF THE MOST IMPORTANT CLASSES IN THE CODE GENERATOR. 
+THIS CLASS IS RESPONSIBLE FOR EVALUATING EXPRESSIONS, CONDITIONS, AND OTHER TYPES OF VALUES.
+
+"""
+
+
 class Evaluators:
     """  
     This is a general helper class for evaluations. An evaluator can take either a value, variable, function call, or an expression.
@@ -20,25 +28,25 @@ class Evaluators:
         self.scope=scope
         self.symbol_table:st.SymbolTable=symbol_table
 
-    def build_expression(self):
+    def build_expression(self, expression):
         """  
         This method extracts all possible values from the expression. It then returns a list of the values.
-        If there is a function, variable, sequence, or any other type of value, it should be evaluated first.
-
+        This method should evaluate funcs, sequences, and variables first before evaluating the expression.
         """
         final_expression=""
         eq_found=False
-        for expr in self.expression:
-            
-            if eq_found:
+        for i, expr in enumerate(expression):
+ 
                 if expr.type not in const.keywords:
                     if expr.type=="Identifier":
                         var= self.symbol_table.find(expr.value, self.scope)
-                        if isinstance(var, st.Sequence):
-                            #FIXME - Implement sequence indexing
-                            raise NotImplementedError
-                            index1=self.expression[self.expression.index(expr)+1]
-                            final_expression+=var.index_getvalue(index1, index2)
+                        if isinstance(var, st.Sequence): 
+                            
+                            index=self.evaluate(expression[i+2:], type=const.dtypes.whole)
+                            col=self.evaluate(expression[i+3:], type=const.dtypes.whole) # FIXME can' eval col because can't find second index.
+                            # sequence=self.symbol_table.find(var.value, self.scope)
+                            final_expression+=var.get(row=index, col=col)
+                            
                         elif isinstance(var, st.Variable):
                             if var.type in ["whole", "dec",]:
                                 final_expression+=str(var.value)
@@ -46,68 +54,9 @@ class Evaluators:
                                 final_expression+=var.value 
                                 #NOTE - idk what to do here. ito muna lagay ko
                         elif isinstance(var, st.Function):
-                            final_expression+=var.execute() #NOTE - IMPLEMENT FUNC EXECUTION
-                        elif isinstance(var, Token):
-                            if var.type in ["Whole", "Dec"]:
-                                final_expression+=var.numerical_value
-                            else:
-                                self.runtime_errors.append(RuntimeError(se.EWAN, expr, "Invalid Expression"))
-
-                    elif expr.type in ["Whole", "Dec", ]:
-                        final_expression+=expr.value
-                    elif expr.type in ["Text", "Charr"]:
-                        final_expression+=expr.value
-                    elif expr.type in ["Sus"]:
-                        if expr.value =="cap":
-                            final_expression+=True
-                        else:
-                            final_expression+=False
-                    elif expr.type in const.aop:
-                        final_expression+=expr.value
-                    elif expr.type=="#":
-                        break
-                    else:
-                        self.runtime_errors.append(RuntimeError(error=se.EWAN,token= expr, expected="Invalid Expression"))
-                else:
-                    pass
-                
-            if expr.type in const.asop or (expr.type in const.keywords and expr.type not in const.DATA_TYPES):
-                eq_found=True
-            
-            else:
-                pass
-        return final_expression
-
-
-
-    def build_condition(self):
-        """  
-        This method extracts all possible values from the expression. It then returns a list of the values.
-        If there is a function, variable, sequence, or any other type of value, it should be evaluated first.
-
-        """
-        final_expression=""
-        eq_found=False
-        for expr in self.expression:
-                
-            # if eq_found:
-            try:
-                if expr.type not in const.keywords:
-                    if expr.type=="Identifier":
-                        var= self.symbol_table.find(expr.value, self.scope)
-                        if isinstance(var, st.Sequence):
-                            #FIXME - Implement sequence indexing
-                            raise NotImplementedError
-                            index1=self.expression[self.expression.index(expr)+1]
-                            final_expression+=var.index_getvalue(index1, index2)
-                        elif isinstance(var, st.Variable):
-                            if var.type in ["whole", "dec",]:
-                                final_expression+=str(var.get_val())
-                            elif var.type in ["sus", "text", "charr"]:
-                                final_expression+=var.get_val()
-                                #NOTE - idk what to do here. ito muna lagay ko
-                        elif isinstance(var, st.Function):
-                            final_expression+=var.execute() #NOTE - IMPLEMENT FUNC EXECUTION
+                            
+                            func=var
+                            final_expression+=func 
                         elif isinstance(var, Token):
                             if var.type in ["Whole", "Dec"]:
                                 final_expression+=var.numerical_value
@@ -120,90 +69,31 @@ class Evaluators:
                         final_expression+=expr.value
                     elif expr.type in ["Sus"]:
                         if expr.value =="nocap":
-                            final_expression+="True" 
+                            final_expression+="True"
                         else:
                             final_expression+="False"
-                    elif expr.type in const.all_op:
+                    elif expr.type in const.aop:
                         final_expression+=expr.value
-                    elif expr.type=="#":
+                    elif expr.type in ["#", "]"]:
                         break
                     else:
-                        self.runtime_errors.append(RuntimeError(error=se.EWAN,token= expr, expected="Invalid Condition"))
+                        final_expression+=expr.value
                 else:
                     pass
-            
-            except ValueError as e:
-                e=str(e)
-                self.runtime_errors.append(RuntimeError(error=getattr(se,e), token=expr, expected=se.expected[e]))
-                return
-            # else:
-            #     if expr.type in const.asop or (expr.type in const.keywords and expr.type not in const.DATA_TYPES):
-            #         eq_found=True
-            #         pass
-        return final_expression
-            
-    
-    def build_concat(self):
-        final_expression=""
-        eq_found=False
-        for expr in self.expression:
                 
-            if eq_found:
-                if expr.type not in const.keywords:
-                    if expr.type=="Identifier":
-                        var= self.symbol_table.find(expr.value, self.scope)
-                        if isinstance(var, st.Sequence):
-                            #FIXME - Implement sequence indexing
-                            raise NotImplementedError
-                            index1=self.expression[self.expression.index(expr)+1]
-                            final_expression+=var.index_getvalue(index1, index2)
-                        elif isinstance(var, st.Variable):
-                            if var.type in ["whole", "dec",]:
-                                self.runtime_errors.append(RuntimeError(se.VAR_OPERAND_INVALID, expr, se.expected["VAR_OPERAND_INVALID"]))
-                            elif var.type in ["sus"]:
-                                self.runtime_errors.append(RuntimeError(se.VAR_OPERAND_INVALID, expr, se.expected["VAR_OPERAND_INVALID"]))
-                            elif var.type in [ "text", "charr"]:
-                                final_expression+=var.value
-                                #NOTE - idk what to do here. ito muna lagay ko
-                        elif isinstance(var, st.Function):
-                            final_expression+=var.execute() #NOTE - IMPLEMENT FUNC EXECUTION
-                        elif isinstance(var, Token):
-                            if var.type in ["Whole", "Dec"]:
-                                self.runtime_errors.append(RuntimeError(se.VAR_OPERAND_INVALID, expr, se.expected["VAR_OPERAND_INVALID"]))
-                            else:
-                                self.runtime_errors.append(RuntimeError(se.EWAN, expr, "Invalid Expression"))
-
-                    elif expr.type in ["Text", "Charr"]:
-                        final_expression+=expr.value
-                   
-                    elif expr.type in const.concat:
-                        final_expression+="+"
-                    elif expr.type=="#":
-                        break
-                    else:
-                        self.runtime_errors.append(RuntimeError(se.EWAN, expr, "Invalid Condition"))
-                else:
-                    pass
-            
-            else:
-                if expr.type in const.asop or (expr.type in const.keywords and expr.type not in const.DATA_TYPES):
-                    eq_found=True
-                    pass
         return final_expression
+    
+    def evaluate(self, expr, type):
+        expression=self.build_expression(expression=expr)
+        return const.py_types[type]( self.general_evaluator(expression))
+        
+    # def evaluate(self, expr):
+    #     new_expr=self.build_expression()
+    #     if not any(op in new_expr for op in const.all_op):
+    #         return new_expr
+    #     else:
+    #         return eval(new_expr)
 
-    def logic_rel(self):
-        raise NotImplementedError
-
-    def function_call(self):
-        pass
-
-    def concat(self):
-        """  
-        Algorithm:
-        1. Get Text Expression. 
-        2. Temp=first_text
-        3. While concat op, temp+=next_text
-        """
 
     
     def general_evaluator(self, expr:str):
@@ -232,8 +122,10 @@ class Evaluators:
         if id.value in self.symbol_table.keys():
             items=self.expression
             var=self.symbol_table.find(id.value, self.scope)
+            #FIXME - no type checking for var
+
             if var.type in ["dec", "whole"]:
-                temp=self.build_expression()
+                temp=self.build_expression(self.expression)
             else:
                 temp=self.build_condition()
             
@@ -243,17 +135,17 @@ class Evaluators:
             id_ref=self.symbol_table.find_var(id.value, self.scope)
             if id_ref.value==None:
                 id_ref.value=0 #NOTE -  medj sus; idk if oks lang bang ganto default
-            # if op != "=":
-            #     if op=="+=":
-            #         value+=id_ref.value
-            #     elif op=="-=":
-            #         value-=id_ref.value
-            #     elif op=="*=":
-            #         value*=id_ref.value
-            #     elif op=="/=":
-            #         value/=id_ref.value
-            #     elif op=="%=":
-            #         value%=id_ref.value
+            if op != "=":
+                if op=="+=":
+                    value+=id_ref.value
+                elif op=="-=":
+                    value-=id_ref.value
+                elif op=="*=":
+                    value*=id_ref.value
+                elif op=="/=":
+                    value/=id_ref.value
+                elif op=="%=":
+                    value%=id_ref.value
     
             
             if value != None:
@@ -282,13 +174,20 @@ class Evaluators:
                 # self.semantic.semantic_error(se.VAR_UNDEF, id, "Value pare")
                 self.runtime_errors.append(RuntimeError(error=se.VAR_UNDEF,token= id, expected="Value pare"))
 
-    def evaluate(self, expr):
-        new_expr=self.build_expression()
-        if not any(op in new_expr for op in const.all_op):
-            return new_expr
-        else:
-            return eval(new_expr)
-        
+    
+         
+         
+         
+    
+
+    def concat(self):
+        """  
+        Algorithm:
+        1. Get Text Expression. 
+        2. Temp=first_text
+        3. While concat op, temp+=next_text
+        """
+
     def evaluate_cond(self)->bool:
         new_expr=self.build_condition()
         if new_expr!=None and new_expr!="":
@@ -449,7 +348,6 @@ class Evaluators:
                     operand_stack.append(result)
                 operator_stack.pop()
 
-
     def condition(self, condition):
         evaluate=""
         for cond in condition:
@@ -465,3 +363,122 @@ class Evaluators:
         
         output= eval(evaluate)
         return output
+    
+    @DeprecationWarning
+    def build_condition(self):
+        """  
+        This method extracts all possible values from the expression. It then returns a list of the values.
+        If there is a function, variable, sequence, or any other type of value, it should be evaluated first.
+
+        """
+        final_expression=""
+        eq_found=False
+        for expr in self.expression:
+                
+            # if eq_found:
+            try:
+                if expr.type not in const.keywords:
+                    if expr.type=="Identifier":
+                        var= self.symbol_table.find(expr.value, self.scope)
+                        if isinstance(var, st.Sequence):
+                            #FIXME - Implement sequence indexing
+                            raise NotImplementedError
+                            index1=self.expression[self.expression.index(expr)+1]
+                            final_expression+=var.index_getvalue(index1, index2)
+                        elif isinstance(var, st.Variable):
+                            if var.type in ["whole", "dec",]:
+                                final_expression+=str(var.get_val())
+                            elif var.type in ["sus", "text", "charr"]:
+                                final_expression+=var.get_val()
+                                #NOTE - idk what to do here. ito muna lagay ko
+                        elif isinstance(var, st.Function):
+                            final_expression+=var.execute() #NOTE - IMPLEMENT FUNC EXECUTION
+                        elif isinstance(var, Token):
+                            if var.type in ["Whole", "Dec"]:
+                                final_expression+=var.numerical_value
+                            else:
+                                self.runtime_errors.append(RuntimeError(se.EWAN, expr, "Invalid Expression"))
+
+                    elif expr.type in ["Whole", "Dec", ]:
+                        final_expression+=expr.value
+                    elif expr.type in ["Text", "Charr"]:
+                        final_expression+=expr.value
+                    elif expr.type in ["Sus"]:
+                        if expr.value =="nocap":
+                            final_expression+="True" 
+                        else:
+                            final_expression+="False"
+                    elif expr.type in const.all_op:
+                        final_expression+=expr.value
+                    elif expr.type=="#":
+                        break
+                    else:
+                        self.runtime_errors.append(RuntimeError(error=se.EWAN,token= expr, expected="Invalid Condition"))
+                else:
+                    pass
+            
+            except ValueError as e:
+                e=str(e)
+                self.runtime_errors.append(RuntimeError(error=getattr(se,e), token=expr, expected=se.expected[e]))
+                return
+            # else:
+            #     if expr.type in const.asop or (expr.type in const.keywords and expr.type not in const.DATA_TYPES):
+            #         eq_found=True
+            #         pass
+        return final_expression
+            
+    
+    @DeprecationWarning
+    def build_concat(self):
+        final_expression=""
+        eq_found=False
+        for expr in self.expression:
+                
+            if eq_found:
+                if expr.type not in const.keywords:
+                    if expr.type=="Identifier":
+                        var= self.symbol_table.find(expr.value, self.scope)
+                        if isinstance(var, st.Sequence):
+                            #FIXME - Implement sequence indexing
+                            raise NotImplementedError
+                            index1=self.expression[self.expression.index(expr)+1]
+                            final_expression+=var.index_getvalue(index1, index2)
+                        elif isinstance(var, st.Variable):
+                            if var.type in ["whole", "dec",]:
+                                self.runtime_errors.append(RuntimeError(se.VAR_OPERAND_INVALID, expr, se.expected["VAR_OPERAND_INVALID"]))
+                            elif var.type in ["sus"]:
+                                self.runtime_errors.append(RuntimeError(se.VAR_OPERAND_INVALID, expr, se.expected["VAR_OPERAND_INVALID"]))
+                            elif var.type in [ "text", "charr"]:
+                                final_expression+=var.value
+                                #NOTE - idk what to do here. ito muna lagay ko
+                        elif isinstance(var, st.Function):
+                            final_expression+=var.execute() #NOTE - IMPLEMENT FUNC EXECUTION
+                        elif isinstance(var, Token):
+                            if var.type in ["Whole", "Dec"]:
+                                self.runtime_errors.append(RuntimeError(se.VAR_OPERAND_INVALID, expr, se.expected["VAR_OPERAND_INVALID"]))
+                            else:
+                                self.runtime_errors.append(RuntimeError(se.EWAN, expr, "Invalid Expression"))
+
+                    elif expr.type in ["Text", "Charr"]:
+                        final_expression+=expr.value
+                   
+                    elif expr.type in const.concat:
+                        final_expression+="+"
+                    elif expr.type=="#":
+                        break
+                    else:
+                        self.runtime_errors.append(RuntimeError(se.EWAN, expr, "Invalid Condition"))
+                else:
+                    pass
+            
+            else:
+                if expr.type in const.asop or (expr.type in const.keywords and expr.type not in const.DATA_TYPES):
+                    eq_found=True
+                    pass
+        return final_expression
+
+    def logic_rel(self):
+        raise NotImplementedError
+
+    def function_call(self):
+        pass

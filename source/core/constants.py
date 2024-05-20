@@ -1,6 +1,16 @@
 # Description: Contains the constants used in the compiler
 # List of Keywords
 
+class dtypes:
+    charr="charr"
+    whole="whole"
+    dec="dec"
+    text="text"
+    sus="sus"
+    
+    blank="blank"
+
+
 keywords = ["text", "charr","whole", "dec", "sus", "blank", "sheesh", "yeet", "based",
             "kung", "ehkung", "deins", "when", "bet", "choose","for", "to", #removed choice
             "step", "felloff", "pass", "use", "from", "nocap", "cap", "default", "up", "pa_mine", "def", "whilst"] # added def and whilst     

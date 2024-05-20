@@ -5,7 +5,7 @@ sys.path.append('.')
 from source.LexicalAnalyzer.Lexer import Lexer
 from source.SyntaxAnalyzer.Parser import SyntaxAnalyzer
 from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer
-from source.CodeGeneration.CodeGen import CodeGenerator
+from source.CodeGeneration.cg2 import CodeGenerator
 
 # from source.core.AST import AST
 # from source.core.symbol_table import Identifiers
@@ -47,23 +47,16 @@ class Compiler:
             self.parser.parse()
 
             if not self.parser.syntax_errors:
-                self.semantic=SemanticAnalyzer(self.parser.Tree, self.debug)
-                self.semantic.analyze()
 
-                if not self.semantic.semantic_errors:
-                    self.codegen=CodeGenerator(self.semantic, self.debug)
-                    self.codegen.generate_code()
+                self.codegen=CodeGenerator(self.parser.Tree, self.debug)
+                self.codegen.generate_code()
 
-                    if self.codegen.runtime_errors:
-                        self.runtime_errors=self.codegen.runtime_errors
-                        return
-                    
-                    else:
-                        self.output=self.codegen.output_stream
-                        return
-                    
+                if self.codegen.runtime_errors:
+                    self.runtime_errors=self.codegen.runtime_errors
+                    return
+                
                 else:
-                    self.semantic_errors=self.semantic.semantic_errors
+                    self.output=self.codegen.output_stream
                     return
                 
             else:
@@ -73,3 +66,24 @@ class Compiler:
         else:
             self.lex_errors=self.lexer.errors
             return
+
+    def parse(self):
+        print("Start Parsing...")
+        if self.lex_analyze():
+            self.parser=SyntaxAnalyzer(
+                Compiler.remove_whitespace_type(self.lexer.tokens))
+            self.parser.parse()
+            if self.parser.syntax_errors:
+                self.syntax_errors=self.parser.syntax_errors
+                return False
+            else:
+                return True
+    
+    def lex_analyze(self):
+        print("Start Lexical Analysis...")
+        self.lexer.tokenize()
+        if not self.lexer.errors:
+            return True
+        else:
+            self.lex_errors=self.lexer.errors
+            return False

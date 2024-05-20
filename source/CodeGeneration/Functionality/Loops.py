@@ -18,7 +18,6 @@ class Loops:
 
     """
     def __init__(self, codegen) -> None:
-        # self, node:AST, output_stream, symbol_table, current_scope, runtime_errors
         # self.node=node
         # self.leaves=self.node.leaves()
         # self.output_stream=output_stream
@@ -31,48 +30,41 @@ class Loops:
     def bet_whilst(self):
         condition=self.codegen.current_node.children[5]
         loop_body=self.codegen.current_node.children[1]
-        while Evaluators(condition).logic_rel()==False:
-            self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(loop_body)
-            self.previous_node=self.codegen.current_node
-            self.codegen.routines[self.codegen.current_node.root]()
+        while Evaluators(runtime_errors=self.codegen.runtime_errors, 
+                         expression=condition, 
+                         scope=self.codegen.current_scope, 
+                         symbol_table=self.codegen.symbol_table).evaluate(expr=condition, type=const.dtypes.sus)==True:
+            
+            self.previous_node=self.node
+            self.node = self.semantic.parse_tree.traverse(loop_body)
+            
+            self.routines[self.node.root]()
 
 
     def for_(self):
         
         iterator=self.codegen.symbol_table.find_var(self.codegen.current_node.children[3].value, self.codegen.current_scope)
-        iterator.assign(op="=",value= const.types[iterator.type](self.codegen.current_node.children[5].leaves()[0].numerical_value))
-        end=self.codegen.current_node.children[7].leaves()[0].numerical_value #idk if this'll work for seq and funcs
+        # iterator.assign(op="=",value= const.types[iterator.type](self.node.children[5].leaves()[0].numerical_value))
+        # end=self.node.children[7].leaves()[0].numerical_value #idk if this'll work for seq and funcs
+        end=Evaluators(expression=self.codegen.current_node.children[7].leaves(),
+                            runtime_errors=self.codegen.runtime_errors,
+                            symbol_table=self.codegen.symbol_table,
+                            scope=self.codegen.current_scope).evaluate(type=const.dtypes.whole, expr=self.codegen.current_node.children[7].leaves())
         try:
-            step=self.codegen.current_node.find_node("step_statement").leaves()[1]
+            step=int(self.codegen.current_node.find_node("step_statement").leaves()[1].numerical_value)
+            
         except AttributeError as e:
             step=1
-     
-        loop_body=None
-        
-        children=self.codegen.current_node.children
 
-        loop_body=self.codegen.current_node.children[-1].children[1]
-
-        # if children[3].type=="Identifier":
-        #     iterator=children[3]
-
-        # if children[7].root=="whl_value":
-        #     end=children[7].leaves()[0]
-        #     print(end)
-
-        # try:
-        #     if children[8].root=="step_statement":
-        #         step=children[8].leaves()[1]
-        #         print(step)
-        # except AttributeError as e:
-        #     print(e)
-        #     print("No step statement")
-
+        loop_body=self.codegen.current_node.children[-1]
         
         while iterator.value != end:
-            self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(loop_body)
-            self.previous_node=self.codegen.current_node
-            self.codegen.routines[self.codegen.current_node.root]()
+            # self.codegen.previous_node=self.codegen.current_node
+            # self.codegen.current_node=loop_body
+            # self.codegen.current_node = self.codegen.parse_tree.traverse(self.codegen.current_node)
+            # self.codegen.routines[self.codegen.current_node.root]()
+            # self.codegen.generate_code(loop_body)
+            self.codegen.gen_code(loop_body)
         
             # self.routines["in_loop_body"]()
             iterator.assign("+=",step)
@@ -86,8 +78,8 @@ class Loops:
     
     def felloff(self):
         #statement that should break loops
-        self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(self.codegen.parent.children[1])
-        self.previous_node=self.codegen.current_node
+        self.codegen.previous_node=self.codegen.current_node
+        self.codegen.current_node = self.codegen.current_node.parent.children[1]
         self.codegen.routines[self.codegen.current_node.root]()
     
 
@@ -95,4 +87,6 @@ class Loops:
     #     raise NotImplementedError
     
     def pass_(self):
-        pass
+        if self.codegen.current_node.root=="loop_body_statement":
+            self.codegen.previous_node=self.codegen.current_node
+            self.codegen.current_node = self.codegen.current_node.parent.children[1]

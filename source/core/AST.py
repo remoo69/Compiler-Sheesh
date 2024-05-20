@@ -11,6 +11,10 @@ from graphviz import Digraph
 debug=True
 
 class AST:
+    """ 
+    This class represents the abstract syntax tree produced during parsing. Adding and traversing nodes is a recursive process. 
+    Children can be either tokens or other ASTs (sibling node). 
+    """
     created=0
     branches_ended=0
     unended=[]
@@ -47,11 +51,12 @@ class AST:
         repr_str += f"{indent}\n"
         return repr_str
     
+        # return f"{self.root}: {self.children}"
+    
 
     def traverse(self, node):
         """ 
-        Traverse the tree in a depth-first manner
-    
+        Traverse the tree in a depth-first manner. When a leaf is reached, get the parent then the sibling ast to the right of the current node.
         """
         if node.children:
             for child in node.children:
@@ -71,6 +76,7 @@ class AST:
     
         
     def visualize(self):
+        """ This method is used to produce a pdf file of the ast for visualization """
         dot = Digraph(comment='AST')
 
         def add_nodes_edges(tree, dot=None):
@@ -124,7 +130,9 @@ class AST:
     #     plt.show()
 
     # draw_graph(self)
+
     def find_node(self, root):
+        """ This method just traverses all children and returns the child ast if it exists. This method only checks the top level children. """
         if self.root==root:
             return self
         else:
@@ -135,10 +143,14 @@ class AST:
                     if child==root:
                         return child
                     else:
-                        return None
+                        pass
+            return None
+        
+    def expand(self):
+        return self.children
 
     def current_func(self, elem=2):
-
+        """ Returns current func for node names """
         caller_frame =sys._getframe(elem)
         caller_function_name = caller_frame.f_code.co_name
     

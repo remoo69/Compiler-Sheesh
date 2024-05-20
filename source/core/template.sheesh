@@ -1,10 +1,8 @@
 sheesh(){
-
-
-
-
-
-
-
-
+for (whole i=0 to 9){
+kung(i==1){
+    up("success")#
+}
+up("aw")#
+}
 }

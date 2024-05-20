@@ -66,7 +66,8 @@ class Semantic_Errors:
         VAR_SCOPE_INVALID="Variable Scope is Invalid"
 
         SEQ_UNDECL="Undeclared Sequence"
-
+        
+        WRONG_NUM_ARGS="Wrong Number of Arguments"
         
         FUNC_UNDECL="Undeclared Function"
         FUNC_UNDEF="Undefined Function"
@@ -114,6 +115,7 @@ class Semantic_Errors:
         "SEQ_UNDECL": "Declared Sequence",
 
         
+        "WRONG_NUM_ARGS": "{} Arguments in Function Call",
         "FUNC_UNDECL": "Declared Function",
         "FUNC_UNDEF":"Defined Function",
         "FUNC_REDECL_INSCOPE":  "Different Identifier",

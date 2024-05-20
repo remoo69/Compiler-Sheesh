@@ -7,7 +7,7 @@
 
 
         {
-            "name": "Python Debugger: Main",
+            "name": "Sheesh# Compiler",
             "type": "debugpy",
             "request": "launch",
             "program": "source\\Sheesh# Compiler.py",

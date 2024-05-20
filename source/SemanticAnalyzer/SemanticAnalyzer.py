@@ -6,6 +6,7 @@ from source.core.error_types import Semantic_Errors as se
 from source.core.AST import AST
 import source.core.constants as const
 from source.core.symbol_table import SymbolTable
+from source.core.error_handler import RuntimeError
 
 
 
@@ -71,8 +72,7 @@ class SemanticAnalyzer:
         self.semantic_expected=[]
 
         self.semantic_errors: list[SemError]=[]
-
-
+        self.runtime_errors:list[RuntimeError]=[]
 
 
         #for declarations
@@ -85,6 +85,7 @@ class SemanticAnalyzer:
         self.current_node:AST=self.parse_tree
         self.previous_node:AST=None
 
+        self.scope_tree=ScopeTree(const.GBL)
         self.current_scope=const.GBL
 
         self.buffer=[]
@@ -148,7 +149,7 @@ class SemanticAnalyzer:
         return f"SemanticAnalyzer({self.parse_tree})"
 
     def analyze(self):
-        print("Semantic Analysis...")
+        print("Semantic Analysis and Code Generation...")
         while True:
             if self.current_node.root not in self.routines.keys():
                 self.previous_node=self.current_node
@@ -162,61 +163,70 @@ class SemanticAnalyzer:
                 print(self.symbol_table)
                 break  # Exit the loop if the tree has been fully traversed
 
-    def in_param(self):
+    def func_def(self):
+        items=self.current_node.leaves()
+        
+        type=items[1].value
+        if type=="charr":
+            id=items[3].value
+        else:
+            id=items[2].value
+
+        parameter=self.current_node.children[4].leaves()
+
+        params=[]
+        for i, param in enumerate(parameter):
+            if param.type in const.DATA_TYPES:
+                param_type=param.type
+                param_id=parameter[i+1].value
+                params.append(param_id)
+                self.symbol_table.parameter(id=param_id, type=param_type, scope=self.current_scope, param_type="Variable")
+            elif param.type==")":
+                break
+
+        body=self.current_node.find_node("func_def_tail")
+
+        self.symbol_table.function(id=id, return_type=type, parameters=params, body=body)
 
 
-        if self.current_node.children[1].type=="Identifier":
-            id=self.current_node.children[1]
-            type=self.current_node.children[0].children[0].value
-            if self.current_node.children[2].type=="[":
-                param_type=const.SEQ
-            else:
-                param_type=const.VAR
+    # def in_param(self):
+
+
+    #     if self.current_node.children[1].type=="Identifier":
+    #         id=self.current_node.children[1]
+    #         type=self.current_node.children[0].children[0].value
+    #         if self.current_node.children[2].type=="[":
+    #             param_type=const.SEQ
+    #         else:
+    #             param_type=const.VAR
                 
-            self.symbol_table.parameter(id=id, type=type, scope=self.current_scope, param_type=param_type)
+    #         self.symbol_table.parameter(id=id, type=type, scope=self.current_scope, param_type=param_type)
 
-        elif self.current_node.children[2].type=="Identifier":
-            id=self.current_node.children[2]
-            type="charr"
-            param_type=const.VAR
-            self.symbol_table.parameter(id=id, type=type, scope=self.current_scope, param_type=param_type)
+    #     elif self.current_node.children[2].type=="Identifier":
+    #         id=self.current_node.children[2]
+    #         type="charr"
+    #         param_type=const.VAR
+    #         self.symbol_table.parameter(id=id, type=type, scope=self.current_scope, param_type=param_type)
 
 #FIXME - handle current scope
-    def allowed_in_loop(self):
-        try:
-            items= self.current_node.leaves()
-            if items[0].type=="Identifier":
-                self.nearest_id=items[0]
-                id_obj=items[0]
-                id=id_obj.value
-
-                if items[1].type=="[":
-                    self.symbol_table.find_seq(id, self.current_scope)
-                elif items[1].type=="(":
-                    self.symbol_table.find_func(id)
-                elif items[1].type in const.asop:
-                    var=self.symbol_table.find_var(id, self.current_scope)
-                    self.req_type=var.type
-                    try:
-                        for item in items:
-                            if item.type=="#":
-                                break
-                            if item.type in ["Whole", "Dec", "Sus", "Text", "Charr"]:
-                                if str(item.type).lower()!=str(self.req_type).lower():
-                                    self.semantic_error(se.VAR_OPERAND_INVALID, item, f"Variable of Type {self.req_type}, Got {item.type}")
-                    except AttributeError:
-                        raise AttributeError("IDK what happened here")
-                        return
+    # def allowed_in_loop(self):
+    #     try:
+    #         items= self.current_node.leaves()
+    #         if items[0].type=="Identifier":
+                
+    #                 except AttributeError:
+    #                     raise AttributeError("IDK what happened here")
+    #                     return
 
 
                 
-                else: raise NameError("Bro What")
+    #             else: raise NameError("Bro What")
 
-            else: pass
+    #         else: pass
 
-        except AttributeError as e:
-            e=str(e)
-            self.semantic_error(error=getattr(se, e), token=id_obj, expected=se.expected[str(e)])
+    #     except AttributeError as e:
+    #         e=str(e)
+    #         self.semantic_error(error=getattr(se, e), token=id_obj, expected=se.expected[str(e)])
 
     def var_or_seq_dec(self):
             items=self.current_node.leaves()

@@ -37,8 +37,8 @@ class Identifier:
     def id_tail(self):
         leaves=self.node.leaves()
         if leaves[1].type=="(":
-            self.function_call()
-        elif leaves[1].type=="=":
+            self.symbol_table.find_func(id=self.node.parent.children[0].value)
+        elif leaves[1].type in const.asop:
             Evaluators(self.leaves, self.runtime_errors, self.current_scope, self.symbol_table).assign(self.node.children[0])
         else:
             pass

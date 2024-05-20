@@ -2,6 +2,7 @@ import sys
 sys.path.append(".")
 # from source.CodeGeneration.Functionality.Functionality import Functionality
 from source.CodeGeneration.Functionality.Evaluators import Evaluators
+import source.core.constants   as const
 
 
 class ControlFlow:
@@ -17,7 +18,7 @@ class ControlFlow:
     
     For choose:
     1. Get Check Value
-    2. Get bodies
+    2. Get bodies5
     3. Evaluate check value == body value
     4. If success, execute node; else, check other bodies.
     5. If no body matches, go to default node; execute default node
@@ -31,10 +32,6 @@ class ControlFlow:
         
     def kung(self):
         #initializers
-        condition=None
-        body=None
-        cond_tail=None
-
         condition=self.codegen.current_node.children[2].leaves()
         success=self.codegen.current_node.children[4]
         if len(self.codegen.current_node.children)==5:
@@ -44,23 +41,32 @@ class ControlFlow:
         else:
             fail=self.codegen.current_node.children[-1] 
 
-        if Evaluators(expression=condition, runtime_errors=self.codegen.runtime_errors, scope=self.codegen.current_scope, symbol_table=self.codegen.symbol_table).evaluate_cond()==True:
-            self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(success)
-            self.codegen.routines[self.codegen.current_node.root]()
+        eval=Evaluators(expression=condition, runtime_errors=self.codegen.runtime_errors, scope=self.codegen.current_scope, symbol_table=self.codegen.symbol_table).evaluate(type=const.dtypes.sus,expr=condition)
+        if eval==True:
+            self.codegen.gen_code(success)
+            # self.codegen.current_node = self.codegen.parse_tree.traverse(success)
+            # # try:
+            # self.codegen.routines[self.codegen.current_node.root]()
+            # except KeyError:
+            #     self.codegen.advance()
 
         else:
             if fail==None:
                 try:
-                    fail=self.codegen.current_node.parent.parent.children[1]
+                    fail=self.codegen.current_node.parent.children[1]
+                    # self.codegen.current_node.children[-2].children[0].children[1].leaves(),
                 except IndexError:
+                    self.codegen.current_node=self.codegen.current_node.parent.parent.children[1]
                     return
-                self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(fail)
-                self.codegen.routines[self.codegen.current_node.root]()
+                # self.codegen.current_node = self.codegen.parse_tree.traverse(fail)
+                # self.codegen.routines[self.codegen.current_node.root]()
+                
             else:
                 while True:
                     try:
-                        self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(fail)
-                        self.codegen.routines[self.codegen.current_node.root]()
+                        # self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(fail)
+                        # self.codegen.routines[self.codegen.current_node.root]()
+                        self.codegen.gen_code(fail)
                         break  # if the above lines don't raise an exception, break the loop
                     except KeyError:
                         while self.codegen.current_node.root!="statement":
@@ -93,6 +99,8 @@ class ControlFlow:
         self.codegen.routines[self.codegen.current_node.root]()
     
     def choose_when_default(self):
+        """
+        """
         checker=None
         body=None
         conditions=None

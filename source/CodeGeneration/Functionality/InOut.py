@@ -21,13 +21,14 @@ class InOut:
     4. If pa_mine, get format specifier. get input as format specifier type. If type is not correct, raise error. If correct, assign to var
 
     """
-    def __init__(self, node:AST, output_stream, symbol_table, current_scope, runtime_errors) -> None:
-        self.node=node
-        self.leaves=self.node.leaves()
-        self.output_stream=output_stream
-        self.symbol_table:SymbolTable=symbol_table
-        self.current_scope=current_scope
-        self.runtime_errors=runtime_errors
+    def __init__(self, codegen) -> None:
+        self.codegen=codegen
+        # self.node=node
+        # self.leaves=self.node.leaves()
+        # self.output_stream=output_stream
+        # self.symbol_table:SymbolTable=symbol_table
+        # self.current_scope=current_scope
+        # self.runtime_errors:list=runtime_errors
 
     def pa_mine(self):
          """  
@@ -56,7 +57,7 @@ class InOut:
 
             for match in reversed(matched):
                 if match.type=="Identifier":
-                    vars.append(self.symbol_table.find_var(match.value, self.current_scope))
+                    vars.append(self.codegen.current_scope.find_var(match.value, self.current_scope))
                     vars2.append(match)
                     type=match.dtype
                     print(type)
@@ -79,6 +80,7 @@ class InOut:
                     expected=f"{len(format_specifiers)} variables of type"
                     for format in format_specifiers:
                             expected+=f" {self.own_specifiers[format[1:]]},"
+                            
                     self.runtime_errors.append(
                         RuntimeError(error=err_msg, token=self.node.children[0], expected=expected)
                         )

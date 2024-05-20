@@ -2118,9 +2118,23 @@ class SyntaxAnalyzer:
 
     def literal_or_expr(self, required=False):
         self.Tree.initialize_new()
-        if self.id_val_op() == self.success:
+        if self.id_as_val() == self.success:
+            if self.num_math_op() == self.success:
+                if self.relop() == self.success:
+                    self.enforce()
+                    self.rel_val()
+                    self.logic_expr()
+                    self.Tree.end_branch(); return self.success
+                self.Tree.end_branch(); return self.success
+            elif self.rel_expr() == self.success:
+                self.Tree.end_branch(); return self.success
+            elif self.txt_op() == self.success:
+                self.Tree.end_branch(); return self.success
+            elif self.logic_expr() == self.success:
+                self.Tree.end_branch(); return self.success
             self.Tree.end_branch(); return self.success
-        elif self.num_arithm() == self.success:
+        elif self.match("Whole", True) or self.match("Dec", True):
+            self.num_math_op()
             self.rel_expr()
             self.Tree.end_branch(); return self.success
         elif self.literal_logicval() == self.success:
@@ -2139,8 +2153,67 @@ class SyntaxAnalyzer:
     def l_expr_withparen(self):
         self.Tree.initialize_new()
         if self.match("(", True):
-            self.literal_or_expr()
-            self.match(")")
+            if self.match("Whole", True) or self.match("Dec", True) == self.success:
+                self.num_math_op()
+                if self.rel_expr() == self.success:
+                    self.match(")")
+                    self.logic_expr()
+                    self.Tree.end_branch(); return self.success
+                self.match(")")
+                self.num_math_op()
+                self.rel_expr()
+                self.Tree.end_branch(); return self.success
+            elif self.match("Charr", True):
+                if self.charr_op_tail() == self.success:
+                    self.match(")")
+                    self.logic_expr()
+                    self.Tree.end_branch(); return self.success
+                self.match(")")
+                self.charr_op_tail()
+                self.Tree.end_branch(); return self.success
+            elif self.match("Text", True):
+                self.txt_op()
+                self.match(")")
+                self.txt_op()
+                self.Tree.end_branch(); return self.success
+            elif self.match("Sus", True):
+                self.logic_expr()
+                self.match(")")
+                self.logic_expr()
+                self.Tree.end_branch(); return self.success
+            elif self.id_as_val() == self.success:
+                self.id_val_next()
+                self.match(")")
+                self.id_val_next()
+                self.Tree.end_branch(); return self.success
+        else:
+            return self.failed()
+    
+    @nullable
+    def id_val_next(self):
+        if self.num_math_op() == self.success:
+            if self.relop() == self.success:
+                self.enforce()
+                self.rel_val()
+                self.logic_expr()
+                self.Tree.end_branch(); return self.success
+            elif self.rel_expr() == self.success:
+                self.logic_expr()
+                self.Tree.end_branch(); return self.success
+            elif self.txt_op() == self.success:
+                self.txt_op()
+                self.Tree.end_branch(); return self.success
+            elif self.logic_expr() == self.success:
+                self.logic_expr()
+                self.Tree.end_branch(); return self.success
+        elif self.relop() == self.success:
+            self.enforce()
+            self.rel_val()
+            self.logic_expr()
+            self.Tree.end_branch(); return self.success
+        elif self.txt_op() == self.success:
+            self.Tree.end_branch(); return self.success
+        elif self.logic_expr() == self.success:
             self.Tree.end_branch(); return self.success
         else:
             return self.failed()

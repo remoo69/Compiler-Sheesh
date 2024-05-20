@@ -1,5 +1,6 @@
 
 import sys
+from typing import Self
 sys.path.append( '.' )
 from dataclasses import dataclass
 
@@ -7,6 +8,9 @@ import source.core.constants as const
 from source.core.error_handler import SemanticError
 from source.core.error_types import Semantic_Errors as se
 from source.core.AST import AST
+from source.core.error_handler import RuntimeError as RError
+from source.CodeGeneration.Functionality.runner import FuncRunner as FR
+
 """ 
 Scope System:
     The scopes of the variables in the program will follow a scope system where the scope of the variable would be the id of the
@@ -28,8 +32,15 @@ Block IDs:
 
         the unique identifier would be either the function identifier if the block is a function, and a number that
         iterates per invocation. For example, the main sheesh function would have the Block id of FUNCTION sheesh.
-        Another case for this would be the first invocation of a conditional like the kung statement. 
-        The block if for it would be KUNG 1.
+        
+        
+        Another case for this would be an invocation of a conditional block. The block id would be KUNG1, KUNG2, etc.
+        The block id functions as a unique identifier for that specific block. As such, all block ids should be unique.
+
+*UPDATE::
+    A new symbol table will now be created every block. The newly created block will inherit the previous block as its parent. When the block is finished, 
+    the parent block should be reset as the current block. 
+    **Create a stack to store scope calls and hierarchies. 
  
 """
 
@@ -66,16 +77,38 @@ class Token:
     block_start_line=0
 
     def __repr__(self) -> str:
-        return f"Token(\"{self.value}\", {self.attribute}, {self.dtype}, {self.numerical_value})"
+        # return f"Token(\"{self.value}\", {self.attribute}, {self.dtype}, {self.numerical_value})"
+        return f"Tok(\"{self.value}\")"
+
+class Value:
+    def __init__(self) -> None:
+        self.value=None
+        self.dtype=None
+        self.scope=None
+        self.token=None
+        
+    def execute(self):
+        raise NotImplementedError
+    
+    def evaluate(self):
+        raise NotImplementedError
+    
+
 
 class Variable:
-    def __init__(self, id, type, scope) -> None:
-        self.set_scope(scope=scope)
+    """  
+    This functions as the base class for other constructs in the program like constants and sequences.
+    This class is used to perform operations on the variable such as assigning and getting the value.
+    Other functionalities should be implemented as needed.
+    """
+    def __init__(self, id, type) -> None:
+        # self.set_scope(scope=scope)
         self.id=id
         self.type=type
         self.value=None
         
     def assign(self, op, value):
+        """ Value should be evaluated already. """
         print(type(value))
         print(const.types[self.type])
         if type(value)==const.types[self.type]:
@@ -83,7 +116,7 @@ class Variable:
         else:
             if  type(value)!=const.py_types[self.type] :
                 if type(value) in [str, float] and value.isdigit() and value%1==0:
-                    value=type(value)(value)
+                    value=type(value)(value) #FIXME - breaks when div
                 else:
                     raise ValueError(se.VAL_OPERAND_INVALID)
             if isinstance(value, const.types[self.type]):
@@ -99,17 +132,25 @@ class Variable:
                 elif op=="*=":
                     self.value*=value
                 elif op=="/=":
-                    self.value/=value
+                    self.value/=value #FIXME - Probably the same div issue
                 elif op=="%=":
                     self.value%=value
             else:
                 raise ValueError(se.VAR_UNDEF)
+    
+    def _evaluate(self):
+        """  
+        1. Return self.value
+        """
+        
 
-
-    def set_scope(self, scope):
-        self.scope=scope
+    # def set_scope(self, scope):
+    #     self.scope=scope
     
     def get_val(self):
+        """  
+        This method is from the variable class. Use accordingly.
+        """
         if self.value!=None:
             return self.value
         else:
@@ -120,9 +161,13 @@ class Variable:
     
 
 class Sequence(Variable):
-    def __init__(self, id, type, scope, rows, cols) -> None:
-        super().__init__(id, type, scope=scope)
-        self.array=[[None]*cols for _ in range(rows)]
+    """  
+    Class used to represent sequences (arrays). Rows and cols should be whole values before instantiating the sequence. 
+    Make sure to evaluate expressions inside before creating a sequence.
+    """
+    def __init__(self, id, type, rows, cols) -> None:
+        super().__init__(id, type,)
+        self.array=[]
         self.rows=rows
         self.cols=cols
     def set(self, rows, cols, value):
@@ -140,6 +185,12 @@ class Sequence(Variable):
                 self.array[i][j]=values[i][j]
 
     def get(self, row, col):
+        """  
+        1. Get row and col
+        2. If isinstanc(row, any(id_derivates)) 
+        3. id.evaluate
+        
+        """
         if row>=self.rows or col>=self.cols:
             raise ValueError(se.OUT_OF_BOUNDS)
         if col==None:
@@ -152,41 +203,48 @@ class Sequence(Variable):
     
 
 #NOTE- medj sus
-class Constant(Variable):
+class ConstantVar(Variable):
+    """ A global variable """
     def __init__(self, id, type) -> None:
         super().__init__(id, type)
-        self.set_scope=const.GBL
 
-class Constant(Sequence):
+class ConstantSeq(Sequence):
+    """ A global sequence """
     def __init__(self, id, type) -> None:
         super().__init__(id, type)
-        self.set_scope=const.GBL
+        # self.set_scope=const.GBL  
 
 class Function:
-    def __init__(self, id, return_type, parameters) -> None:
+    def __init__(self, id:str, return_type:str, parameters:AST, body:AST) -> None:
+        
         self.id=id
         self.return_type=return_type
-        self.parameters:list[Parameter]=parameters
+        self.parameters:AST=parameters
+        #parameters should be a list of variables
         self.func_body:AST=None
+        self.ctx_name=f"FUNCTION {self.id}"
 
 
-    # def new_statement(self, statement):
-    #     self.statements.append(statement)
-
-    def body(self, statements):
-        self.func_body=statements
-
-    def execute(self):
+    def execute(self, args:list)->bool:
         """  
+        *Args are a list of values. Evaluate args first before executing.
+        
         This method should execute the statements in the function. Idk how to do that yet tho.
         
         Algorithm:
         1. Get block node
         2. Set args (series of var inits)
+        Init new block
+        Append var initialization
+
         3. Execute code until end.
 
         """
-        print("Generating code...")
+        if len(args)!=len(self.parameters):
+            raise ValueError("WRONG_NUM_ARGS")
+        else:
+            FR(func=self,arguments= args).run()
+        
         # while True:
         #     if self.current_node.root not in self.routines.keys():
         #         self.previous_node=self.current_node
@@ -203,10 +261,13 @@ class Function:
         return self.func_body #FIXME - di pa ayos to
     
 class Parameter(Variable):
-    def __init__(self, id, type, param_type) -> None:
-        super().__init__(id, type)
+    def __init__(self, id, type, param_type, scope) -> None:
+        super().__init__(id, type, scope)
         #regular var or sequence
         self.param_type=param_type
+    
+    def __repr__(self):
+        return f"Parameter({super().__repr__()})"
 
 class ScopeTree:
     def __init__(self, root, children) -> None:
@@ -220,26 +281,30 @@ class SymbolTable:
     """ 
     This Symbol Table is only for Identifiers. 
     It is a simple dictionary that stores the identifiers as keys and their corresponding Token objects as values. 
-      
     """
+
     def __init__(self):
         self.symbols = {}
-        # self.scope_tree=ScopeTree()
+        # self.scopetree=ScopeTree(const.GBL)
+        # self.runtime_errors=[]
 
     def keys(self):
         return self.symbols.keys()
 
-    def variable(self, id, type, scope):
+    def variable(self, id, type)->Variable:
         if id not in self.symbols.keys():
-            self.symbols[id]=Variable(id=id,type=type, scope=scope)
+            self.symbols[id]=Variable(id=id,type=type)
+
+            return self.symbols[id]
         else:
+            
             raise KeyError("VAR_REDECL_INSCOPE")
 
 
 #FIXME - IDK WHAT TO DO WITH THIS
-    def sequence(self, id, type, scope):
+    def sequence(self, id, type, scope, rows, cols):
         if id not in self.symbols.keys():
-            self.symbols[id]=Sequence(id=id, type=type, scope=scope)
+            self.symbols[id]=Sequence(id=id, type=type, scope=scope, rows=rows, cols=cols)
         else:
             raise KeyError("VAR_REDECL_INSCOPE")
         
@@ -254,25 +319,28 @@ class SymbolTable:
             raise KeyError("FUNC_REDECL_INSCOPE")
         
 
-    def constant(self, id, type):
+    def constant_var(self, id, type):
         if id not in self.symbols.keys():
-            self.symbols[id]=Constant(id=id, type=type)
+            self.symbols[id]=ConstantVar(id=id, type=type)
         else:
             raise KeyError("CONST_REDECL")
         
 
-    def parameter(self, id, type, param_type, scope, ):
-        if id in self.symbols.keys() and isinstance(self.symbols[id], Parameter) and self.symbols[id].scope==scope:
-            raise KeyError("PARAM_REDECL_INSCOPE")
+    def constant_seq(self, id, type):
+        if id not in self.symbols.keys():
+            self.symbols[id]=ConstantSeq(id=id, type=type)
         else:
-            self.symbols[id]=Parameter(id=id, type=type, param_type=param_type).set_scope(scope=scope)
+            raise KeyError("CONST_REDECL")
+            # self.symbols[id]=Parameter(id=id, type=type, param_type=param_type, scope=scope)
 
 
-    def find(self,id, scope):
-        if id in self.symbols.keys() and self.symbols[id].scope==scope:
+    def find(self,id):
+        if id in self.symbols.keys():
             return self.symbols[id]
         else:
+            
             raise KeyError("VAR_UNDECL")
+            # self.runtime_errors.append()
         
 
     def find_var(self, id, scope)->Variable:
@@ -287,33 +355,33 @@ class SymbolTable:
         else:
             raise AttributeError("SEQ_UNDECL")
         
-    def find_const(self, id)->Constant:
-        if id in self.symbols.keys() and type(self.symbols[id])==Constant:
+    def find_const_var(self, id)->ConstantVar:
+        if id in self.symbols.keys() and type(self.symbols[id])==ConstantVar:
             return self.symbols[id]
         else:
             raise AttributeError("CONST_UNDECL")
         
+
+    def find_const_seq(self, id)->ConstantSeq:
+        if id in self.symbols.keys() and type(self.symbols[id])==ConstantSeq:
+            return self.symbols[id]
+        else:
+            raise AttributeError("CONST_UNDECL")
+        
+
     def find_func(self, id)->Function:
         if id in self.symbols.keys() and type(self.symbols[id])==Function:
             return self.symbols[id]
         else:
             raise AttributeError("FUNC_UNDECL")
         
-    def find_param(self, id, scope)->Parameter:
-        if id in self.symbols.keys() and type(self.symbols[id])==Parameter and self.symbols[id].scope==scope:
-            return self.symbols[id]
-        else:
-            raise AttributeError("PARAM_UNDECL_INSCOPE")
 
-#FIXME - UNIMPLEMENTED
-    def  get_var_inscope(self, scope)->dict:
-        vars={}
-        raise NotImplementedError
-        for key in self.symbols.keys():
-            if self.symbols[key].scope==scope:
-                vars.update(self.symbols[key])
-            elif self.symbols[3]:pass
-            
+    # def find_param(self, id, scope)->Parameter:
+    #     if id in self.symbols.keys() and type(self.symbols[id])==Parameter and self.symbols[id].scope==scope:
+    #         return self.symbols[id]
+    #     else:
+    #         raise AttributeError("PARAM_UNDECL_INSCOPE")
+
 
         
     def get_all(self, type):
@@ -334,27 +402,18 @@ class SymbolTable:
 
     def __str__(self):
         return f"{self.symbols}"
+
+
+class Context:
+    def __init__(self, name, parent) -> None:
+        self.name=name
+        self.symbol_table:SymbolTable=None
+        self.parent=parent
+        
     
-
-
-
-
-
+    def symbols(self):
+        self.symbol_table=SymbolTable()
+        self.symbol_table.extend(self.parent.symbol_table)
+        return self.symbol_table
     
-
-# class Identifiers:
-#     def __init__(self) -> None:
-#         self.vars=SymbolTable()
-#         self.funcs=SymbolTable()
-#         self.params=SymbolTable()
-
-#     def __repr__(self):
-#         return f"Identifiers({self.vars}, {self.funcs}, {self.params})"
-
-
-#     def accessible_ids(self):
-#         temp=SymbolTable()
-#         temp.symbols.update(self.vars.symbols) 
-#         temp.symbols.update(self.funcs.symbols) 
-
-#         return temp
+    
