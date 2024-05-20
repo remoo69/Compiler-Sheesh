@@ -5,7 +5,7 @@ from source.core.AST import AST
 from source.CodeGeneration.Functionality.Evaluators import Evaluators
 from source.core.symbol_table import SymbolTable
 import source.core.constants   as const
-# from source.CodeGeneration.CodeGen import CodeGenerator
+from source.CodeGeneration.cg2 import CodeGenerator
 class Loops:
     """  
     Algorithm:
@@ -32,8 +32,7 @@ class Loops:
         loop_body=self.codegen.current_node.children[1]
         while Evaluators(runtime_errors=self.codegen.runtime_errors, 
                          expression=condition, 
-                         scope=self.codegen.current_scope, 
-                         symbol_table=self.codegen.symbol_table).evaluate(expr=condition, type=const.dtypes.sus)==True:
+                         context=self.codegen.context).evaluate(expr=condition, type=const.dtypes.sus)==True:
             
             self.previous_node=self.node
             self.node = self.semantic.parse_tree.traverse(loop_body)
@@ -43,13 +42,13 @@ class Loops:
 
     def for_(self):
         
-        iterator=self.codegen.symbol_table.find_var(self.codegen.current_node.children[3].value, self.codegen.current_scope)
+        iterator=self.codegen.context.symbol_table.find_var(self.codegen.current_node.children[3].value)
         # iterator.assign(op="=",value= const.types[iterator.type](self.node.children[5].leaves()[0].numerical_value))
         # end=self.node.children[7].leaves()[0].numerical_value #idk if this'll work for seq and funcs
         end=Evaluators(expression=self.codegen.current_node.children[7].leaves(),
                             runtime_errors=self.codegen.runtime_errors,
-                            symbol_table=self.codegen.symbol_table,
-                            scope=self.codegen.current_scope).evaluate(type=const.dtypes.whole, expr=self.codegen.current_node.children[7].leaves())
+                            context=self.codegen.context,
+                            ).evaluate(type=const.dtypes.whole, expr=self.codegen.current_node.children[7].leaves())
         try:
             step=int(self.codegen.current_node.find_node("step_statement").leaves()[1].numerical_value)
             
@@ -64,7 +63,8 @@ class Loops:
             # self.codegen.current_node = self.codegen.parse_tree.traverse(self.codegen.current_node)
             # self.codegen.routines[self.codegen.current_node.root]()
             # self.codegen.generate_code(loop_body)
-            self.codegen.gen_code(loop_body)
+            # self.codegen.gen_code(loop_body.children[1])
+            code=CodeGenerator(loop_body, self.debug) 
         
             # self.routines["in_loop_body"]()
             iterator.assign("+=",step)

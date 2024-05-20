@@ -22,11 +22,12 @@ class Evaluators:
     The expression should be a list of tokens.
     
     """
-    def __init__(self, expression, runtime_errors, scope, symbol_table) -> None:
+    def __init__(self, expression, runtime_errors, context) -> None:
         self.expression=expression
         self.runtime_errors=runtime_errors
-        self.scope=scope
-        self.symbol_table:st.SymbolTable=symbol_table
+        self.context=context
+        # self.context.name=scope
+        # self.context.symbol_table:st.SymbolTable=symbol_table
 
     def build_expression(self, expression):
         """  
@@ -39,12 +40,12 @@ class Evaluators:
  
                 if expr.type not in const.keywords:
                     if expr.type=="Identifier":
-                        var= self.symbol_table.find(expr.value, self.scope)
+                        var= self.context.symbol_table.find(expr.value)
                         if isinstance(var, st.Sequence): 
                             
                             index=self.evaluate(expression[i+2:], type=const.dtypes.whole)
                             col=self.evaluate(expression[i+3:], type=const.dtypes.whole) # FIXME can' eval col because can't find second index.
-                            # sequence=self.symbol_table.find(var.value, self.scope)
+                            # sequence=self.context.symbol_table.find(var.value, self.context.name)
                             final_expression+=var.get(row=index, col=col)
                             
                         elif isinstance(var, st.Variable):
@@ -119,9 +120,9 @@ class Evaluators:
                 break
         
         value=None
-        if id.value in self.symbol_table.keys():
+        if id.value in self.context.symbol_table.keys():
             items=self.expression
-            var=self.symbol_table.find(id.value, self.scope)
+            var=self.context.symbol_table.find(id.value, self.context.name)
             #FIXME - no type checking for var
 
             if var.type in ["dec", "whole"]:
@@ -132,7 +133,7 @@ class Evaluators:
         
             value=self.general_evaluator(temp)
 
-            id_ref=self.symbol_table.find_var(id.value, self.scope)
+            id_ref=self.context.symbol_table.find_var(id.value, self.context.name)
             if id_ref.value==None:
                 id_ref.value=0 #NOTE -  medj sus; idk if oks lang bang ganto default
             if op != "=":
@@ -153,19 +154,19 @@ class Evaluators:
                 print(const.types[id_ref.type])
                 if type(value)==const.py_types[id_ref.type]:
                     if id_ref.type in ["whole", "dec"]:
-                        self.symbol_table[id.value].assign(op=op, value=const.py_types[id_ref.type](value)[1:-1])
+                        self.context.symbol_table[id.value].assign(op=op, value=const.py_types[id_ref.type](value)[1:-1])
                     else:
-                        self.symbol_table[id.value].assign(op=op, value=value)
+                        self.context.symbol_table[id.value].assign(op=op, value=value)
                     return True
                 
                 elif type(value)==str:
                     value=const.py_types[id_ref.type](value)
-                    self.symbol_table[id.value].assign(op=op, value=value)
+                    self.context.symbol_table[id.value].assign(op=op, value=value)
                     return True
                 else:
                     if value%1==0 or value>0 or value<0:
                         value=self.semantic.data_types[id.dtype](value)
-                        self.symbol_table[id.value].assign(op=op, value=value)
+                        self.context.symbol_table[id.value].assign(op=op, value=value)
                         return True
                     else:
                         # self.semantic.semantic_error(se.VAR_OPERAND_INVALID, id, f"Value of Type {id.dtype}, got {self.semantic.reverse_types[type(value)]}")
@@ -379,7 +380,7 @@ class Evaluators:
             try:
                 if expr.type not in const.keywords:
                     if expr.type=="Identifier":
-                        var= self.symbol_table.find(expr.value, self.scope)
+                        var= self.context.symbol_table.find(expr.value, self.context.name)
                         if isinstance(var, st.Sequence):
                             #FIXME - Implement sequence indexing
                             raise NotImplementedError
@@ -437,7 +438,7 @@ class Evaluators:
             if eq_found:
                 if expr.type not in const.keywords:
                     if expr.type=="Identifier":
-                        var= self.symbol_table.find(expr.value, self.scope)
+                        var= self.context.symbol_table.find(expr.value, self.context.name)
                         if isinstance(var, st.Sequence):
                             #FIXME - Implement sequence indexing
                             raise NotImplementedError

@@ -47,7 +47,7 @@ class InOut:
          raise NotImplementedError
     
     def up(self):
-            matched=self.leaves
+            matched=self.codegen.current_node.leaves()
 
             vars=[]
             vars2=[]
@@ -57,9 +57,10 @@ class InOut:
 
             for match in reversed(matched):
                 if match.type=="Identifier":
-                    vars.append(self.codegen.current_scope.find_var(match.value, self.current_scope))
-                    vars2.append(match)
-                    type=match.dtype
+                    value=self.codegen.context.symbol_table.find(match.value)
+                    vars.append(value)
+                    vars2.append(value)
+                    type=value.type
                     print(type)
                 elif match.type in const.literal_types and match.type!="Text":
                     vars.append(match)
@@ -135,11 +136,11 @@ class InOut:
                 # Format the string with the variables
                 formatted_text = text.format(*val)
 
-                occurrence=0
+                ctr=1
                 # Print the formatted string
-                if formatted_text in self.output_stream.keys():
-                    self.output_stream[formatted_text]+=1
-                else:
-                    occurence=1
-                    self.output_stream[formatted_text]=occurence
-                print(self.output_stream)
+                if formatted_text :
+                    self.codegen.output_stream[ctr]=formatted_text
+                # else:
+                #     occurence=1
+                #     self.output_stream[formatted_text]=occurence
+                print(self.codegen.output_stream)

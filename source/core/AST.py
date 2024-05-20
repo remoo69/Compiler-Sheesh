@@ -137,11 +137,12 @@ class AST:
             return self
         else:
             for child in self.children:
-                if isinstance(child, AST):
-                    return child.find_node(root)
-                else:
-                    if child==root:
-                        return child
+                # if isinstance(child, AST):
+                #     return child.find_node(root)
+                # else:
+                    if isinstance(child, AST):
+                        if child.root==root:
+                            return child
                     else:
                         pass
             return None

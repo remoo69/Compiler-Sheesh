@@ -48,7 +48,7 @@ class Compiler:
 
             if not self.parser.syntax_errors:
 
-                self.codegen=CodeGenerator(self.parser.Tree, self.debug)
+                self.codegen=CodeGenerator(parse_tree=self.parser.Tree, debugMode=self.debug, mode=1)
                 self.codegen.generate_code()
 
                 if self.codegen.runtime_errors:

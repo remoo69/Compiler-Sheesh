@@ -9,8 +9,8 @@ from source.core.error_types import Semantic_Errors as se
 import source.core.constants as const
 from source.core.symbol_table import SymbolTable, Context
 
-from source.CodeGeneration.Functionality.ControlFlow import ControlFlow
-from source.CodeGeneration.Functionality.Loops import Loops
+# from source.CodeGeneration.Functionality.ControlFlow import ControlFlow
+# from source.CodeGeneration.Functionality.Loops import Loops
 # from source.CodeGeneration.Functionality.Declarations import Identifier
 from source.CodeGeneration.Functionality.Evaluators import Evaluators
 from source.CodeGeneration.Functionality.InOut import InOut
@@ -61,8 +61,9 @@ class CodeGenerator:
     5. 
     
     """
-    def __init__(self, parse_tree:AST, debugMode) -> None:
-
+    def __init__(self, parse_tree:AST, parent=Context(const.GBL, None), debugMode=False, mode=2) -> None:
+        self.mode=mode
+        
         self.debug=debugMode
 
         self.parse_tree=parse_tree
@@ -81,9 +82,10 @@ class CodeGenerator:
         self.runtime_errors:list[RError] = []
 
         # self.scope_tree=self.symbol_table.scopetree
-        self.context:Context=None
-        self.new_context(const.GBL)
+        self.context:Context=parent
         self.ctx_dict={}
+
+        
         
 
         self.reverse_types={v:k for k, v in const.types.items()}
@@ -167,15 +169,24 @@ class CodeGenerator:
 
     def new_context(self, context):
         self.context=Context(context, self.context)
-        cpy=self.context.deepcopy()
+        cpy=deepcopy(self.context)
         self.ctx_dict[context]=cpy
         
+    def end_context(self):
+        self.context=self.context.parent
+        return self.context
     # def get_context(self, context):
         
         
     def generate_code(self):
+
         print("Generating code...")
         while True:
+            # if not isinstance(self.current_node, AST):
+            #     if self.current_node.type=="}":
+            #         self.end_context()
+            #         self.current_node=self.parse_tree.traverse(self.current_node)
+            #         pass
             if self.current_node.root not in self.routines.keys():
                 self.previous_node=self.current_node
                 self.current_node = self.parse_tree.traverse(self.current_node)
@@ -183,31 +194,38 @@ class CodeGenerator:
                 self.routines[self.current_node.root]()
                 self.previous_node=self.current_node
                 try:
-                    self.current_node = self.parse_tree.traverse(self.current_node)
+                    
+                    trav=self.parse_tree.traverse(self.current_node)
+                    self.current_node = trav
+
                 except AttributeError:
                     break
             if self.current_node is None:
                 # print(self.scope_tree)
+                print(self.context)
+                print(self.ctx_dict)
+                
                 break  # Exit the loop if the tree has been fully traversed
+
             
-    def gen_code(self, node):
-        print("Generating code for node...")
-        current_node=node
-        previous_node=None
-        while True:
-            if current_node.root not in self.routines.keys():
-                previous_node=current_node
-                current_node = self.parse_tree.traverse(current_node)
-            else:
-                self.routines[current_node.root]()
-                previous_node=current_node
-                try:
-                    current_node = self.parse_tree.traverse(current_node)
-                except AttributeError:
-                    break
-            if current_node is None:
-                # print(self.scope_tree)
-                break  # Exit the loop if the tree has been fully traversed
+    # def gen_code(self, node):
+    #     print("Generating code for node...")
+    #     current_node=node
+    #     previous_node=None
+    #     while True:
+    #         if current_node.root not in self.routines.keys():
+    #             previous_node=current_node
+    #             current_node = self.parse_tree.traverse(current_node)
+    #         else:
+    #             self.routines[current_node.root]()
+    #             previous_node=current_node
+    #             try:
+    #                 current_node = self.parse_tree.traverse(current_node)
+    #             except AttributeError:
+    #                 break
+    #         if current_node is None:
+    #             # print(self.scope_tree)
+    #             break  # Exit the loop if the tree has been fully traversed
             
     def advance(self):
         self.previous_node=self.current_node
@@ -220,13 +238,9 @@ class CodeGenerator:
         if isinstance(self.current_node.children[0], AST):
             return
         if self.current_node.children[0].value=="up":
-            up=InOut(node=current, 
-                  output_stream=self.output_stream, 
-                  symbol_table=self.symbol_table, 
-                  current_scope=self.current_scope, 
-                  runtime_errors=self.runtime_errors)
+            up=InOut(self)
             up.up()
-            self.runtime_errors+=up.runtime_errors
+            # self.runtime_errors+=up.runtime_errors
             
         elif self.current_node.children[0].type=="Identifier":
             id=Identifier(node=current, 
@@ -243,18 +257,29 @@ class CodeGenerator:
         if self.current_node.parent.root=="sheesh_declaration":
             # self.current_scope=self.scope_tree.add(self.current_scope, "FUNCTION sheesh")
             self.new_context("FUNCTION sheesh")
+            gen=CodeGenerator(self.current_node.children[1], parent=self.context, debugMode=self.debug)
+            gen.generate_code()
+            self.output_stream.update(gen.output_stream)
+            self.end_context()
         else:
             if self.current_node.parent.parent.root=="func_def":
-                self.new_context(f"FUNCTION {self.current_node.parent.parent.children[2].value}")
+                # self.new_context(f"FUNCTION {self.current_node.parent.parent.children[2].value}")
+                # self.gen_code(self.current_node.children[1])
+                # self.end_context()
+                pass
                 # self.current_scope=self.scope_tree.add(self.current_scope, f"FUNCTION {self.current_node.parent.parent.children[2].value}")
             else:
                 self.new_context(f"{self.current_node.parent.children[0].value} {self.block_counter}")
+                self.gen_code(self.current_node)
                 self.block_counter+=1
+                self.end_context()
 
     def in_loop_body(self):
         if isinstance(self.current_node.parent.children[0], AST):
             # self.current_scope=self.scope_tree.add(context=self.current_scope, scope=f"{self.current_node.parent.children[0].children[0].value} {self.block_counter}")
             self.new_context(f"{self.current_node.parent.children[0].children[0].value} {self.block_counter}")
+            code=CodeGenerator(self.current_node, parent=self.context, debugMode=self.debug)
+            code.generate_code()
             self.block_counter+=1
         else:
             # self.current_scope=self.scope_tree.add(context=self.current_scope, scope=f"{self.current_node.parent.children[0].value} {self.block_counter}")
@@ -367,7 +392,7 @@ class CodeGenerator:
                     rows=Evaluators(expression=index, 
                                     runtime_errors=self.runtime_errors, 
                                     scope=self.current_scope, 
-                                    symbol_table=self.symbol_table).evaluate(expr= index[1:-1], type=const.dtypes.whole)
+                                    symbol_table=self.context.symbol_table).evaluate(expr= index[1:-1], type=const.dtypes.whole)
                     if len(self.current_node.children[-2].children)>1:
                         items=self.current_node.children[-2].children[1].leaves()
                         if items[0].type=="[":
@@ -380,8 +405,8 @@ class CodeGenerator:
                                 k+=1
                             cols=Evaluators(expression=index, 
                                             runtime_errors=self.runtime_errors, 
-                                            scope=self.current_scope, 
-                                            symbol_table=self.symbol_table).evaluate(expr=col[1:-1], type=const.dtypes.whole)
+                                            scope=self.context, 
+                                            symbol_table=self.context.symbol_table).evaluate(expr=col[1:-1], type=const.dtypes.whole)
                     
                     if len(self.current_node.children[-2].children)>1:
                         if isinstance(self.current_node.children[-2].children[1].children[0], AST):
@@ -403,13 +428,13 @@ class CodeGenerator:
                         
                 else:
                     try:    
-                        self.symbol_table.sequence(id=id, type=type, scope=self.current_scope, rows=rows, cols=cols)
+                        self.context.symbol_table.sequence(id=id, type=type, scope=self.current_scope, rows=rows, cols=cols)
                     except KeyError as e:
                         e=str(e)[1:-1]
                         self.runtime_errors.append(RError(error=getattr(se, e), token=id, expected=se.expected[e]))
         else:
             try:
-                self.symbol_table.variable(id=id, type=type, scope=self.current_scope)
+                self.context.symbol_table.variable(id=id, type=type, scope=self.current_scope)
             except KeyError as e:
                 e=str(e)[1:-1]
                 self.runtime_errors.append(RError(error=getattr(se, e), token=id, expected=se.expected[e]))
@@ -469,7 +494,7 @@ class CodeGenerator:
                     
             else:
                 try:
-                    self.symbol_table.sequence(id=id, type=type, scope=self.current_scope, rows=rows, cols=cols)
+                    self.context.symbol_table.sequence(id=id, type=type, scope=self.current_scope, rows=rows, cols=cols)
                 except KeyError as e:
                     e=str(e)[1:-1]
                     self.runtime_errors.append(RError(error=getattr(se, e), token=id, expected=se.expected[e]))
@@ -499,26 +524,20 @@ class CodeGenerator:
     
     def looping_statement(self):
         if self.current_node.children[0].type=="bet":
-            Loops(node=self.current_node, 
-                  output_stream=self.output_stream, 
-                  symbol_table=self.symbol_table, 
-                  current_scope=self.current_scope, 
-                  runtime_errors=self.runtime_errors,
-                  codegen=self).bet_whilst()
+            Loops(self).bet_whilst()
             
             
         elif self.current_node.children[0].type=="for":
             try:
-                self.symbol_table.variable(id=self.current_node.children[3].value,
+                self.context.symbol_table.variable(id=self.current_node.children[3].value,
                                         type=self.current_node.children[2].value,
-                                        scope=self.current_scope).assign(op=self.current_node.children[4].type,
+                                        ).assign(op=self.current_node.children[4].type,
                                                                             value=Evaluators(expression=self.current_node.children[5],
                                                                                             runtime_errors=self.runtime_errors,
-                                                                                            scope=self.current_scope,
-                                                                                            symbol_table=self.symbol_table).evaluate(expr=self.current_node.children[5].leaves(), type=self.current_node.children[2].value))
+                                                                                            context=self.context).evaluate(expr=self.current_node.children[5].leaves(), type=self.current_node.children[2].value))
             except KeyError as e:
                 e=str(e)[1:-1]
-                self.runtime_errors.append(RError(error=getattr(se, e), token=id, expected=se.expected[e]))                          
+                self.runtime_errors.append(RError(error=getattr(se, e), token=self.current_node.children[3], expected=se.expected[e]))                          
             Loops(codegen=self).for_()    
     
     # def yeet_statement(self): #NOTE idk dito
@@ -536,11 +555,11 @@ class CodeGenerator:
         2.  
         """
         dtype=self.current_node.children[1].leaves()[0].value
-        id=self.current_node.children[2].value
+        id=self.current_node.children[2]
         parameters=self.current_node.children[3]
         tail=self.current_node.children[-1]
         try:
-            self.symbol_table.function(id=id,
+            self.context.symbol_table.function(id=id.value,
                                     return_type=dtype,
                                     parameters=parameters,
                                     body=tail,)
@@ -582,7 +601,207 @@ class FuncRunner:
 
 
 
+class Loops:
+    """  
+    Algorithm:
+    1. Check the type of loop
+    2. Get the loop body
+    3. Traverse the loop body
+    4. Execute the loop body
+    5. When loop body has been executed, check condition
+    6. If condition is met, go to loop_body node; re-execute loop body
+
+    """
+    def __init__(self, codegen) -> None:
+        # self.node=node
+        # self.leaves=self.node.leaves()
+        # self.output_stream=output_stream
+        # self.symbol_table:SymbolTable=symbol_table
+        # self.current_scope=current_scope
+        # self.runtime_errors=runtime_errors
+        self.codegen=codegen
+        self.debug=True
+
+    def bet_whilst(self):
+        condition=self.codegen.current_node.children[5]
+        loop_body=self.codegen.current_node.children[1]
+        while Evaluators(runtime_errors=self.codegen.runtime_errors, 
+                         expression=condition, 
+                         context=self.codegen.context).evaluate(expr=condition, type=const.dtypes.sus)==True:
+            
+            self.previous_node=self.node
+            self.node = self.semantic.parse_tree.traverse(loop_body)
+            
+            self.routines[self.node.root]()
+
+
+    def for_(self):
+        
+        iterator=self.codegen.context.symbol_table.find_var(self.codegen.current_node.children[3].value)
+        # iterator.assign(op="=",value= const.types[iterator.type](self.node.children[5].leaves()[0].numerical_value))
+        # end=self.node.children[7].leaves()[0].numerical_value #idk if this'll work for seq and funcs
+        end=Evaluators(expression=self.codegen.current_node.children[7].leaves(),
+                            runtime_errors=self.codegen.runtime_errors,
+                            context=self.codegen.context,
+                            ).evaluate(type=const.dtypes.whole, expr=self.codegen.current_node.children[7].leaves())
+        try:
+            step=int(self.codegen.current_node.find_node("step_statement").leaves()[1].numerical_value)
+            
+        except AttributeError as e:
+            step=1
+
+        loop_body=self.codegen.current_node.children[-1]
+        
+        while iterator.value != end:
+            # self.codegen.previous_node=self.codegen.current_node
+            # self.codegen.current_node=loop_body
+            # self.codegen.current_node = self.codegen.parse_tree.traverse(self.codegen.current_node)
+            # self.codegen.routines[self.codegen.current_node.root]()
+            # self.codegen.generate_code(loop_body)
+            # self.codegen.gen_code(loop_body.children[1])
+            code=CodeGenerator(parse_tree=loop_body, parent=self.codegen.context ,debugMode=self.debug) 
+            code.generate_code()
+        
+            # self.routines["in_loop_body"]()
+            iterator.assign("+=",step)
+            print("Iterator: ", iterator.value, "End: ", end, "Step: ", step)
+
+        if self.debug:
+            print(f"For Loop: \n\tIterator: {iterator}\n\t End: {end}\n\t Step: {step}")
+
+    # def to(self):
+    #     raise NotImplementedError
+    
+    def felloff(self):
+        #statement that should break loops
+        self.codegen.previous_node=self.codegen.current_node
+        self.codegen.current_node = self.codegen.current_node.parent.children[1]
+        self.codegen.routines[self.codegen.current_node.root]()
+    
+
+    # def step(self):
+    #     raise NotImplementedError
+    
+    def pass_(self):
+        if self.codegen.current_node.root=="loop_body_statement":
+            self.codegen.previous_node=self.codegen.current_node
+            self.codegen.current_node = self.codegen.current_node.parent.children[1]
 
 
 
+import sys
+sys.path.append(".")
+# from source.CodeGeneration.Functionality.Functionality import Functionality
+from source.CodeGeneration.Functionality.Evaluators import Evaluators
+import source.core.constants   as const
 
+
+class ControlFlow:
+    """  
+    Algorithm:
+    1. Check Statement Type
+    2. Get condition
+    4. Get main body
+    5. Get sub-bodies
+    6. Evaluate condition, if success, go to main_body node; execute main body
+    7. If condition is not met, go to fail node; execute fail node
+    8. If fail node is not present, pass
+    
+    For choose:
+    1. Get Check Value
+    2. Get bodies5
+    3. Evaluate check value == body value
+    4. If success, execute node; else, check other bodies.
+    5. If no body matches, go to default node; execute default node
+
+    """
+    def __init__(self, codegen) -> None:
+        self.codegen=codegen
+        # self.debug=functionality.debug
+        # self.node=node
+        # self.output_stream=output_stream
+        
+    def kung(self):
+        #initializers
+        condition=self.codegen.current_node.children[2].leaves()
+        success=self.codegen.current_node.children[4]
+        if len(self.codegen.current_node.children)==5:
+            # fail=self.codegen.current_node.parent.children[0]
+            fail=None
+            
+        else:
+            fail=self.codegen.current_node.children[-1] 
+
+        eval=Evaluators(expression=condition, runtime_errors=self.codegen.runtime_errors, context=self.codegen.context).evaluate(type=const.dtypes.sus,expr=condition)
+        if eval==True:
+            code=CodeGenerator(parse_tree=success, parent=self.codegen.context, debugMode=self.codegen.debug)
+            code.generate_code()
+            # self.codegen.current_node = self.codegen.parse_tree.traverse(success)
+            # # try:
+            # self.codegen.routines[self.codegen.current_node.root]()
+            # except KeyError:
+            #     self.codegen.advance()
+
+        else:
+            if fail==None:
+                try:
+                    fail=self.codegen.current_node.parent.children[1]
+                    self.codegen.previous_node=self.codegen.current_node
+                    self.codegen.current_node=fail
+                    return
+                    # self.codegen.current_node.children[-2].children[0].children[1].leaves(),
+                except IndexError:
+                    self.codegen.current_node=self.codegen.current_node.parent.parent.children[1]
+                    return
+                # self.codegen.current_node = self.codegen.parse_tree.traverse(fail)
+                # self.codegen.routines[self.codegen.current_node.root]()
+                
+            else:
+                while True:
+                    try:
+                        # self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(fail)
+                        # self.codegen.routines[self.codegen.current_node.root]()
+                        self.codegen.gen_code(fail)
+                        break  # if the above lines don't raise an exception, break the loop
+                    except KeyError:
+                        while self.codegen.current_node.root!="statement":
+                            print(self.codegen.current_node.root)
+                            self.codegen.current_node = self.codegen.previous_node
+                            self.codegen.previous_node=self.codegen.previous_node.parent
+                        fail= self.codegen.current_node=self.codegen.current_node.children[1].children[0].children[0]
+
+
+    def ehkung(self):
+        """ 
+        Expects call from ehkung statement.
+        """
+        condition=self.codegen.current_node.children[2]
+        body=self.codegen.current_node.children[-1]
+
+        if Evaluators(expression=condition,runtime_errors= self.codegen.runtime_errors, context=self.codegen.context):
+            self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(body)
+            self.previous_node=self.codegen.current_node
+            self.codegen.routines[self.codegen.current_node.root]()
+        else:
+            return
+
+    
+    def deins(self):
+        """ Expects call from a condtail node """
+        body=self.codegen.current_node.children[1]
+        self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(body)
+        self.previous_node=self.codegen.current_node
+        self.codegen.routines[self.codegen.current_node.root]()
+    
+    def choose_when_default(self):
+        """
+        """
+        checker=None
+        body=None
+        conditions=None
+    
+    # def when(self):
+    #     raise NotImplementedError
+    
+    # def default(self):
+    #     raise NotImplementedError

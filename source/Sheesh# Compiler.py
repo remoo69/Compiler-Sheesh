@@ -284,9 +284,7 @@ def compile():
                 # error_pane.config(foreground= green)
                 error_pane.insert(constants.END, f'Output:\n', emphasis)
                 for out in output:
-                    repeat=output[out]
-                    for i in range(repeat):
-                        error_pane.insert(constants.END, f"{out}\n", emphasis)
+                        error_pane.insert(constants.END, f"{output[out]}\n", emphasis)
                 # error_pane.config(state="disabled")
         else:
             # error_pane.config(foreground= yellow)

@@ -41,9 +41,9 @@ class ControlFlow:
         else:
             fail=self.codegen.current_node.children[-1] 
 
-        eval=Evaluators(expression=condition, runtime_errors=self.codegen.runtime_errors, scope=self.codegen.current_scope, symbol_table=self.codegen.symbol_table).evaluate(type=const.dtypes.sus,expr=condition)
+        eval=Evaluators(expression=condition, runtime_errors=self.codegen.runtime_errors, context=self.codegen.context).evaluate(type=const.dtypes.sus,expr=condition)
         if eval==True:
-            self.codegen.gen_code(success)
+            code=CodeGenerator(success)
             # self.codegen.current_node = self.codegen.parse_tree.traverse(success)
             # # try:
             # self.codegen.routines[self.codegen.current_node.root]()
@@ -83,7 +83,7 @@ class ControlFlow:
         condition=self.codegen.current_node.children[2]
         body=self.codegen.current_node.children[-1]
 
-        if Evaluators(condition, self.codegen.runtime_errors, self.codegen.scope, self.codegen.symbol_table):
+        if Evaluators(expression=condition,runtime_errors= self.codegen.runtime_errors, context=self.codegen.context):
             self.codegen.current_node = self.codegen.semantic.parse_tree.traverse(body)
             self.previous_node=self.codegen.current_node
             self.codegen.routines[self.codegen.current_node.root]()

@@ -9,7 +9,7 @@ from source.core.error_handler import SemanticError
 from source.core.error_types import Semantic_Errors as se
 from source.core.AST import AST
 from source.core.error_handler import RuntimeError as RError
-from source.CodeGeneration.Functionality.runner import FuncRunner as FR
+# from source.CodeGeneration.Functionality.runner import FuncRunner as FR
 
 """ 
 Scope System:
@@ -243,7 +243,8 @@ class Function:
         if len(args)!=len(self.parameters):
             raise ValueError("WRONG_NUM_ARGS")
         else:
-            FR(func=self,arguments= args).run()
+            # FR(func=self,arguments= args).run()
+            raise NotImplementedError
         
         # while True:
         #     if self.current_node.root not in self.routines.keys():
@@ -312,7 +313,7 @@ class SymbolTable:
     def function(self,*,id, return_type, parameters, body=None):
         if id not in self.symbols.keys():
             if body:
-                self.symbols[id]=Function(id=id, return_type=return_type, parameters=parameters).body(body)
+                self.symbols[id]=Function(id=id, return_type=return_type, parameters=parameters, body=body)
             else:
                 self.symbols[id]=Function(id=id, return_type=return_type, parameters=parameters)
         else:
@@ -343,14 +344,14 @@ class SymbolTable:
             # self.runtime_errors.append()
         
 
-    def find_var(self, id, scope)->Variable:
-        if id in self.symbols.keys() and type(self.symbols[id])==Variable and self.symbols[id].scope==scope:
+    def find_var(self, id)->Variable:
+        if id in self.symbols.keys() and type(self.symbols[id])==Variable:
             return self.symbols[id]
         else:
             raise AttributeError("VAR_UNDECL")
         
     def find_seq(self, id, scope)->Sequence:
-        if id in self.symbols.keys() and type(self.symbols[id])==Sequence  and self.symbols[id].scope==scope:
+        if id in self.symbols.keys() and type(self.symbols[id])==Sequence :
             return self.symbols[id]
         else:
             raise AttributeError("SEQ_UNDECL")
@@ -407,8 +408,16 @@ class SymbolTable:
 class Context:
     def __init__(self, name, parent) -> None:
         self.name=name
-        self.symbol_table:SymbolTable=None
         self.parent=parent
+        self.symbol_table:SymbolTable=SymbolTable()
+        self.runtime_errors=[]
+        self.output_stream={}
+        if parent != None:
+            self.symbol_table.symbols.update(self.parent.symbol_table)
+            self.runtime_errors.extend(self.parent.runtime_errors)
+            
+            self.output_stream.update(self.parent.output_stream)
+  
         
     
     def symbols(self):
