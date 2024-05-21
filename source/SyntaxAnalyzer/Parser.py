@@ -557,20 +557,30 @@ class SyntaxAnalyzer:
             self.match("#")
             self.Tree.end_branch(); return self.success
         elif self.one_dim() == self.success:
-            self.assign_op()
-            self.assign_value()
+            self.enforce()
+            self.id_next_tail()
             self.match("#")
             self.Tree.end_branch(); return self.success
-        elif self.assign_op() == self.success:
-
-#FIXME - bug
-            self.enforce()
-            self.assign_value()
+        elif self.id_next_tail() == self.success:
             self.enforce()
             self.match("#")
             self.Tree.end_branch(); return self.success
         else:
+            return self.failed()
+
+    def id_next_tail(self):
+        self.Tree.initialize_new()
+        if self.match("=", True):
             self.enforce()
+            self.assign_value()
+            self.enforce()
+            self.Tree.end_branch(); return self.success
+        elif self.assign_op() == self.success:
+            self.enforce()
+            self.literal_or_expr()
+            self.enforce()
+            self.Tree.end_branch(); return self.success
+        else:
             return self.failed()
 
     @nullable
@@ -752,7 +762,7 @@ class SyntaxAnalyzer:
         else:
             return self.failed()
     
-    def  whl_value(self):
+    def  whl_value(self, required = False):
         self.Tree.initialize_new() 
         if self.match("Whole", True):
             self.whl_op()
@@ -763,7 +773,11 @@ class SyntaxAnalyzer:
         elif self.whl_val_withparen()==self.success:
             self.whl_op()
             self.Tree.end_branch(); return self.success
-        else: return self.failed()
+        else:
+            if required:
+                self.isnullable = False
+                return self.failed()
+            return self.failed()
 
     def whl_val_withparen(self):
         self.Tree.initialize_new()
@@ -1408,7 +1422,8 @@ class SyntaxAnalyzer:
         self.Tree.initialize_new()
         if self.match("[", True):
             self.enforce()
-            self.whl_value()
+            self.whl_value(required = True)
+            self.enforce()
             self.match("]")
             self.Tree.end_branch(); return self.success
         else:
@@ -2121,7 +2136,7 @@ class SyntaxAnalyzer:
 
     def literal_or_expr(self, required=False):
         self.Tree.initialize_new()
-        if self.match("Identifier", True):
+        if self.id_as_val() == self.success:
             if self.num_math_op() == self.success:
                 if self.relop() == self.success:
                     self.enforce()
@@ -2189,7 +2204,7 @@ class SyntaxAnalyzer:
                 self.match(")")
                 self.logic_expr()
                 self.Tree.end_branch(); return self.success
-            elif self.match("Identifier", True):
+            elif self.id_as_val() == self.success:
                 self.id_val_next()
                 self.match(")")
                 self.id_val_next()
