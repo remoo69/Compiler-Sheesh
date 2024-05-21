@@ -162,13 +162,14 @@ class Variable:
         return f"Variable({self.id}, {self.type}, {self.value})"
     
 
-class Sequence(Variable):
+class Sequence:
     """  
     Class used to represent sequences (arrays). Rows and cols should be whole values before instantiating the sequence. 
     Make sure to evaluate expressions inside before creating a sequence.
     """
     def __init__(self, id, type, rows, cols) -> None:
-        super().__init__(id, type,)
+        self.id=id
+        self.type=type
         self.array=[]
         self.rows=rows
         self.cols=cols

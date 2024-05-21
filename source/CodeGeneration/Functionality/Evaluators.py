@@ -3,7 +3,7 @@ sys.path.append(".")
 from source.core.error_types import Semantic_Errors as se
 import source.core.constants as const
 import source.core.symbol_table as st
-# from source.core.symbol_table import SymbolTable, Token 
+# from source.core.symbol_table import Token
 from source.core.error_handler import RuntimeError as RError
 
 

@@ -12,8 +12,8 @@ import source.core.constants as const
 # from source.CodeGeneration.Functionality.ControlFlow import ControlFlow
 # from source.CodeGeneration.Functionality.Loops import Loops
 # from source.CodeGeneration.Functionality.Declarations import Identifier
-from source.CodeGeneration.Functionality.Evaluators import Evaluators
-from source.CodeGeneration.Functionality.InOut import InOut
+# from source.CodeGeneration.Functionality.Evaluators import Evaluators
+# from source.CodeGeneration.Functionality.InOut import InOut
 from source.core.AST import AST
 from copy import deepcopy
 
@@ -44,7 +44,7 @@ from source.core.error_types import Semantic_Errors as se
 from source.core.AST import AST
 from source.core.error_handler import RuntimeError as RError
 # from source.CodeGeneration.cg2 import CodeGenerator
-from source.CodeGeneration.Functionality.Evaluators import Evaluators
+# from source.CodeGeneration.Functionality.Evaluators import Evaluators
 # from source.CodeGeneration.Functionality.runner import FuncRunner as FR
 
 """ 
@@ -196,40 +196,48 @@ class Variable:
         return f"Variable({self.id}, {self.type}, {self.value})"
     
 
-class Sequence(Variable):
+class Sequence:
     """  
     Class used to represent sequences (arrays). Rows and cols should be whole values before instantiating the sequence. 
     Make sure to evaluate expressions inside before creating a sequence.
     """
     def __init__(self, id, type, rows, cols) -> None:
-        super().__init__(id, type,)
+        self.id=id
+        self.type=type
         self.array=[]
         self.rows=rows
         self.cols=cols
+        
+    def __repr__(self) -> str:
+        return f"Sequence({self.id}, {self.rows}, {self.cols})"
     def set(self, rows, cols, value):
         self.array[rows][cols]=value
 
     def initialize(self, values):
         """ This assumes that values is also a list. Interface accordingly. """
         if len(values)!=self.rows:
-            raise ValueError(se.WRONG_NUM_VALUES)
+            raise ValueError("WRONG_NUM_VALUES")
         
         for i in range(self.rows):
-            if len(values[i])!=self.cols:
-                raise ValueError(se.WRONG_NUM_VALUES)
-            for j in range(len(self.cols)):
-                self.array[i][j]=values[i][j]
+            if self.cols==0:
+                self.array.append(values[i])
+            else:
+                if len(values)!=self.cols:
+                    raise ValueError("WRONG_NUM_VALUES")    
+                for j in range(len(self.cols)):
+                    self.array[i][j]=values[i][j]
 
-    def get(self, row, col):
+    def get(self, row, col=0):
         """  
         1. Get row and col
         2. If isinstanc(row, any(id_derivates)) 
         3. id.evaluate
         
         """
-        if row>=self.rows or col>=self.cols:
+        
+        if row>=self.rows or col>self.cols:
             raise ValueError(se.OUT_OF_BOUNDS)
-        if col==None:
+        if col==0:
             return self.array[row]
         else:
             return self.values[row][col]
@@ -359,7 +367,7 @@ class SymbolTable:
 
 
 #FIXME - IDK WHAT TO DO WITH THIS
-    def sequence(self, id, type,rows, cols):
+    def sequence(self, id, type,rows, cols)->Sequence:
         if id not in self.symbols.keys():
             self.symbols[id]=Sequence(id=id, type=type, rows=rows, cols=cols)
             return self.symbols[id]
@@ -485,9 +493,195 @@ class Context:
         self.symbol_table=SymbolTable()
         self.symbol_table.extend(self.parent.symbol_table)
         return self.symbol_table
-    
-    
 
+class Evaluators:
+    """  
+    This is a general helper class for evaluations. An evaluator can take either a value, variable, function call, or an expression.
+    The evaluator will then evaluate the expression and return the result.
+    The evaluator should be given an expression, and the symbol table. It then outputs the result of the expression.
+    The expression should be a list of tokens.
+    
+    """
+    def __init__(self, expression, runtime_errors, context) -> None:
+        self.expression=expression
+        # self.runtime_errors=runtime_errors
+        self.context=context
+        # self.context.name=scope
+        # self.context.symbol_table:st.SymbolTable=symbol_table
+
+    def build_expression(self, expression):
+        """  
+        This method extracts all possible values from the expression. It then returns a list of the values.
+        This method should evaluate funcs, sequences, and variables first before evaluating the expression.
+        """
+        final_expression=""
+        eq_found=False
+        for i, expr in enumerate(expression):
+ 
+                if expr.type not in const.keywords:
+                    if expr.type=="Identifier":
+                        try:
+                            var= self.context.symbol_table.find(expr.value)
+                            if isinstance(var, Sequence): 
+                                
+                                index=self.evaluate(expression[i+2:], type=const.dtypes.whole)
+                                col=self.evaluate(expression[i+3:], type=const.dtypes.whole) # FIXME can' eval col because can't find second index.
+                                # sequence=self.context.symbol_table.find(var.value, self.context.name)
+                                final_expression+=var.get(row=index, col=col)
+                                
+                            elif isinstance(var, Variable):
+                                if var.type in ["whole", "dec",]:
+                                    final_expression+=str(var.value)
+                                elif var.type in ["sus", "text", "charr"]:
+                                    final_expression+=var.value 
+                                    #NOTE - idk what to do here. ito muna lagay ko
+                            elif isinstance(var, Function):
+                                args=[]
+                                
+                                for j,expr in enumerate(expression[i:]):
+                                    args[j]=""
+                                    if expr.type==",":
+                                        break
+                                    else:
+                                        if expr.type=="Identifier":
+                                            var_arg=self.context.symbol_table.find(expr.value)
+                                            if isinstance(var_arg, Sequence):
+                                                index=self.evaluate(expression[i+2:], type=const.dtypes.whole)
+                                                col=self.evaluate(expression[i+3:], type=const.dtypes.whole) # FIXME can' eval col because can't find second index.
+                                                # sequence=self.context.symbol_table.find(var.value, self.context.name)
+                                                final_expression+=var.get(row=index, col=col)
+                                                
+                                            if isinstance(var_arg, Function):
+                                                var_arg.execute(self.build_expression(expression=expression[i:]))
+
+                                        args[j]+=expr.value
+                                func=var.execute(args)
+                                final_expression+=func 
+                            elif isinstance(var, Token):
+                                if var.type in ["Whole", "Dec"]:
+                                    final_expression+=var.numerical_value
+                                else:
+                                    self.context.runtime_errors.append(RError(se.EWAN, expr, "Invalid Expression"))
+                        except KeyError as e:
+                            e=str(e)[1:-1]
+                            self.context.runtime_errors.append(RError(error=getattr(se, e), token=expr, expected=se.expected[e]))
+
+                    elif expr.type in ["Whole", "Dec", ]:
+                        final_expression+=expr.value
+                    elif expr.type in ["Text", "Charr"]:
+                        final_expression+=expr.value
+                    elif expr.type in ["Sus"]:
+                        if expr.value =="nocap":
+                            final_expression+="True"
+                        else:
+                            final_expression+="False"
+                    elif expr.type in const.aop:
+                        final_expression+=expr.value
+                    elif expr.type in ["#", "]"]:
+                        break
+                    else:
+                        final_expression+=expr.value
+                else:
+                    pass
+                
+        return final_expression
+    
+    def evaluate(self, expr, type):
+        expression=self.build_expression(expression=expr)
+        return const.py_types[type]( self.general_evaluator(expression))
+        
+    # def evaluate(self, expr):
+    #     new_expr=self.build_expression()
+    #     if not any(op in new_expr for op in const.all_op):
+    #         return new_expr
+    #     else:
+    #         return eval(new_expr)
+
+
+    
+    def general_evaluator(self, expr:str):
+        """ TRIES to evaluate expressions using python's eval() """
+        if expr!=None and expr!="":
+            if not any(op in expr for op in const.all_op):
+                return expr
+            else:
+                return eval(expr)
+        else:
+            return None
+    
+    def assign(self, id):
+        """  
+        This function should take the name of the id, and the symbol table. It should then assign the value to the id.
+
+        """
+        assign_ops=["=", "+=", "-=", "*=", "/=", "%="]
+        op=None
+        for index, vals in enumerate(self.expression):
+            if vals.type in assign_ops:
+                op=self.expression[index].type
+                break
+        
+        value=None
+        if id.value in self.context.symbol_table.keys():
+            items=self.expression
+            try:
+                var=self.context.symbol_table.find(id.value, self.context.name)
+                #FIXME - no type checking for var
+
+                if var.type in ["dec", "whole"]:
+                    temp=self.build_expression(self.expression)
+                else:
+                    temp=self.build_condition()
+                
+            
+                value=self.general_evaluator(temp)
+
+                id_ref=self.context.symbol_table.find_var(id.value, self.context.name)
+                if id_ref.value==None:
+                    id_ref.value=0 #NOTE -  medj sus; idk if oks lang bang ganto default
+                if op != "=":
+                    if op=="+=":
+                        value+=id_ref.value
+                    elif op=="-=":
+                        value-=id_ref.value
+                    elif op=="*=":
+                        value*=id_ref.value
+                    elif op=="/=":
+                        value/=id_ref.value
+                    elif op=="%=":
+                        value%=id_ref.value
+        
+                
+                if value != None:
+                    print(type(value))
+                    print(const.types[id_ref.type])
+                    if type(value)==const.py_types[id_ref.type]:
+                        if id_ref.type in ["whole", "dec"]:
+                            self.context.symbol_table[id.value].assign(op=op, value=const.py_types[id_ref.type](value)[1:-1])
+                        else:
+                            self.context.symbol_table[id.value].assign(op=op, value=value)
+                        return True
+                    
+                    elif type(value)==str:
+                        value=const.py_types[id_ref.type](value)
+                        self.context.symbol_table[id.value].assign(op=op, value=value)
+                        return True
+                    else:
+                        if value%1==0 or value>0 or value<0:
+                            value=self.semantic.data_types[id.dtype](value)
+                            self.context.symbol_table[id.value].assign(op=op, value=value)
+                            return True
+                        else:
+                            # self.semantic.semantic_error(se.VAR_OPERAND_INVALID, id, f"Value of Type {id.dtype}, got {self.semantic.reverse_types[type(value)]}")
+                            self.runtime_errors.append(RuntimeError(se.VAR_OPERAND_INVALID, id, f"Value of Type {id.dtype}, got {self.semantic.reverse_types[type(value)]}"))
+                else:
+                    # self.semantic.semantic_error(se.VAR_UNDEF, id, "Value pare")
+                    self.runtime_errors.append(RuntimeError(error=se.VAR_UNDEF,token= id, expected="Value pare"))
+            except KeyError as e:
+                        e=str(e)[1:-1]
+                        self.codegen.context.runtime_errors.append(RError(error=getattr(se, e), token=id, expected=se.expected[e]))
+    
+         
 class CodeGenerator:
     """  
     *UPDATE: CODE GEN NOW INCLUDES SEMNATIC ANALYZER
@@ -760,7 +954,10 @@ class CodeGenerator:
             gen=CodeGenerator(self.current_node.children[1], parent=self.context, debugMode=self.debug)
             gen.generate_code()
             self.context.output_stream.update(gen.output_stream)
+            
             self.context.runtime_errors.extend(gen.runtime_errors)
+            self.context.runtime_errors = list(set(self.context.runtime_errors))
+            
             self.end_context()
             
             self.previous_node=self.current_node
@@ -911,10 +1108,35 @@ class CodeGenerator:
                             cols=Evaluators(expression=index, 
                                             runtime_errors=self.runtime_errors, 
                                             context=self.context).evaluate(expr=col[1:-1], type=const.dtypes.whole)
+                        elif items[0].type=="=":
+                            init=[]
+                            
+                            for item in items:
+                                if item.type in ["=", "{"]:
+                                    pass
+                                elif item.type==",":
+                                    pass
+                                elif item.type=="}":
+                                    break
+                                else:
+                                    init.append(item)
+                            try:
+                                self.context.symbol_table.sequence(id=id.value, type=type, rows=rows, cols=cols).initialize(init)
+                            except ValueError as e:
+                                e=str(e)
+                                self.context.runtime_errors.append(RError(error=getattr(se, e), token=id, expected=se.expected[e].format(rows)))
+                        else:
+                              
+                            try:    
+                                self.context.symbol_table.sequence(id=id.value, type=type, rows=rows, cols=cols)
+                            except KeyError as e:
+                                e=str(e)[1:-1]
+                                self.runtime_errors.append(RError(error=getattr(se, e), token=id, expected=se.expected[e].format(rows)))
                     
-                    if len(self.current_node.children[-2].children)>1:
+                    if len(self.current_node.children[-2].children)==1:
                         if isinstance(self.current_node.children[-2].children[1].children[0], AST):
                             if self.current_node.children[-2].children[1].children[0].root=="index":
+                                
                                 items=self.current_node.children[-2].children[1].leaves()
                                 for i,item in enumerate(items):
                                     if item.type==",":
@@ -1092,8 +1314,8 @@ class CodeGenerator:
         
 
     
-import sys
-sys.path.append(".")
+# import sys
+# sys.path.append(".")
 # from source.CodeGeneration.cg2 import CodeGenerator
 # from source.core.symbol_table import Function
 # from source.core.AST import AST
@@ -1205,11 +1427,11 @@ class Loops:
 
 
 
-import sys
-sys.path.append(".")
-# from source.CodeGeneration.Functionality.Functionality import Functionality
-from source.CodeGeneration.Functionality.Evaluators import Evaluators
-import source.core.constants   as const
+# import sys
+# sys.path.append(".")
+# # from source.CodeGeneration.Functionality.Functionality import Functionality
+# from source.CodeGeneration.Functionality.Evaluators import Evaluators
+# import source.core.constants   as const
 
 
 class ControlFlow:
@@ -1329,3 +1551,159 @@ class ControlFlow:
     
     # def default(self):
     #     raise NotImplementedError
+       
+class InOut:
+    """  
+    This class contains the input and output functions.
+    It takes a node, and an output stream as input.
+    Algorithm:
+    1. Determine statement type
+    2. Get variables
+    3. If up, get format specifiers, perform type checking, and format the string
+    4. If pa_mine, get format specifier. get input as format specifier type. If type is not correct, raise error. If correct, assign to var
+
+    """
+    def __init__(self, codegen) -> None:
+        self.codegen=codegen
+        # self.node=node
+        # self.leaves=self.node.leaves()
+        # self.output_stream=output_stream
+        # self.symbol_table:SymbolTable=symbol_table
+        # self.current_scope=current_scope
+        # self.runtime_errors:list=runtime_errors
+
+    def pa_mine(self):
+         """  
+         pa_mine can only be used in expressions (?)
+
+         Algorithm:
+         1. Get format specifier and type
+         2. Enable input
+         3. Get Input
+         4. Check if input matches type
+         5. If match, return input as format specifier type
+         6. If not, raise error
+         7. Assign input to variable
+         
+         """
+         raise NotImplementedError
+    
+    def up(self):
+            matched=self.codegen.current_node.leaves()
+
+            vars=[]
+            vars2=[]
+            text=''
+            val=[]
+            # type=None
+
+            for i,match in enumerate(reversed(matched)):
+                if match.type=="Identifier":
+                    try:
+                        value=self.codegen.context.symbol_table.find(match.value)
+                        if isinstance(value, Sequence):
+                            print(isinstance(value, Sequence))
+                            try:
+                                value=value.get(int(matched[i+1].numerical_value))
+                            except ValueError as e:
+                                e=str(e)
+                                self.codegen.context.runtime_errors.append(RError(error=getattr(se, e), token=matched[i+1], expected=se.expected[e]))
+                        elif isinstance(value, Function):
+                            value.execute([m for m in matched[i+2:] if m.type!=")"])
+                        elif isinstance(value, Variable):
+                            print(isinstance(value, Variable))
+                            value=value
+                        vars.append(value)
+                        vars2.append(value)
+                        # type=value.type
+                        # print(type)
+                    except KeyError as e:
+                        e=str(e)[1:-1]
+                        self.codegen.context.runtime_errors.append(RError(error=getattr(se, e), token=match, expected=se.expected[e]))
+                        
+                elif match.type in const.literal_types and match.type!="Text" and matched[i+2].type not in ["]", "["]:
+                    print(matched[i+2].type)
+                    vars.append(match)
+                elif match.type=="Text":
+                    text=match.value
+                    print(text)
+                elif match.type=="(":
+                    break
+    
+
+            # Find all format specifiers in the text
+            format_specifiers = re.findall(f"\$[{''.join(const.format_spec.keys())}]", text)
+            # print(format_specifiers)
+            # Check if the number of format specifiers matches the number of variables
+            if len(format_specifiers) != len(vars):
+                err_msg="Number of format specifiers does not match number of variables"
+                if len(vars)<len(format_specifiers):
+                    expected=f"{len(format_specifiers)} variables of type"
+                    for format in format_specifiers:
+                            expected+=f" {self.own_specifiers[format[1:]]},"
+                            
+                    self.runtime_errors.append(
+                        RError(error=err_msg, token=self.node.children[0], expected=expected)
+                        )
+                elif len(vars)>len(format_specifiers):
+                    expected=f"{len(vars)} format specifiers of type"
+                    for var in vars:
+                        if var.type=="Identifier":
+                            expected+=f" {var.dtype},"
+                        else:
+                            expected+=f" {var.type},"
+                    self.codegen.context.runtime_errors.append(
+                        RError(error=err_msg, token=self.codegen.current_node.children[0], expected=expected)
+                        )
+            else:
+
+            # For each format specifier, check if the corresponding variable has the correct type
+                vars=list(reversed(vars))
+                for i in range(len(format_specifiers)):
+                    # Get the format specifier (remove the dollar sign)
+                    format_specifier = format_specifiers[i][1:]
+                    # Get the corresponding variable
+                    # var = const.py_types[vars[i].type](vars[i].value)
+                    var = vars[i].value
+                    if var==None:
+                         self.runtime_errors.append(
+                              RError(error=se.VAR_UNDEF, token=vars2[i], expected=se.expected["VAR_UNDEF"])
+                         )
+                         return
+                    # print(type(var))
+                    # if isinstance(var, const.types[type]):
+                    #      print("yeah")
+                    # if type(var)==str and str(var).isdigit():
+                    #      raise NotImplementedError
+
+                    if vars[i].type in ["Whole", "Dec"] and ((float(var) >1 or float(var)<-1) and float(var)%1==0):
+                            var=const.format_spec[format_specifier](var)
+                    val.append(var)
+                    # Check if the variable has the correct type
+                    if type(var) != const.format_spec[format_specifier]:
+                        
+                        err_msg=f"Variable {vars[i].value} does not match format specifier {format_specifier}"
+                        expected=f"{const.own_specifiers[format_specifier]} for format specifier ${format_specifier}"
+                        self.codegen.runtime_errors.append(
+                    RError(error=err_msg, token=self.codegen.current_node.children[0], expected=expected)
+                    )
+                        # raise TypeError(f"Variable {var} does not match format specifier {format_specifier}")
+
+                # Replace the format specifiers with {} for string formatting
+                for format_specifier in format_specifiers:
+                    text = text.replace(format_specifier, "{}")
+
+                # Format the string with the variables
+                formatted_text = text.format(*val)
+
+                # Print the formatted string
+                if formatted_text :
+                    
+                    self.codegen.output_stream[self.codegen.print_ctr]=formatted_text
+                    self.codegen.print_ctr+=1
+                # else:
+                #     occurence=1
+                #     self.output_stream[formatted_text]=occurence
+                print(self.codegen.output_stream)
+
+    

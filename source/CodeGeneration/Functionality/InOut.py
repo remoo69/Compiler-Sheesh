@@ -8,6 +8,7 @@ from source.core.AST import AST
 # from source.core.symbol_table import SymbolTable
 from source.core.error_handler import RuntimeError as RError
 from source.core.error_types import Semantic_Errors as se
+from source.core.symbol_table import Variable, Function, Sequence
 
 
 
@@ -56,10 +57,16 @@ class InOut:
             val=[]
             type=None
 
-            for match in reversed(matched):
+            for i,match in enumerate(reversed(matched)):
                 if match.type=="Identifier":
                     try:
                         value=self.codegen.context.symbol_table.find(match.value)
+                        if isinstance(value, Variable):
+                            value=value.value
+                        if isinstance(value, Sequence):
+                            value.get_value(matched[i+2])
+                        if isinstance(value, Function):
+                            value.execute([m for m in matched[i+2:] if m.type!=")"])
                         vars.append(value)
                         vars2.append(value)
                         type=value.type
