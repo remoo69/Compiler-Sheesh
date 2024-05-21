@@ -9,6 +9,8 @@ from source.core.error_handler import SemanticError
 from source.core.error_types import Semantic_Errors as se
 from source.core.AST import AST
 from source.core.error_handler import RuntimeError as RError
+from source.CodeGeneration.cg2 import CodeGenerator
+from source.CodeGeneration.Functionality.Evaluators import Evaluators
 # from source.CodeGeneration.Functionality.runner import FuncRunner as FR
 
 """ 
@@ -207,22 +209,44 @@ class ConstantVar(Variable):
     """ A global variable """
     def __init__(self, id, type) -> None:
         super().__init__(id, type)
+        
+    def assign(self, op, value):
+        raise ValueError("CONST_REASSIGN")
+    
+    def initialize(self, values):
+        raise ValueError("CONST_REASSIGN")
 
 class ConstantSeq(Sequence):
     """ A global sequence """
-    def __init__(self, id, type) -> None:
-        super().__init__(id, type)
+    def __init__(self, id, type, rows, cols) -> None:
+        super().__init__(id, type, rows, cols)
+        
+    def assign(self, op, value):
+        raise ValueError("CONST_REASSIGN")
+    
+    def initialize(self, values):
+        raise ValueError("CONST_REASSIGN")
+        
         # self.set_scope=const.GBL  
 
+class Parameter(Variable):
+    def __init__(self, id, type, param_type, scope) -> None:
+        super().__init__(id, type, scope)
+        #regular var or sequence
+        self.param_type=param_type
+    
+    def __repr__(self):
+        return f"Parameter({super().__repr__()})"
+
 class Function:
-    def __init__(self, id:str, return_type:str, parameters:AST, body:AST) -> None:
+    def __init__(self, id:str, return_type:str, parameters:list[Parameter], body:AST) -> None:
         
         self.id=id
         self.return_type=return_type
-        self.parameters:AST=parameters
+        self.parameters=parameters
         #parameters should be a list of variables
-        self.func_body:AST=None
-        self.ctx_name=f"FUNCTION {self.id}"
+        self.func_body:AST=body
+        # self.ctx_name=f"FUNCTION {self.id}"
 
 
     def execute(self, args:list)->bool:
@@ -244,8 +268,11 @@ class Function:
             raise ValueError("WRONG_NUM_ARGS")
         else:
             # FR(func=self,arguments= args).run()
-            raise NotImplementedError
-        
+            cd=CodeGenerator(parse_tree=self.func_body,)
+            for  i in len(args):
+                cd.context.symbol_table.find(args[i].value).assign(op="=", value=Evaluators(expression=args[i],
+                                                                    context=cd.context,
+                                                                    runtime_errors=cd.runtime_errors))
         # while True:
         #     if self.current_node.root not in self.routines.keys():
         #         self.previous_node=self.current_node
@@ -261,14 +288,7 @@ class Function:
         #         break  # Exit the loop if the tree has been fully traversed
         return self.func_body #FIXME - di pa ayos to
     
-class Parameter(Variable):
-    def __init__(self, id, type, param_type, scope) -> None:
-        super().__init__(id, type, scope)
-        #regular var or sequence
-        self.param_type=param_type
-    
-    def __repr__(self):
-        return f"Parameter({super().__repr__()})"
+
 
 class ScopeTree:
     def __init__(self, root, children) -> None:
@@ -331,9 +351,9 @@ class SymbolTable:
             raise KeyError("CONST_REDECL")
         
 
-    def constant_seq(self, id, type):
+    def constant_seq(self, id, type, rows, cols):
         if id not in self.symbols.keys():
-            self.symbols[id]=ConstantSeq(id=id, type=type)
+            self.symbols[id]=ConstantSeq(id=id, type=type, rows=rows, cols=cols)
             return self.symbols[id]
         else:
             raise KeyError("CONST_REDECL")

@@ -5,7 +5,7 @@ sys.path.append(".")
 # from source.CodeGeneration.Functionality.Functionality import Functionality
 import source.core.constants as const
 from source.core.AST import AST
-from source.core.symbol_table import SymbolTable
+# from source.core.symbol_table import SymbolTable
 from source.core.error_handler import RuntimeError as RError
 from source.core.error_types import Semantic_Errors as se
 

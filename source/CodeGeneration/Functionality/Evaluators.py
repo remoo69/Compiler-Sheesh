@@ -3,7 +3,7 @@ sys.path.append(".")
 from source.core.error_types import Semantic_Errors as se
 import source.core.constants as const
 import source.core.symbol_table as st
-from source.core.symbol_table import SymbolTable, Token 
+# from source.core.symbol_table import SymbolTable, Token 
 from source.core.error_handler import RuntimeError as RError
 
 
@@ -24,7 +24,7 @@ class Evaluators:
     """
     def __init__(self, expression, runtime_errors, context) -> None:
         self.expression=expression
-        self.runtime_errors=runtime_errors
+        # self.runtime_errors=runtime_errors
         self.context=context
         # self.context.name=scope
         # self.context.symbol_table:st.SymbolTable=symbol_table
@@ -56,17 +56,35 @@ class Evaluators:
                                     final_expression+=var.value 
                                     #NOTE - idk what to do here. ito muna lagay ko
                             elif isinstance(var, st.Function):
+                                args=[]
                                 
-                                func=var
+                                for j,expr in enumerate(expression[i:]):
+                                    args[j]=""
+                                    if expr.type==",":
+                                        break
+                                    else:
+                                        if expr.type=="Identifier":
+                                            var_arg=self.context.symbol_table.find(expr.value)
+                                            if isinstance(var_arg, st.Sequence):
+                                                index=self.evaluate(expression[i+2:], type=const.dtypes.whole)
+                                                col=self.evaluate(expression[i+3:], type=const.dtypes.whole) # FIXME can' eval col because can't find second index.
+                                                # sequence=self.context.symbol_table.find(var.value, self.context.name)
+                                                final_expression+=var.get(row=index, col=col)
+                                                
+                                            if isinstance(var_arg, st.Function):
+                                                var_arg.execute(self.build_expression(expression=expression[i:]))
+
+                                        args[j]+=expr.value
+                                func=var.execute(args)
                                 final_expression+=func 
                             elif isinstance(var, Token):
                                 if var.type in ["Whole", "Dec"]:
                                     final_expression+=var.numerical_value
                                 else:
-                                    self.runtime_errors.append(RuntimeError(se.EWAN, expr, "Invalid Expression"))
+                                    self.context.runtime_errors.append(RError(se.EWAN, expr, "Invalid Expression"))
                         except KeyError as e:
                             e=str(e)[1:-1]
-                            self.codegen.context.runtime_errors.append(RError(error=getattr(se, e), token=expr, expected=se.expected[e]))
+                            self.context.runtime_errors.append(RError(error=getattr(se, e), token=expr, expected=se.expected[e]))
 
                     elif expr.type in ["Whole", "Dec", ]:
                         final_expression+=expr.value

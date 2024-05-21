@@ -59,6 +59,7 @@ class Semantic_Errors:
 
         CONST_REDECL="Redeclaration of Constant"
         CONST_UNDECL="Undeclared Constant"
+        CONST_REASSIGN="Redefinition of Constant"
 
         VAR_UNDECL="Undeclared Variable"
         VAR_UNDEF="Undefined Variable"
