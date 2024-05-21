@@ -286,6 +286,7 @@ class SymbolTable:
 
     def __init__(self):
         self.symbols = {}
+        
         # self.scopetree=ScopeTree(const.GBL)
         # self.runtime_errors=[]
 
@@ -303,9 +304,10 @@ class SymbolTable:
 
 
 #FIXME - IDK WHAT TO DO WITH THIS
-    def sequence(self, id, type, scope, rows, cols):
+    def sequence(self, id, type,rows, cols):
         if id not in self.symbols.keys():
-            self.symbols[id]=Sequence(id=id, type=type, scope=scope, rows=rows, cols=cols)
+            self.symbols[id]=Sequence(id=id, type=type, rows=rows, cols=cols)
+            return self.symbols[id]
         else:
             raise KeyError("VAR_REDECL_INSCOPE")
         
@@ -314,15 +316,17 @@ class SymbolTable:
         if id not in self.symbols.keys():
             if body:
                 self.symbols[id]=Function(id=id, return_type=return_type, parameters=parameters, body=body)
+                return self.symbols[id]
             else:
                 self.symbols[id]=Function(id=id, return_type=return_type, parameters=parameters)
         else:
             raise KeyError("FUNC_REDECL_INSCOPE")
         
 
-    def constant_var(self, id, type):
+    def constant_var(self, id, type)->ConstantVar:
         if id not in self.symbols.keys():
             self.symbols[id]=ConstantVar(id=id, type=type)
+            return self.symbols[id]
         else:
             raise KeyError("CONST_REDECL")
         
@@ -330,6 +334,7 @@ class SymbolTable:
     def constant_seq(self, id, type):
         if id not in self.symbols.keys():
             self.symbols[id]=ConstantSeq(id=id, type=type)
+            return self.symbols[id]
         else:
             raise KeyError("CONST_REDECL")
             # self.symbols[id]=Parameter(id=id, type=type, param_type=param_type, scope=scope)
@@ -414,11 +419,12 @@ class Context:
         self.output_stream={}
         if parent != None:
             self.symbol_table.symbols.update(self.parent.symbol_table)
-            self.runtime_errors.extend(self.parent.runtime_errors)
+            # self.runtime_errors.extend(self.parent.runtime_errors)
             
-            self.output_stream.update(self.parent.output_stream)
+            # self.output_stream.update(self.parent.output_stream)
   
-        
+    def __repr__(self) -> str:
+        return f"Context({self.name})"
     
     def symbols(self):
         self.symbol_table=SymbolTable()

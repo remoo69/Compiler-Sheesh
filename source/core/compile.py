@@ -40,17 +40,19 @@ class Compiler:
     def compile(self):
         print("Compiler Function...")
         self.lexer.tokenize()
+        print("Tokenization Finished...")
 
-        if not self.lexer.errors:
+        if self.lexer.errors ==[]:
             self.parser=SyntaxAnalyzer(
                 Compiler.remove_whitespace_type(self.lexer.tokens), self.debug)
             self.parser.parse()
+            print("Syntax Analysis Finished...")
 
-            if not self.parser.syntax_errors:
+            if self.parser.syntax_errors ==[]:
 
                 self.codegen=CodeGenerator(parse_tree=self.parser.Tree, debugMode=self.debug, mode=1)
                 self.codegen.generate_code()
-
+                print("Code Generation Finished...")
                 if self.codegen.runtime_errors:
                     self.runtime_errors=self.codegen.runtime_errors
                     return

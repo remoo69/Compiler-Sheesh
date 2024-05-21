@@ -1,0 +1,33 @@
+ast implementation:
+essentially, implement depth-first serach
+build depth: 
+    stepback to prev if there are other funcs
+    append each 
+
+self.curroot
+self.curchildren
+
+
+
+init_ast:
+    self.curroot=root
+
+
+Each func:
+    init_AST (root=funcname, children=[])
+
+
+match:
+    if match: append to children
+
+
+
+
+//HELLLO
+based dec eh#
+
+sheesh(){
+
+up("Hi", )#
+}
+

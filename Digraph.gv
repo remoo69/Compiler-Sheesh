@@ -1,0 +1,332 @@
+// AST
+digraph {
+	2173296095696 [label=Root]
+	2173307381584 [label=program]
+	2173307676784 [label=sheesh_declaration]
+	2173306701200 [label="Token(value='sheesh', type='sheesh', attribute='sheesh', scope=None, dtype=None, line=1, position=1, numerical_value=None)"]
+	2173307676784 -> 2173306701200
+	2173292152640 [label="Token(value='(', type='(', attribute='(', scope=None, dtype=None, line=1, position=2, numerical_value=None)"]
+	2173307676784 -> 2173292152640
+	2173291763984 [label="Token(value=')', type=')', attribute=')', scope=None, dtype=None, line=1, position=3, numerical_value=None)"]
+	2173307676784 -> 2173291763984
+	2173307676496 [label=reg_body]
+	2173307083120 [label="Token(value='{', type='{', attribute='{', scope=None, dtype=None, line=1, position=4, numerical_value=None)"]
+	2173307676496 -> 2173307083120
+	2173307680000 [label=statement]
+	2173307680048 [label=single_statement]
+	2173307681104 [label=allowed_in_loop]
+	2173307375632 [label="Token(value='up', type='up', attribute='up', scope=None, dtype=None, line=5, position=1, numerical_value=None)"]
+	2173307681104 -> 2173307375632
+	2173258293296 [label="Token(value='(', type='(', attribute='(', scope=None, dtype=None, line=5, position=2, numerical_value=None)"]
+	2173307681104 -> 2173258293296
+	2173258110624 [label=up_argument]
+	2173306534944 [label="Token(value='\"Enter previous water reading: \"', type='Text', attribute=None, scope=None, dtype=None, line=5, position=3, numerical_value=None)"]
+	2173258110624 -> 2173306534944
+	2173307681104 -> 2173258110624
+	2173307673280 [label="Token(value=')', type=')', attribute=')', scope=None, dtype=None, line=5, position=4, numerical_value=None)"]
+	2173307681104 -> 2173307673280
+	2173307673232 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=5, position=6, numerical_value=None)"]
+	2173307681104 -> 2173307673232
+	2173307673232 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=5, position=6, numerical_value=None)"]
+	2173307681104 -> 2173307673232
+	2173307680048 -> 2173307681104
+	2173307680000 -> 2173307680048
+	2173307676544 [label=more_statement]
+	2173307680816 [label=statement]
+	2173307681968 [label=single_statement]
+	2173307679616 [label=allowed_in_loop]
+	2173307679424 [label=var_or_seq_dec]
+	2173307673328 [label="Token(value='dec', type='dec', attribute='dec', scope=None, dtype=None, line=6, position=1, numerical_value=None)"]
+	2173307679424 -> 2173307673328
+	2173307682784 [label="Token(value='prev_reading', type='Identifier', attribute='Identifier 1', scope=None, dtype=None, line=6, position=2, numerical_value=None)"]
+	2173307679424 -> 2173307682784
+	2173307682544 [label=d_var_seq_tail]
+	2173296115488 [label=d_vardec_tail]
+	2173297278272 [label=d_val_assign]
+	2173307674288 [label="Token(value='=', type='=', attribute='=', scope=None, dtype=None, line=6, position=3, numerical_value=None)"]
+	2173297278272 -> 2173307674288
+	2173306709312 [label=dec_all_value]
+	2173307679232 [label="Token(value='pa_mine', type='pa_mine', attribute='pa_mine', scope=None, dtype=None, line=6, position=4, numerical_value=None)"]
+	2173306709312 -> 2173307679232
+	2173307679472 [label="Token(value='(', type='(', attribute='(', scope=None, dtype=None, line=6, position=5, numerical_value=None)"]
+	2173306709312 -> 2173307679472
+	2173307679376 [label="Token(value='\"$d\"', type='Text', attribute=None, scope=None, dtype=None, line=6, position=6, numerical_value=None)"]
+	2173306709312 -> 2173307679376
+	2173307679904 [label="Token(value=')', type=')', attribute=')', scope=None, dtype=None, line=6, position=7, numerical_value=None)"]
+	2173306709312 -> 2173307679904
+	2173297278272 -> 2173306709312
+	2173296115488 -> 2173297278272
+	2173307682544 -> 2173296115488
+	2173307679424 -> 2173307682544
+	2173307679952 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=6, position=9, numerical_value=None)"]
+	2173307679424 -> 2173307679952
+	2173307679952 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=6, position=9, numerical_value=None)"]
+	2173307679424 -> 2173307679952
+	2173307679616 -> 2173307679424
+	2173307681968 -> 2173307679616
+	2173307680816 -> 2173307681968
+	2173307679184 [label=more_statement]
+	2173307682736 [label=statement]
+	2173292176944 [label=single_statement]
+	2173307880800 [label=allowed_in_loop]
+	2173307680144 [label="Token(value='up', type='up', attribute='up', scope=None, dtype=None, line=8, position=1, numerical_value=None)"]
+	2173307880800 -> 2173307680144
+	2173307680384 [label="Token(value='(', type='(', attribute='(', scope=None, dtype=None, line=8, position=2, numerical_value=None)"]
+	2173307880800 -> 2173307680384
+	2173307886704 [label=up_argument]
+	2173307387584 [label="Token(value='\"Enter current water reading: \"', type='Text', attribute=None, scope=None, dtype=None, line=8, position=3, numerical_value=None)"]
+	2173307886704 -> 2173307387584
+	2173307880800 -> 2173307886704
+	2173307680528 [label="Token(value=')', type=')', attribute=')', scope=None, dtype=None, line=8, position=4, numerical_value=None)"]
+	2173307880800 -> 2173307680528
+	2173307680480 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=8, position=6, numerical_value=None)"]
+	2173307880800 -> 2173307680480
+	2173307680480 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=8, position=6, numerical_value=None)"]
+	2173307880800 -> 2173307680480
+	2173292176944 -> 2173307880800
+	2173307682736 -> 2173292176944
+	2173288757728 [label=more_statement]
+	2173307887088 [label=statement]
+	2173307881136 [label=single_statement]
+	2173307884208 [label=allowed_in_loop]
+	2173307884640 [label=var_or_seq_dec]
+	2173307681008 [label="Token(value='dec', type='dec', attribute='dec', scope=None, dtype=None, line=9, position=1, numerical_value=None)"]
+	2173307884640 -> 2173307681008
+	2173307680960 [label="Token(value='curr_reading', type='Identifier', attribute='Identifier 2', scope=None, dtype=None, line=9, position=2, numerical_value=None)"]
+	2173307884640 -> 2173307680960
+	2173307884544 [label=d_var_seq_tail]
+	2173307879696 [label=d_vardec_tail]
+	2173307879744 [label=d_val_assign]
+	2173307681296 [label="Token(value='=', type='=', attribute='=', scope=None, dtype=None, line=9, position=3, numerical_value=None)"]
+	2173307879744 -> 2173307681296
+	2173307880368 [label=dec_all_value]
+	2173307681584 [label="Token(value='pa_mine', type='pa_mine', attribute='pa_mine', scope=None, dtype=None, line=9, position=4, numerical_value=None)"]
+	2173307880368 -> 2173307681584
+	2173307681776 [label="Token(value='(', type='(', attribute='(', scope=None, dtype=None, line=9, position=5, numerical_value=None)"]
+	2173307880368 -> 2173307681776
+	2173307681824 [label="Token(value='\"$d\"', type='Text', attribute=None, scope=None, dtype=None, line=9, position=6, numerical_value=None)"]
+	2173307880368 -> 2173307681824
+	2173307682112 [label="Token(value=')', type=')', attribute=')', scope=None, dtype=None, line=9, position=7, numerical_value=None)"]
+	2173307880368 -> 2173307682112
+	2173307879744 -> 2173307880368
+	2173307879696 -> 2173307879744
+	2173307884544 -> 2173307879696
+	2173307884640 -> 2173307884544
+	2173307682160 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=9, position=9, numerical_value=None)"]
+	2173307884640 -> 2173307682160
+	2173307682160 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=9, position=9, numerical_value=None)"]
+	2173307884640 -> 2173307682160
+	2173307884208 -> 2173307884640
+	2173307881136 -> 2173307884208
+	2173307887088 -> 2173307881136
+	2173307885408 [label=more_statement]
+	2173307884400 [label=statement]
+	2173307879888 [label=single_statement]
+	2173307880848 [label=allowed_in_loop]
+	2173307682640 [label="Token(value='up', type='up', attribute='up', scope=None, dtype=None, line=11, position=1, numerical_value=None)"]
+	2173307880848 -> 2173307682640
+	2173307682400 [label="Token(value='(', type='(', attribute='(', scope=None, dtype=None, line=11, position=2, numerical_value=None)"]
+	2173307880848 -> 2173307682400
+	2173307881232 [label=up_argument]
+	2173307682688 [label="Token(value='\"Enter price per unit: \"', type='Text', attribute=None, scope=None, dtype=None, line=11, position=3, numerical_value=None)"]
+	2173307881232 -> 2173307682688
+	2173307880848 -> 2173307881232
+	2173307673376 [label="Token(value=')', type=')', attribute=')', scope=None, dtype=None, line=11, position=4, numerical_value=None)"]
+	2173307880848 -> 2173307673376
+	2173307678896 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=11, position=6, numerical_value=None)"]
+	2173307880848 -> 2173307678896
+	2173307678896 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=11, position=6, numerical_value=None)"]
+	2173307880848 -> 2173307678896
+	2173307879888 -> 2173307880848
+	2173307884400 -> 2173307879888
+	2173307880896 [label=more_statement]
+	2173307881424 [label=statement]
+	2173307879504 [label=single_statement]
+	2173307880512 [label=allowed_in_loop]
+	2173307880608 [label=var_or_seq_dec]
+	2173307679808 [label="Token(value='dec', type='dec', attribute='dec', scope=None, dtype=None, line=12, position=1, numerical_value=None)"]
+	2173307880608 -> 2173307679808
+	2173307679712 [label="Token(value='price_per_unit', type='Identifier', attribute='Identifier 3', scope=None, dtype=None, line=12, position=2, numerical_value=None)"]
+	2173307880608 -> 2173307679712
+	2173307879792 [label=d_var_seq_tail]
+	2173307881712 [label=d_vardec_tail]
+	2173307880992 [label=d_val_assign]
+	2173307674528 [label="Token(value='=', type='=', attribute='=', scope=None, dtype=None, line=12, position=3, numerical_value=None)"]
+	2173307880992 -> 2173307674528
+	2173307882000 [label=dec_all_value]
+	2173307679568 [label="Token(value='pa_mine', type='pa_mine', attribute='pa_mine', scope=None, dtype=None, line=12, position=4, numerical_value=None)"]
+	2173307882000 -> 2173307679568
+	2173307680288 [label="Token(value='(', type='(', attribute='(', scope=None, dtype=None, line=12, position=5, numerical_value=None)"]
+	2173307882000 -> 2173307680288
+	2173307680336 [label="Token(value='\"$d\"', type='Text', attribute=None, scope=None, dtype=None, line=12, position=6, numerical_value=None)"]
+	2173307882000 -> 2173307680336
+	2173307681488 [label="Token(value=')', type=')', attribute=')', scope=None, dtype=None, line=12, position=7, numerical_value=None)"]
+	2173307882000 -> 2173307681488
+	2173307880992 -> 2173307882000
+	2173307881712 -> 2173307880992
+	2173307879792 -> 2173307881712
+	2173307880608 -> 2173307879792
+	2173307681440 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=12, position=9, numerical_value=None)"]
+	2173307880608 -> 2173307681440
+	2173307681440 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=12, position=9, numerical_value=None)"]
+	2173307880608 -> 2173307681440
+	2173307880512 -> 2173307880608
+	2173307879504 -> 2173307880512
+	2173307881424 -> 2173307879504
+	2173307681728 [label=more_statement]
+	2173307879984 [label=statement]
+	2173307880560 [label=single_statement]
+	2173307881664 [label=allowed_in_loop]
+	2173307882672 [label=var_or_seq_dec]
+	2173296043424 [label="Token(value='dec', type='dec', attribute='dec', scope=None, dtype=None, line=14, position=1, numerical_value=None)"]
+	2173307882672 -> 2173296043424
+	2173307673424 [label="Token(value='consumption', type='Identifier', attribute='Identifier 4', scope=None, dtype=None, line=14, position=2, numerical_value=None)"]
+	2173307882672 -> 2173307673424
+	2173307882480 [label=d_var_seq_tail]
+	2173307882864 [label=d_vardec_tail]
+	2173265619056 [label=d_val_assign]
+	2173307681392 [label="Token(value='=', type='=', attribute='=', scope=None, dtype=None, line=14, position=3, numerical_value=None)"]
+	2173265619056 -> 2173307681392
+	2173307882912 [label=dec_all_value]
+	2173307883104 [label=dec_value]
+	2173307883392 [label=id_as_val]
+	2173307682064 [label="Token(value='curr_reading', type='Identifier', attribute='Identifier 2', scope=None, dtype=None, line=14, position=4, numerical_value=None)"]
+	2173307883392 -> 2173307682064
+	2173307883104 -> 2173307883392
+	2173307883632 [label=dec_op]
+	2173307883824 [label=math_op]
+	2173307543216 [label="Token(value='-', type='-', attribute='-', scope=None, dtype=None, line=14, position=5, numerical_value=None)"]
+	2173307883824 -> 2173307543216
+	2173307883632 -> 2173307883824
+	2173307883776 [label=dec_value]
+	2173307882624 [label=id_as_val]
+	2173292347760 [label="Token(value='prev_reading', type='Identifier', attribute='Identifier 1', scope=None, dtype=None, line=14, position=6, numerical_value=None)"]
+	2173307882624 -> 2173292347760
+	2173307883776 -> 2173307882624
+	2173307883632 -> 2173307883776
+	2173307883104 -> 2173307883632
+	2173307882912 -> 2173307883104
+	2173265619056 -> 2173307882912
+	2173307882864 -> 2173265619056
+	2173307882480 -> 2173307882864
+	2173307882672 -> 2173307882480
+	2173296058512 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=14, position=8, numerical_value=None)"]
+	2173307882672 -> 2173296058512
+	2173296058512 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=14, position=8, numerical_value=None)"]
+	2173307882672 -> 2173296058512
+	2173307881664 -> 2173307882672
+	2173307880560 -> 2173307881664
+	2173307879984 -> 2173307880560
+	2173307881904 [label=more_statement]
+	2173307882720 [label=statement]
+	2173307882432 [label=single_statement]
+	2173307883920 [label=allowed_in_loop]
+	2173307884160 [label=var_or_seq_dec]
+	2173307886896 [label="Token(value='dec', type='dec', attribute='dec', scope=None, dtype=None, line=15, position=1, numerical_value=None)"]
+	2173307884160 -> 2173307886896
+	2173307886944 [label="Token(value='total_price', type='Identifier', attribute='Identifier 5', scope=None, dtype=None, line=15, position=2, numerical_value=None)"]
+	2173307884160 -> 2173307886944
+	2173307883584 [label=d_var_seq_tail]
+	2173307884880 [label=d_vardec_tail]
+	2173307884928 [label=d_val_assign]
+	2173307886560 [label="Token(value='=', type='=', attribute='=', scope=None, dtype=None, line=15, position=3, numerical_value=None)"]
+	2173307884928 -> 2173307886560
+	2173307883728 [label=dec_all_value]
+	2173307884592 [label=dec_value]
+	2173307885360 [label=id_as_val]
+	2173307887472 [label="Token(value='consumption', type='Identifier', attribute='Identifier 4', scope=None, dtype=None, line=15, position=4, numerical_value=None)"]
+	2173307885360 -> 2173307887472
+	2173307884592 -> 2173307885360
+	2173307886512 [label=dec_op]
+	2173307886416 [label=math_op]
+	2173307887184 [label="Token(value='*', type='*', attribute='*', scope=None, dtype=None, line=15, position=5, numerical_value=None)"]
+	2173307886416 -> 2173307887184
+	2173307886512 -> 2173307886416
+	2173307886368 [label=dec_value]
+	2173307887712 [label=id_as_val]
+	2173307887136 [label="Token(value='price_per_unit', type='Identifier', attribute='Identifier 3', scope=None, dtype=None, line=15, position=6, numerical_value=None)"]
+	2173307887712 -> 2173307887136
+	2173307886368 -> 2173307887712
+	2173307886512 -> 2173307886368
+	2173307884592 -> 2173307886512
+	2173307883728 -> 2173307884592
+	2173307884928 -> 2173307883728
+	2173307884880 -> 2173307884928
+	2173307883584 -> 2173307884880
+	2173307884160 -> 2173307883584
+	2173306527312 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=15, position=8, numerical_value=None)"]
+	2173307884160 -> 2173306527312
+	2173306527312 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=15, position=8, numerical_value=None)"]
+	2173307884160 -> 2173306527312
+	2173307883920 -> 2173307884160
+	2173307882432 -> 2173307883920
+	2173307882720 -> 2173307882432
+	2173307882144 [label=more_statement]
+	2173307883440 [label=statement]
+	2173307884496 [label=single_statement]
+	2173307883536 [label=allowed_in_loop]
+	2173307885456 [label="Token(value='up', type='up', attribute='up', scope=None, dtype=None, line=17, position=1, numerical_value=None)"]
+	2173307883536 -> 2173307885456
+	2173307885792 [label="Token(value='(', type='(', attribute='(', scope=None, dtype=None, line=17, position=2, numerical_value=None)"]
+	2173307883536 -> 2173307885792
+	2173307888048 [label=up_argument]
+	2173307885888 [label="Token(value='\"Total price for $d units of water is $d\"', type='Text', attribute=None, scope=None, dtype=None, line=17, position=3, numerical_value=None)"]
+	2173307888048 -> 2173307885888
+	2173307887904 [label=next_args]
+	2173307885744 [label="Token(value=',', type=',', attribute=',', scope=None, dtype=None, line=17, position=4, numerical_value=None)"]
+	2173307887904 -> 2173307885744
+	2173307887952 [label=literal_or_expr]
+	2173307888336 [label=id_val_op]
+	2173307888432 [label=id_as_val]
+	2173307880176 [label="Token(value='consumption', type='Identifier', attribute='Identifier 4', scope=None, dtype=None, line=17, position=5, numerical_value=None)"]
+	2173307888432 -> 2173307880176
+	2173307888336 -> 2173307888432
+	2173307887952 -> 2173307888336
+	2173307887904 -> 2173307887952
+	2173307888144 [label=more_up_args]
+	2173307888720 [label=next_args]
+	2173307886176 [label="Token(value=',', type=',', attribute=',', scope=None, dtype=None, line=17, position=6, numerical_value=None)"]
+	2173307888720 -> 2173307886176
+	2173307888624 [label=literal_or_expr]
+	2173307888768 [label=id_val_op]
+	2173307889056 [label=id_as_val]
+	2173307885840 [label="Token(value='total_price', type='Identifier', attribute='Identifier 5', scope=None, dtype=None, line=17, position=7, numerical_value=None)"]
+	2173307889056 -> 2173307885840
+	2173307888768 -> 2173307889056
+	2173307888624 -> 2173307888768
+	2173307888720 -> 2173307888624
+	2173307888144 -> 2173307888720
+	2173307887904 -> 2173307888144
+	2173307888048 -> 2173307887904
+	2173307883536 -> 2173307888048
+	2173307885936 [label="Token(value=')', type=')', attribute=')', scope=None, dtype=None, line=17, position=8, numerical_value=None)"]
+	2173307883536 -> 2173307885936
+	2173307886272 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=17, position=10, numerical_value=None)"]
+	2173307883536 -> 2173307886272
+	2173307886272 [label="Token(value='EOL', type='Newline', attribute=None, scope=None, dtype=None, line=17, position=10, numerical_value=None)"]
+	2173307883536 -> 2173307886272
+	2173307884496 -> 2173307883536
+	2173307883440 -> 2173307884496
+	2173307882144 -> 2173307883440
+	2173307882720 -> 2173307882144
+	2173307881904 -> 2173307882720
+	2173307879984 -> 2173307881904
+	2173307681728 -> 2173307879984
+	2173307881424 -> 2173307681728
+	2173307880896 -> 2173307881424
+	2173307884400 -> 2173307880896
+	2173307885408 -> 2173307884400
+	2173307887088 -> 2173307885408
+	2173288757728 -> 2173307887088
+	2173307682736 -> 2173288757728
+	2173307679184 -> 2173307682736
+	2173307680816 -> 2173307679184
+	2173307676544 -> 2173307680816
+	2173307680000 -> 2173307676544
+	2173307676496 -> 2173307680000
+	2173307880128 [label="Token(value='}', type='}', attribute='}', scope=None, dtype=None, line=18, position=1, numerical_value=None)"]
+	2173307676496 -> 2173307880128
+	2173307676784 -> 2173307676496
+	2173307381584 -> 2173307676784
+	2173296095696 -> 2173307381584
+}

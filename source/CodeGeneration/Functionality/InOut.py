@@ -6,8 +6,9 @@ sys.path.append(".")
 import source.core.constants as const
 from source.core.AST import AST
 from source.core.symbol_table import SymbolTable
-from source.core.error_handler import RuntimeError
+from source.core.error_handler import RuntimeError as RError
 from source.core.error_types import Semantic_Errors as se
+
 
 
 class InOut:
@@ -57,11 +58,16 @@ class InOut:
 
             for match in reversed(matched):
                 if match.type=="Identifier":
-                    value=self.codegen.context.symbol_table.find(match.value)
-                    vars.append(value)
-                    vars2.append(value)
-                    type=value.type
-                    print(type)
+                    try:
+                        value=self.codegen.context.symbol_table.find(match.value)
+                        vars.append(value)
+                        vars2.append(value)
+                        type=value.type
+                        print(type)
+                    except KeyError as e:
+                        e=str(e)[1:-1]
+                        self.codegen.context.runtime_errors.append(RError(error=getattr(se, e), token=match, expected=se.expected[e]))
+                        
                 elif match.type in const.literal_types and match.type!="Text":
                     vars.append(match)
                 elif match.type=="Text":
@@ -83,7 +89,7 @@ class InOut:
                             expected+=f" {self.own_specifiers[format[1:]]},"
                             
                     self.runtime_errors.append(
-                        RuntimeError(error=err_msg, token=self.node.children[0], expected=expected)
+                        RError(error=err_msg, token=self.node.children[0], expected=expected)
                         )
                 elif len(vars)>len(format_specifiers):
                     expected=f"{len(vars)} format specifiers of type"
@@ -92,8 +98,8 @@ class InOut:
                             expected+=f" {var.dtype},"
                         else:
                             expected+=f" {var.type},"
-                    self.runtime_errors.append(
-                        RuntimeError(error=err_msg, token=self.node.children[0], expected=expected)
+                    self.codegen.runtime_errors.append(
+                        RError(error=err_msg, token=self.codegen.current_node.children[0], expected=expected)
                         )
             else:
 
@@ -107,7 +113,7 @@ class InOut:
                     var = vars[i].value
                     if var==None:
                          self.runtime_errors.append(
-                              RuntimeError(error=se.VAR_UNDEF, token=vars2[i], expected=se.expected["VAR_UNDEF"])
+                              RError(error=se.VAR_UNDEF, token=vars2[i], expected=se.expected["VAR_UNDEF"])
                          )
                          return
                     # print(type(var))
@@ -125,7 +131,7 @@ class InOut:
                         err_msg=f"Variable {vars[i].value} does not match format specifier {format_specifier}"
                         expected=f"{self.own_specifiers[format_specifier]} for format specifier ${format_specifier}"
                         self.runtime_errors.append(
-                    RuntimeError(error=err_msg, token=self.current_node.children[0], expected=expected)
+                    RError(error=err_msg, token=self.current_node.children[0], expected=expected)
                     )
                         # raise TypeError(f"Variable {var} does not match format specifier {format_specifier}")
 
@@ -136,10 +142,11 @@ class InOut:
                 # Format the string with the variables
                 formatted_text = text.format(*val)
 
-                ctr=1
                 # Print the formatted string
                 if formatted_text :
-                    self.codegen.output_stream[ctr]=formatted_text
+                    
+                    self.codegen.output_stream[self.codegen.print_ctr]=formatted_text
+                    self.codegen.print_ctr+=1
                 # else:
                 #     occurence=1
                 #     self.output_stream[formatted_text]=occurence

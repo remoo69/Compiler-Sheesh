@@ -288,7 +288,7 @@ def compile():
                 # error_pane.config(state="disabled")
         else:
             # error_pane.config(foreground= yellow)
-            error_pane.insert(constants.END, f'\nRuntime Error:\n', error_tag)
+            error_pane.insert(constants.END, f'\nSemantic Errors:\n', error_tag)
             for rerr in runtime_errors:
                 error_pane.insert(constants.END, f"{rerr}\n", error_tag)
             error_pane.config(state="disabled")

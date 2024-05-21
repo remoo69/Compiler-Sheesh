@@ -760,7 +760,9 @@ class SyntaxAnalyzer:
         elif self.whl_val_withparen()==self.success:
             self.whl_op()
             self.Tree.end_branch(); return self.success
-        else: return self.failed()
+        else: 
+            self.enforce()
+            return self.failed()
 
     def whl_val_withparen(self):
         self.Tree.initialize_new()

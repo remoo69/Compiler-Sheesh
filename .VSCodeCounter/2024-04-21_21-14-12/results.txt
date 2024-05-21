@@ -1,0 +1,67 @@
+Date : 2024-04-21 21:14:12
+Directory : c:\Users\anton\Desktop\compiler_sheesh
+Total : 32 files,  8677 codes, 609 comments, 1753 blanks, all 11039 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| Python     |         30 |      8,636 |        609 |      1,735 |     10,980 |
+| Markdown   |          1 |         28 |          0 |         17 |         45 |
+| Properties |          1 |         13 |          0 |          1 |         14 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                     | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                        |         32 |      8,677 |        609 |      1,753 |     11,039 |
+| . (Files)                                                                                |          3 |         43 |          0 |         18 |         61 |
+| source                                                                                   |         29 |      8,634 |        609 |      1,735 |     10,978 |
+| source (Files)                                                                           |          3 |        296 |         29 |         82 |        407 |
+| source\LexicalAnalyzer                                                                   |          4 |        532 |         69 |         98 |        699 |
+| source\SemanticAnalyzer                                                                  |          1 |         41 |          3 |         11 |         55 |
+| source\SyntaxAnalyzer                                                                    |         13 |      7,184 |        486 |      1,476 |      9,146 |
+| source\core                                                                              |          8 |        581 |         22 |         68 |        671 |
+| source\core (Files)                                                                      |          5 |        575 |         22 |         61 |        658 |
+| source\core\CodeGeneration                                                               |          3 |          6 |          0 |          7 |         13 |
++------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                                 | language   | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| c:\Users\anton\Desktop\compiler_sheesh\README.md                                         | Markdown   |         28 |          0 |         17 |         45 |
+| c:\Users\anton\Desktop\compiler_sheesh\compiler_sheesh.cfg                               | Properties |         13 |          0 |          1 |         14 |
+| c:\Users\anton\Desktop\compiler_sheesh\setup.py                                          | Python     |          2 |          0 |          0 |          2 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\LexicalAnalyzer\__init__.py                | Python     |          0 |          0 |          1 |          1 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\LexicalAnalyzer\lexerpy.py                 | Python     |        120 |         18 |         21 |        159 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\LexicalAnalyzer\prepare.py                 | Python     |        253 |         41 |         48 |        342 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\LexicalAnalyzer\tokenclass.py              | Python     |        159 |         10 |         28 |        197 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\SemanticAnalyzer\Semantisizer.py           | Python     |         41 |          3 |         11 |         55 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\Sheesh# Compiler.py                        | Python     |        287 |         28 |         76 |        391 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\SyntaxAnalyzer\MainParser.py               | Python     |      2,514 |         68 |        316 |      2,898 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\SyntaxAnalyzer\__init__.py                 | Python     |          0 |          0 |          1 |          1 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\SyntaxAnalyzer\fsp.py                      | Python     |        296 |          0 |         33 |        329 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\SyntaxAnalyzer\grammar.py                  | Python     |        355 |         44 |         55 |        454 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\SyntaxAnalyzer\newparser.py                | Python     |          5 |          0 |          1 |          6 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\SyntaxAnalyzer\parser1.py                  | Python     |         50 |          1 |         10 |         61 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\SyntaxAnalyzer\parser2.py                  | Python     |      2,123 |         51 |        282 |      2,456 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\SyntaxAnalyzer\parser3.py                  | Python     |        342 |        106 |         94 |        542 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\SyntaxAnalyzer\parser_sheesh.py            | Python     |      1,205 |         88 |        595 |      1,888 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\SyntaxAnalyzer\random.py                   | Python     |         50 |          0 |          1 |         51 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\SyntaxAnalyzer\syntax_analyzer.py          | Python     |         76 |         38 |         24 |        138 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\SyntaxAnalyzer\test_grammar.py             | Python     |        155 |         86 |         57 |        298 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\SyntaxAnalyzer\test_parser2.py             | Python     |         13 |          4 |          7 |         24 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\__init__.py                                | Python     |          0 |          0 |          1 |          1 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\core\CodeGeneration\CodeGen.py             | Python     |          2 |          0 |          0 |          2 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\core\CodeGeneration\CodeOptimizer.py       | Python     |          2 |          0 |          2 |          4 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\core\CodeGeneration\IntermediateCodeGen.py | Python     |          2 |          0 |          5 |          7 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\core\__init__.py                           | Python     |          0 |          0 |          1 |          1 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\core\constants.py                          | Python     |        165 |          7 |         14 |        186 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\core\error_handler.py                      | Python     |        384 |         11 |         34 |        429 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\core\error_types.py                        | Python     |         13 |          4 |          5 |         22 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\core\symbol_table.py                       | Python     |         13 |          0 |          7 |         20 |
+| c:\Users\anton\Desktop\compiler_sheesh\source\helper.py                                  | Python     |          9 |          1 |          5 |         15 |
+| Total                                                                                    |            |      8,677 |        609 |      1,753 |     11,039 |
++------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+

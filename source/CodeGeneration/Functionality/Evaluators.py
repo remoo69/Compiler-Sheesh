@@ -4,7 +4,7 @@ from source.core.error_types import Semantic_Errors as se
 import source.core.constants as const
 import source.core.symbol_table as st
 from source.core.symbol_table import SymbolTable, Token 
-from source.core.error_handler import RuntimeError
+from source.core.error_handler import RuntimeError as RError
 
 
 """  
@@ -40,29 +40,33 @@ class Evaluators:
  
                 if expr.type not in const.keywords:
                     if expr.type=="Identifier":
-                        var= self.context.symbol_table.find(expr.value)
-                        if isinstance(var, st.Sequence): 
-                            
-                            index=self.evaluate(expression[i+2:], type=const.dtypes.whole)
-                            col=self.evaluate(expression[i+3:], type=const.dtypes.whole) # FIXME can' eval col because can't find second index.
-                            # sequence=self.context.symbol_table.find(var.value, self.context.name)
-                            final_expression+=var.get(row=index, col=col)
-                            
-                        elif isinstance(var, st.Variable):
-                            if var.type in ["whole", "dec",]:
-                                final_expression+=str(var.value)
-                            elif var.type in ["sus", "text", "charr"]:
-                                final_expression+=var.value 
-                                #NOTE - idk what to do here. ito muna lagay ko
-                        elif isinstance(var, st.Function):
-                            
-                            func=var
-                            final_expression+=func 
-                        elif isinstance(var, Token):
-                            if var.type in ["Whole", "Dec"]:
-                                final_expression+=var.numerical_value
-                            else:
-                                self.runtime_errors.append(RuntimeError(se.EWAN, expr, "Invalid Expression"))
+                        try:
+                            var= self.context.symbol_table.find(expr.value)
+                            if isinstance(var, st.Sequence): 
+                                
+                                index=self.evaluate(expression[i+2:], type=const.dtypes.whole)
+                                col=self.evaluate(expression[i+3:], type=const.dtypes.whole) # FIXME can' eval col because can't find second index.
+                                # sequence=self.context.symbol_table.find(var.value, self.context.name)
+                                final_expression+=var.get(row=index, col=col)
+                                
+                            elif isinstance(var, st.Variable):
+                                if var.type in ["whole", "dec",]:
+                                    final_expression+=str(var.value)
+                                elif var.type in ["sus", "text", "charr"]:
+                                    final_expression+=var.value 
+                                    #NOTE - idk what to do here. ito muna lagay ko
+                            elif isinstance(var, st.Function):
+                                
+                                func=var
+                                final_expression+=func 
+                            elif isinstance(var, Token):
+                                if var.type in ["Whole", "Dec"]:
+                                    final_expression+=var.numerical_value
+                                else:
+                                    self.runtime_errors.append(RuntimeError(se.EWAN, expr, "Invalid Expression"))
+                        except KeyError as e:
+                            e=str(e)[1:-1]
+                            self.codegen.context.runtime_errors.append(RError(error=getattr(se, e), token=expr, expected=se.expected[e]))
 
                     elif expr.type in ["Whole", "Dec", ]:
                         final_expression+=expr.value
@@ -122,59 +126,62 @@ class Evaluators:
         value=None
         if id.value in self.context.symbol_table.keys():
             items=self.expression
-            var=self.context.symbol_table.find(id.value, self.context.name)
-            #FIXME - no type checking for var
+            try:
+                var=self.context.symbol_table.find(id.value, self.context.name)
+                #FIXME - no type checking for var
 
-            if var.type in ["dec", "whole"]:
-                temp=self.build_expression(self.expression)
-            else:
-                temp=self.build_condition()
-            
-        
-            value=self.general_evaluator(temp)
-
-            id_ref=self.context.symbol_table.find_var(id.value, self.context.name)
-            if id_ref.value==None:
-                id_ref.value=0 #NOTE -  medj sus; idk if oks lang bang ganto default
-            if op != "=":
-                if op=="+=":
-                    value+=id_ref.value
-                elif op=="-=":
-                    value-=id_ref.value
-                elif op=="*=":
-                    value*=id_ref.value
-                elif op=="/=":
-                    value/=id_ref.value
-                elif op=="%=":
-                    value%=id_ref.value
-    
-            
-            if value != None:
-                print(type(value))
-                print(const.types[id_ref.type])
-                if type(value)==const.py_types[id_ref.type]:
-                    if id_ref.type in ["whole", "dec"]:
-                        self.context.symbol_table[id.value].assign(op=op, value=const.py_types[id_ref.type](value)[1:-1])
-                    else:
-                        self.context.symbol_table[id.value].assign(op=op, value=value)
-                    return True
-                
-                elif type(value)==str:
-                    value=const.py_types[id_ref.type](value)
-                    self.context.symbol_table[id.value].assign(op=op, value=value)
-                    return True
+                if var.type in ["dec", "whole"]:
+                    temp=self.build_expression(self.expression)
                 else:
-                    if value%1==0 or value>0 or value<0:
-                        value=self.semantic.data_types[id.dtype](value)
+                    temp=self.build_condition()
+                
+            
+                value=self.general_evaluator(temp)
+
+                id_ref=self.context.symbol_table.find_var(id.value, self.context.name)
+                if id_ref.value==None:
+                    id_ref.value=0 #NOTE -  medj sus; idk if oks lang bang ganto default
+                if op != "=":
+                    if op=="+=":
+                        value+=id_ref.value
+                    elif op=="-=":
+                        value-=id_ref.value
+                    elif op=="*=":
+                        value*=id_ref.value
+                    elif op=="/=":
+                        value/=id_ref.value
+                    elif op=="%=":
+                        value%=id_ref.value
+        
+                
+                if value != None:
+                    print(type(value))
+                    print(const.types[id_ref.type])
+                    if type(value)==const.py_types[id_ref.type]:
+                        if id_ref.type in ["whole", "dec"]:
+                            self.context.symbol_table[id.value].assign(op=op, value=const.py_types[id_ref.type](value)[1:-1])
+                        else:
+                            self.context.symbol_table[id.value].assign(op=op, value=value)
+                        return True
+                    
+                    elif type(value)==str:
+                        value=const.py_types[id_ref.type](value)
                         self.context.symbol_table[id.value].assign(op=op, value=value)
                         return True
                     else:
-                        # self.semantic.semantic_error(se.VAR_OPERAND_INVALID, id, f"Value of Type {id.dtype}, got {self.semantic.reverse_types[type(value)]}")
-                        self.runtime_errors.append(RuntimeError(se.VAR_OPERAND_INVALID, id, f"Value of Type {id.dtype}, got {self.semantic.reverse_types[type(value)]}"))
-            else:
-                # self.semantic.semantic_error(se.VAR_UNDEF, id, "Value pare")
-                self.runtime_errors.append(RuntimeError(error=se.VAR_UNDEF,token= id, expected="Value pare"))
-
+                        if value%1==0 or value>0 or value<0:
+                            value=self.semantic.data_types[id.dtype](value)
+                            self.context.symbol_table[id.value].assign(op=op, value=value)
+                            return True
+                        else:
+                            # self.semantic.semantic_error(se.VAR_OPERAND_INVALID, id, f"Value of Type {id.dtype}, got {self.semantic.reverse_types[type(value)]}")
+                            self.runtime_errors.append(RuntimeError(se.VAR_OPERAND_INVALID, id, f"Value of Type {id.dtype}, got {self.semantic.reverse_types[type(value)]}"))
+                else:
+                    # self.semantic.semantic_error(se.VAR_UNDEF, id, "Value pare")
+                    self.runtime_errors.append(RuntimeError(error=se.VAR_UNDEF,token= id, expected="Value pare"))
+            except KeyError as e:
+                        e=str(e)[1:-1]
+                        self.codegen.context.runtime_errors.append(RError(error=getattr(se, e), token=id, expected=se.expected[e]))
     
          
          

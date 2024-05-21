@@ -61,29 +61,35 @@ class CodeGenerator:
     5. 
     
     """
-    def __init__(self, parse_tree:AST, parent=Context(const.GBL, None), debugMode=False, mode=2) -> None:
+    def __init__(self, parse_tree:AST, parent:Context=None, debugMode=False, mode=2) -> None:
         self.mode=mode
         
         self.debug=debugMode
 
         self.parse_tree=parse_tree
-        # self.symbol_table=SymbolTable()
+        self.current_node:AST = parse_tree
+        self.previous_node:AST=None #Stores the previous node to handle loops?
         
         self.output_stream={}
 
         self.matched=self.parse_tree.leaves()
         
         self.req_type=None
-        self.current_node:AST = parse_tree
-        self.previous_node:AST=None #Stores the previous node to handle loops?
+        
         self.nearest_id=None
 
         self.semantic_errors:list[SError]=[]
         self.runtime_errors:list[RError] = []
 
         # self.scope_tree=self.symbol_table.scopetree
-        self.context:Context=parent
         self.ctx_dict={}
+        if parent==None:
+            self.context=Context("GLOBAL", None)
+            self.ctx_dict[self.context.name]=self.context
+            # self.ctx_dict[self.context.name]=deepcopy(self.context)
+        else:
+            self.context:Context=parent
+        
 
         
         
@@ -91,6 +97,7 @@ class CodeGenerator:
         self.reverse_types={v:k for k, v in const.types.items()}
 
         self.block_counter=1
+        self.print_ctr=1
         self.temp_id=None
         """  
         Routines act as the entry point for the functions in the program. As such, each routine should contain their respective
@@ -168,15 +175,28 @@ class CodeGenerator:
 
 
     def new_context(self, context):
+        prev_output=self.context.output_stream
+        # prev_errors=self.context.runtime_errors
         self.context=Context(context, self.context)
-        cpy=deepcopy(self.context)
-        self.ctx_dict[context]=cpy
+        self.context.output_stream=prev_output
+        # self.context.runtime_errors=prev_errors
+        # cpy=deepcopy(self.context)
+        self.ctx_dict[context]=self.context
         
     def end_context(self):
-        self.context=self.context.parent
+        
+        if self.context.parent!=None:
+            self.context.parent.runtime_errors.extend(self.context.runtime_errors)
+            self.context.parent.output_stream.update(self.context.output_stream)
+            # a={key + str(len(self.parent.output_stream)) if self.parent else key: value for key, value in self.output_stream.items()}
+            
+            # self.context.parent.output_stream.update(a)
         return self.context
     # def get_context(self, context):
         
+    def reset(self):
+        self.current_node=self.parse_tree
+        self.previous_node=None
         
     def generate_code(self):
 
@@ -187,6 +207,8 @@ class CodeGenerator:
             #         self.end_context()
             #         self.current_node=self.parse_tree.traverse(self.current_node)
             #         pass
+            if self.current_node == None:
+                return
             if self.current_node.root not in self.routines.keys():
                 self.previous_node=self.current_node
                 self.current_node = self.parse_tree.traverse(self.current_node)
@@ -200,13 +222,31 @@ class CodeGenerator:
 
                 except AttributeError:
                     break
-            if self.current_node is None:
+            if self.current_node == None:
                 # print(self.scope_tree)
-                print(self.context)
+                print(f"Generate Code: {self.context}")
+                if self.context.parent is not None:
+                    self.context.parent.runtime_errors.extend(self.context.runtime_errors)
+                    a={key + len(self.context.parent.output_stream) if self.context.parent else key: value for key, value in self.output_stream.items()}
+                    self.context.parent.output_stream.update(a)
+                    self.output_stream=self.context.parent.output_stream
+                
                 print(self.ctx_dict)
+                self.reset()
                 
                 break  # Exit the loop if the tree has been fully traversed
-
+            
+        if self.context.parent is not None:
+            self.context.parent.runtime_errors.extend(self.context.runtime_errors)
+            a={key + len(self.context.parent.output_stream) if self.context.parent else key: value for key, value in self.output_stream.items()}
+            self.context.parent.output_stream.update(a)
+            # self.output_stream=self.context.parent.output_stream
+            self.output_stream=self.context.output_stream
+            self.runtime_errors.extend(self.context.runtime_errors)
+        else:
+            
+            self.output_stream=self.context.output_stream
+            self.runtime_errors=self.context.runtime_errors
             
     # def gen_code(self, node):
     #     print("Generating code for node...")
@@ -238,17 +278,21 @@ class CodeGenerator:
         if isinstance(self.current_node.children[0], AST):
             return
         if self.current_node.children[0].value=="up":
+            print("Attempting Print...")
             up=InOut(self)
             up.up()
+            self.previous_node=self.current_node
+            self.current_node=None
             # self.runtime_errors+=up.runtime_errors
             
         elif self.current_node.children[0].type=="Identifier":
-            id=Identifier(node=current, 
-                       output_stream=self.output_stream, 
-                       symbol_table=self.symbol_table, 
-                       current_scope=self.current_scope, 
-                       runtime_errors=self.runtime_errors).id_tail()
-            self.runtime_errors+=id.runtime_errors
+            # id=Identifier(node=current, 
+            #            output_stream=self.output_stream, 
+            #            symbol_table=self.symbol_table, 
+            #            current_scope=self.current_scope, 
+            #            runtime_errors=self.runtime_errors).id_tail()
+            # self.runtime_errors+=id.runtime_errors
+            raise NotImplementedError
         
         else: return
 
@@ -259,8 +303,12 @@ class CodeGenerator:
             self.new_context("FUNCTION sheesh")
             gen=CodeGenerator(self.current_node.children[1], parent=self.context, debugMode=self.debug)
             gen.generate_code()
-            self.output_stream.update(gen.output_stream)
+            self.context.output_stream.update(gen.output_stream)
+            self.context.runtime_errors.extend(gen.runtime_errors)
             self.end_context()
+            
+            self.previous_node=self.current_node
+            self.current_node=None
         else:
             if self.current_node.parent.parent.root=="func_def":
                 # self.new_context(f"FUNCTION {self.current_node.parent.parent.children[2].value}")
@@ -288,13 +336,16 @@ class CodeGenerator:
     
     def loop_body_statement(self):
         if isinstance(self.current_node.children[0], AST):
-            self.previous_node=self.current_node
-            self.current_node = self.parse_tree.traverse(self.current_node)
-           
-            self.routines[self.current_node.root]()
+            # self.previous_node=self.current_node
+            # self.current_node = self.parse_tree.traverse(self.current_node)
+            return
         else:
             if self.current_node.children[0].type=="kung":
                 ControlFlow(self).kung()
+                
+                # self.previous_node=self.current_node
+                # self.current_node=self.current_node.parent.children[1]
+                
             elif self.current_node.children[0].type=="choose":
                 ControlFlow(self).choose_when_default()
             elif self.current_node.children[0].value=="felloff":
@@ -332,14 +383,13 @@ class CodeGenerator:
                         pass
                     elif item.type=="=":
                         try:
-                            self.symbol_table.variable(id=id.value,
+                            self.context.symbol_table.variable(id=id.value,
                                                     type=type,
-                                                    scope=self.current_scope).assign(op=item.type,
+                                                    ).assign(op=item.type,
                                                                                         value=Evaluators(
                                                                                             expression=self.current_node.children[-2].children[0].children[0].children[1].leaves(),
                                                                                             runtime_errors=self.runtime_errors,
-                                                                                            scope=self.current_scope,
-                                                                                            symbol_table=self.symbol_table
+                                                                                            context=self.context,
                                                                                         ).evaluate(expr=self.current_node.children[-2].children[0].children[0].children[1].leaves(),
                                                                                                 type=type))
                         except KeyError as e:
@@ -441,7 +491,7 @@ class CodeGenerator:
 
     def const_type(self):  
         type=self.current_node.children[0].value
-        id=self.current_node.children[1].value
+        id=self.current_node.children[1]
         if self.current_node.children[-1].children[0].root=="index":
             index=[]
             items=self.current_node.children[-1].children[0].leaves()
@@ -495,10 +545,23 @@ class CodeGenerator:
             else:
                 try:
                     self.context.symbol_table.sequence(id=id, type=type, scope=self.current_scope, rows=rows, cols=cols)
-                except KeyError as e:
+                except KeyError as e:            
                     e=str(e)[1:-1]
                     self.runtime_errors.append(RError(error=getattr(se, e), token=id, expected=se.expected[e]))
-    
+        else:
+            try:
+                            self.context.symbol_table.constant_var(id=id.value,
+                                                    type=type,
+                                                    ).assign(op="=",
+                                                            value=Evaluators(
+                                                                expression=self.current_node.children[-1].children[0].children[1].leaves(),
+                                                                runtime_errors=self.runtime_errors,
+                                                                context=self.context,
+                                                            ).evaluate(expr=self.current_node.children[-1].children[0].children[1].leaves(),
+                                                                    type=type))
+            except KeyError as e:
+                e=str(e)[1:-1]
+                self.runtime_errors.append(RError(error=getattr(se, e), token=id, expected=se.expected[e]))
     
     def control_flow_statement(self):
         if self.current_node.children[0].type=="kung":
@@ -532,12 +595,12 @@ class CodeGenerator:
                 self.context.symbol_table.variable(id=self.current_node.children[3].value,
                                         type=self.current_node.children[2].value,
                                         ).assign(op=self.current_node.children[4].type,
-                                                                            value=Evaluators(expression=self.current_node.children[5],
+                                                value=Evaluators(expression=self.current_node.children[5],
                                                                                             runtime_errors=self.runtime_errors,
                                                                                             context=self.context).evaluate(expr=self.current_node.children[5].leaves(), type=self.current_node.children[2].value))
             except KeyError as e:
                 e=str(e)[1:-1]
-                self.runtime_errors.append(RError(error=getattr(se, e), token=self.current_node.children[3], expected=se.expected[e]))                          
+                return self.context.runtime_errors.append(RError(error=getattr(se, e), token=self.current_node.children[3], expected=se.expected[e]))                 
             Loops(codegen=self).for_()    
     
     # def yeet_statement(self): #NOTE idk dito
@@ -636,38 +699,32 @@ class Loops:
 
 
     def for_(self):
-        
-        iterator=self.codegen.context.symbol_table.find_var(self.codegen.current_node.children[3].value)
-        # iterator.assign(op="=",value= const.types[iterator.type](self.node.children[5].leaves()[0].numerical_value))
-        # end=self.node.children[7].leaves()[0].numerical_value #idk if this'll work for seq and funcs
-        end=Evaluators(expression=self.codegen.current_node.children[7].leaves(),
-                            runtime_errors=self.codegen.runtime_errors,
-                            context=self.codegen.context,
-                            ).evaluate(type=const.dtypes.whole, expr=self.codegen.current_node.children[7].leaves())
-        try:
-            step=int(self.codegen.current_node.find_node("step_statement").leaves()[1].numerical_value)
-            
-        except AttributeError as e:
-            step=1
+            iterator=self.codegen.context.symbol_table.find_var(self.codegen.current_node.children[3].value)
+            # iterator.assign(op="=",value= const.types[iterator.type](self.node.children[5].leaves()[0].numerical_value))
+            # end=self.node.children[7].leaves()[0].numerical_value #idk if this'll work for seq and funcs
+            end=Evaluators(expression=self.codegen.current_node.children[7].leaves(),
+                                runtime_errors=self.codegen.runtime_errors,
+                                context=self.codegen.context,
+                                ).evaluate(type=const.dtypes.whole, expr=self.codegen.current_node.children[7].leaves())
+            try:
+                step=int(self.codegen.current_node.find_node("step_statement").leaves()[1].numerical_value)
+                
+            except AttributeError as e:
+                step=1
 
-        loop_body=self.codegen.current_node.children[-1]
-        
-        while iterator.value != end:
-            # self.codegen.previous_node=self.codegen.current_node
-            # self.codegen.current_node=loop_body
-            # self.codegen.current_node = self.codegen.parse_tree.traverse(self.codegen.current_node)
-            # self.codegen.routines[self.codegen.current_node.root]()
-            # self.codegen.generate_code(loop_body)
-            # self.codegen.gen_code(loop_body.children[1])
-            code=CodeGenerator(parse_tree=loop_body, parent=self.codegen.context ,debugMode=self.debug) 
-            code.generate_code()
-        
-            # self.routines["in_loop_body"]()
-            iterator.assign("+=",step)
-            print("Iterator: ", iterator.value, "End: ", end, "Step: ", step)
+            loop_body=self.codegen.current_node.children[-1]
+            code=CodeGenerator(parse_tree=loop_body.children[1], parent=self.codegen.context ,debugMode=self.debug) 
+            code.new_context(f"for {self.codegen.block_counter}")
+            self.codegen.block_counter+=1
+            while iterator.value != end:
+                code.current_node=loop_body.children[1]
+                code.generate_code()
 
-        if self.debug:
-            print(f"For Loop: \n\tIterator: {iterator}\n\t End: {end}\n\t Step: {step}")
+                iterator.assign("+=",step)
+                print("Iterator: ", iterator.value, "End: ", end, "Step: ", step)
+
+            if self.debug:
+                print(f"For Loop: \n\tIterator: {iterator}\n\t End: {end}\n\t Step: {step}")
 
     # def to(self):
     #     raise NotImplementedError
@@ -701,7 +758,7 @@ class ControlFlow:
     Algorithm:
     1. Check Statement Type
     2. Get condition
-    4. Get main body
+    4. Get main bodyp
     5. Get sub-bodies
     6. Evaluate condition, if success, go to main_body node; execute main body
     7. If condition is not met, go to fail node; execute fail node
@@ -734,8 +791,13 @@ class ControlFlow:
 
         eval=Evaluators(expression=condition, runtime_errors=self.codegen.runtime_errors, context=self.codegen.context).evaluate(type=const.dtypes.sus,expr=condition)
         if eval==True:
+            print("Kung Succeeded")
             code=CodeGenerator(parse_tree=success, parent=self.codegen.context, debugMode=self.codegen.debug)
             code.generate_code()
+            self.codegen.previous_node=self.codegen.current_node
+            self.codegen.current_node=self.codegen.current_node.parent.children[1]
+            return
+            # self.codegen.current_node=self.codegen.current_node.parent.parent.parent.parent.parent.parent.parent.children[1]
             # self.codegen.current_node = self.codegen.parse_tree.traverse(success)
             # # try:
             # self.codegen.routines[self.codegen.current_node.root]()
@@ -745,9 +807,12 @@ class ControlFlow:
         else:
             if fail==None:
                 try:
-                    fail=self.codegen.current_node.parent.children[1]
+                    print("Kung Statement Failed")
+                    # fail=self.codegen.current_node.parent.children[1]
+                    # self.codegen.previous_node=self.codegen.current_node
+                    # self.codegen.current_node=fail
                     self.codegen.previous_node=self.codegen.current_node
-                    self.codegen.current_node=fail
+                    self.codegen.current_node=self.codegen.current_node.parent.children[1]
                     return
                     # self.codegen.current_node.children[-2].children[0].children[1].leaves(),
                 except IndexError:

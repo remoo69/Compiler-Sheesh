@@ -1,8 +1,6 @@
+based whole x=5#
+
 sheesh(){
-for (whole i=0 to 9){
-kung(i==1){
-    up("success")#
-}
-up("aw")#
-}
+    up("whole", x)#
+
 }
