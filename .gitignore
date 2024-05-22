@@ -1,0 +1,25 @@
+# Operating system specific
+.DS_Store  # macOS
+Thumbs.db  # Windows
+*.swp      # Vim swap files
+
+# Build artifacts
+*.pyc
+*.class
+
+# IDE/Editor configuration
+.idea/
+.vscode/
+
+# Temporary files
+*.log
+*.tmp
+
+# Environment-specific configurations
+.env
+
+# Testing data
+test_data/
+
+# Version control
+# Git usually ignores its own files by default
