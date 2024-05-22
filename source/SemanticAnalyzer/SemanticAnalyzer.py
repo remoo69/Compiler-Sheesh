@@ -6,6 +6,7 @@ from source.core.error_types import Semantic_Errors as se
 from source.core.AST import AST
 import source.core.constants as const
 from source.core.symbol_table import SymbolTable
+from copy import deepcopy
 
 
 class Context:
@@ -93,9 +94,8 @@ class SemanticAnalyzer:
 
         self.parse_tree:AST=parse_tree
         # self.context.symbol_table=SymbolTable()
-        self.context=Context(const.GBL, None)
+        self.context=None
         self.all_contexts={
-            
         }
         
         
@@ -180,13 +180,22 @@ class SemanticAnalyzer:
             
             
             }
+    
+    def all_symbols(self):
         
+        all_symbs=SymbolTable()
+        print (self.all_contexts.values())
+        for context in self.all_contexts.values():
+            all_symbs.symbols.update(context.symbol_table.symbols)
+            print(context.symbol_table.symbols)
+        return all_symbs
+    
     def __repr__(self) -> str:
         return f"SemanticAnalyzer({self.parse_tree})"
     
     def add_context(self, name):
-        self.all_contexts[self.context.name]=self.context
         self.context=Context(name, self.context)
+        self.all_contexts[self.context.name]=self.context
         # self.context.symbol_table=self.context.symbol_table
         
     def end_context(self):
@@ -222,6 +231,7 @@ class SemanticAnalyzer:
 
     def analyze(self):
         print("Semantic Analysis...")
+        self.add_context(const.GBL)
         while True:
             if self.current_node.root not in self.routines.keys():
                 self.previous_node=self.current_node

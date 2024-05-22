@@ -2,11 +2,15 @@ import sys
 sys.path.append(".")
 from source.core.AST import AST
 from source.core.symbol_table import SymbolTable, Token
+from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer
+from source.core.error_types import Semantic_Errors as se
 
 
 class Translator:
-    def __init__(self, tree:AST, debugMode) -> None:
+    def __init__(self, tree:AST,semantic:SemanticAnalyzer, debugMode) -> None:
         self.tree=tree
+        self.semantic=semantic
+        self.symbol_table=semantic.all_symbols()
         self.sheesh_to_c={
             
             "charr":"char",
@@ -34,6 +38,7 @@ class Translator:
             
             "whilst":"while",
             "#":";",
+            "::": ":",
             
             "for":"for",
             # "to":"; {id}<=",
@@ -152,6 +157,7 @@ class Translator:
         with open("output.c", "a") as f:
             found_to=False
             in_for=False
+            in_print=False
             if node.children:
                 i=0
                 while i<len(leaves):
@@ -168,12 +174,13 @@ class Translator:
                     #         f.write("shs_"+leaves[i].value+"[]")
                     #         self.appended.append("shs_"+leaves[i].value+"[]")
                     #         i+=1
+                    elif leaves[i].value=="up":
+                        in_print=True
+                        f.write(self.sheesh_to_c[leaves[i].value]+" ")
+                        
                     elif leaves[i].value=="charr":
                         f.write(self.sheesh_to_c[leaves[i].value]+" ")
                         i+=1
-                    elif leaves[i].value=="::":
-                        f.write(leaves[i].value+" ")
-                        self.appended.append(leaves[i].value+" ")
                         
                     elif leaves[i].value=="to":
                         in_for=True
@@ -203,7 +210,18 @@ class Translator:
                     elif leaves[i].value in self.sheesh_to_c:
                         f.write(self.sheesh_to_c[leaves[i].value]+" ")
                         self.appended.append(self.sheesh_to_c[leaves[i].value]+" ")
+                    elif leaves[i].value==")" and in_print:
+                        in_print=False
+                        f.write(leaves[i].value+" ")
+                        self.appended.append(leaves[i].value+" ")
+                    
                     elif leaves[i].type=="Identifier":
+                        try:
+                            val=self.symbol_table.find(leaves[i].value)
+                        except KeyError as e:
+                                e=str(e)[1:-1]
+                                self.semantic.semantic_error(error=e, token=leaves[i], expected=se.expected[e])
+                                
                         nearest_id="shs_"+leaves[i].value
                         if leaves[i+1].value=="=":
                             if leaves[i+2].value=="pa_mine":
@@ -223,6 +241,10 @@ class Translator:
                             f.write(self.concat(i, leaves)+";")
                             self.appended.append(self.concat(i, leaves)+";")
                             i+=3
+                        elif val.type=="sus" and in_print:
+                                    f.write("bool_to_string("+nearest_id+")")
+                                    self.appended.append("bool_to_string("+leaves[i].value+")")
+                            
                         else:
                             f.write("shs_"+leaves[i].value+" ") 
                             self.appended.append("shs_"+leaves[i].value+" ")            
