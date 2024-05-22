@@ -185,7 +185,7 @@ class Translator:
                     elif leaves[i].value=="to":
                         in_for=True
                         found_to=True
-                        f.write("; "+nearest_id+"<=")
+                        f.write("; "+nearest_id+"!=")
                         self.appended.append("; "+nearest_id+"<=")
                         i+=1
                         j=0
