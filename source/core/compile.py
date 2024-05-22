@@ -5,7 +5,8 @@ sys.path.append('.')
 from source.LexicalAnalyzer.Lexer import Lexer
 from source.SyntaxAnalyzer.Parser import SyntaxAnalyzer
 from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer
-from source.CodeGeneration.CodeGen import CodeGenerator
+# from source.CodeGeneration.CodeGen import CodeGenerator
+from source.CodeGeneration.translator import Translator
 
 # from source.core.AST import AST
 # from source.core.symbol_table import Identifiers
@@ -16,6 +17,7 @@ class Compiler:
         self.lexer=Lexer(code)
         self.parser=None
         self.semantic=None
+        self.translate=None
 
         self.codegen=None
         self.symbol_table=None
@@ -49,22 +51,35 @@ class Compiler:
             if not self.parser.syntax_errors:
                 self.semantic=SemanticAnalyzer(self.parser.Tree, self.debug)
                 self.semantic.analyze()
-
-                if not self.semantic.semantic_errors:
-                    self.codegen=CodeGenerator(self.semantic, self.debug)
-                    self.codegen.generate_code()
-
-                    if self.codegen.runtime_errors:
-                        self.runtime_errors=self.codegen.runtime_errors
-                        return
-                    
-                    else:
-                        self.output=self.codegen.output_stream
-                        return
-                    
-                else:
+                if self.semantic.semantic_errors:
                     self.semantic_errors=self.semantic.semantic_errors
                     return
+                else:
+                    self.translate=Translator(self.parser.Tree, self.debug)
+                    self.translate.generate()
+                    if self.translate.errors:
+                        self.semantic_errors=self.translate.errors
+                        return
+                    else:
+                        return
+                # self.semantic=SemanticAnalyzer(self.parser.Tree, self.debug)
+                # self.semantic.analyze()
+
+                # if not self.semantic.semantic_errors:
+                #     self.codegen=CodeGenerator(self.semantic, self.debug)
+                #     self.codegen.generate_code()
+
+                #     if self.codegen.runtime_errors:
+                #         self.runtime_errors=self.codegen.runtime_errors
+                #         return
+                    
+                #     else:
+                #         self.output=self.codegen.output_stream
+                #         return
+                    
+                # else:
+                #     self.semantic_errors=self.semantic.semantic_errors
+                #     return
                 
             else:
                 self.syntax_errors=self.parser.syntax_errors

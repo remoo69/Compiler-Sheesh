@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import source.core.constants as const
 from source.core.error_handler import SemanticError
 from source.core.error_types import Semantic_Errors as se
-from source.core.AST import AST
+# from source.core.AST import AST
 """ 
 Scope System:
     The scopes of the variables in the program will follow a scope system where the scope of the variable would be the id of the
@@ -66,7 +66,7 @@ class Token:
     block_start_line=0
 
     def __repr__(self) -> str:
-        return f"Token(\"{self.value}\", {self.attribute}, {self.dtype}, {self.numerical_value})"
+        return f"Token(\"{self.value}\", {self.type}, {self.dtype}, {self.numerical_value})"
 
 class Variable:
     def __init__(self, id, type, scope) -> None:
@@ -172,7 +172,7 @@ class Function:
         self.id=id
         self.return_type=return_type
         self.parameters:list[Parameter]=parameters
-        self.func_body:AST=None
+        self.func_body=None
 
     def __repr__(self) -> str:
         return f"Function({self.id}, {self.return_type}, {self.parameters}, {self.func_body})"
