@@ -6,9 +6,9 @@ sys.path.append('.')
 # import networkx as nx
 # import matplotlib.pyplot as plt
 from graphviz import Digraph
-# from source.core.symbol_table import Token
+from source.core.symbol_table import Token
 
-debug=True
+debug=False
 
 class AST:
     created=0
@@ -56,6 +56,28 @@ class AST:
         if node.children:
             for child in node.children:
                 if isinstance(child, AST):  # Check if the child is an AST
+                    return child
+        # If the node has no children or no AST children, go up the tree to find the next sibling
+        while node.parent:
+            sibling_index = node.parent.children.index(node) + 1
+            if sibling_index < len(node.parent.children):
+                for sibling in node.parent.children[sibling_index:]:
+                    if isinstance(sibling, AST):  # Check if the sibling is an AST
+                        return sibling
+            node = node.parent
+        # If we've reached the root and there are no more siblings, the tree has been fully traversed
+        return None
+    
+    def traverse_tok(self, node):
+        """ 
+        Traverse the tree in a depth-first manner
+    
+        """
+        if node.children:
+            for child in node.children:
+                if isinstance(child, AST):  # Check if the child is an AST
+                    return self.traverse_tok(child)
+                elif isinstance(child, Token):
                     return child
         # If the node has no children or no AST children, go up the tree to find the next sibling
         while node.parent:
@@ -194,7 +216,7 @@ class AST:
                 self.buffer=self.stack[-1]
                 AST.unended.pop(-1)
         except IndexError as e:
-            print(e)
+            print(e) if debug else None
             return
 
     
