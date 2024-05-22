@@ -29,7 +29,7 @@ class SyntaxAnalyzer:
 
         self.semantic=None
         
-        debugMode=True
+        
         if debugMode:
             self.debug=True
             self.debug_fail=True
@@ -133,7 +133,7 @@ class SyntaxAnalyzer:
                 # print(f"IDs:{self.semantic.id_vars}\n\nFUNCs:{self.semantic.id_funcs}")
                 # return self.syntax_errors, self.semantic.semantic_errors
             except SyntaxError as e:
-                print(e)
+                print(e) if self.debug else None
             # self.semantic=semantic(self.Tree)
             # self.semantic.analyze()
 
@@ -301,7 +301,7 @@ class SyntaxAnalyzer:
             self.Tree.end_branch()
             return self.success
         else:
-            print("failed")
+            print("FAILED")
             return self.failed()
 
 # IMPORTS_________________________________________________________________________________________________________________

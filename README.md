@@ -17,7 +17,9 @@ To use the compiler:
 2. Open the project folder in an IDE that supports Python like VScode.
 3. Open the Sheesh# Compiler.py file in the source folder.
 4. Run the File.
-5. Congrats! You are now testing the Compiler!
+5. Install dependencies by running <b>pip install -r requirements.txt<\b>
+6. Please ensure that you have a valid C Compiler Installed.
+7. Congrats! You are now testing the Compiler!
 ___________________________________________________________________________________
 
 The Compiler and Language was developed as part of the requirements for the completion of the courses

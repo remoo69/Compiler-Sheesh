@@ -1,8 +1,9 @@
 # import source.helper as helper
 import sys
+import sv_ttk
 sys.path.append( '.' )
 from source.SyntaxAnalyzer.Parser import SyntaxAnalyzer as parser
-
+from tkwinterm.winterminal import Terminal
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import *
@@ -12,9 +13,11 @@ from tkinter import constants
 from tkinter import ttk
 import source.LexicalAnalyzer.Lexer as lex
 from source.core.compile import Compiler
+from tkwinterm import main_winpty
 # import source.LexicalAnalyzer.prepare as prep
 from tkinter import filedialog
 import cProfile
+from time import sleep
 
 
 
@@ -238,11 +241,15 @@ def run_semantic():
             error_pane.insert(constants.END, f'\nSyntax Error:\n')
             for error in syntax_errors:
                 error_pane.insert(constants.END, f"{error}\n")
+            lex_table_pane.config(state="disabled")
+            error_pane.config(state="disabled")
+            return
             # error_pane.config(state="disabled")
     
         if semantic_errors==[]:
             error_pane.config(foreground= green)
             error_pane.insert(constants.END, "\nNo Semantic Errors\n") 
+            main_winpty.run()
         else:
             error_pane.config(foreground= yellow)
             error_pane.insert(constants.END, f'\nSemantic Errors:\n')
@@ -251,7 +258,6 @@ def run_semantic():
             error_pane.config(state="disabled")
 
     
-
         lex_table_pane.config(state="disabled")
         error_pane.config(state="disabled")
 
@@ -284,34 +290,40 @@ def compile():
         # error_pane.config(foreground= yellow)
         error_pane.delete('1.0', constants.END)
         error_pane.insert(constants.END, "Can't Parse, Resolve Lexical Errors:\n", error_tag)
+        print_lex(remove_whitespace_type(remove_eol(compiler.lexer.tokens)))
         for err in lex_errors:
             error_pane.insert(constants.END, f'{err}\n', error_tag)
+        return
     else:
+        print_lex(remove_whitespace_type(remove_eol(compiler.lexer.tokens)))
+
         error_pane.config(state="disabled")
 
         error_pane.config(state="normal")
         error_pane.delete('1.0', constants.END)
 
 
-        if runtime_errors==[]:
+        # if runtime_errors==[]:
 
-            if output==[]:
-                # error_pane.config(foreground= yellow)
-                error_pane.insert(constants.END, "No Output\n", normal_tag)
-            else:
-                # error_pane.config(foreground= green)
-                error_pane.insert(constants.END, f'Output:\n', emphasis)
-                for out in output:
-                    repeat=output[out]
-                    for i in range(repeat):
-                        error_pane.insert(constants.END, f"{out}\n", emphasis)
-                # error_pane.config(state="disabled")
-        else:
-            # error_pane.config(foreground= yellow)
-            error_pane.insert(constants.END, f'\nRuntime Error:\n', error_tag)
-            for rerr in runtime_errors:
-                error_pane.insert(constants.END, f"{rerr}\n", error_tag)
-            error_pane.config(state="disabled")
+        #     if output==[]:
+        #         # error_pane.config(foreground= yellow)
+        #         error_pane.insert(constants.END, "No Output\n", normal_tag)
+        #     else:
+        #         # error_pane.config(foreground= green)
+        #         error_pane.insert(constants.END, f'Output:\n', emphasis)
+        #         for out in output:
+        #             repeat=output[out]
+        #             for i in range(repeat):
+        #                 error_pane.insert(constants.END, f"{out}\n", emphasis)
+        #             return
+        #         # error_pane.config(state="disabled")
+        # else:
+        #     # error_pane.config(foreground= yellow)
+        #     error_pane.insert(constants.END, f'\nRuntime Error:\n', error_tag)
+        #     for rerr in runtime_errors:
+        #         error_pane.insert(constants.END, f"{rerr}\n", error_tag)
+        #     return
+        #     error_pane.config(state="disabled")
 
         if syntax_errors==[] :
             # error_pane.config(foreground= green)
@@ -322,19 +334,27 @@ def compile():
             error_pane.insert(constants.END, f'\nSyntax Error:\n', error_tag)
             for error in syntax_errors:
                 error_pane.insert(constants.END, f"{error}\n", error_tag)
+            return
             # error_pane.config(state="disabled")
     
         if semantic_errors==[]:
             # error_pane.config(foreground= green)
             error_pane.insert(constants.END, "\nNo Semantic Errors\n", normal_tag) 
+            try:
+                main_winpty.run()
+            except TclError:
+                return
+    
+            
         else:
             # error_pane.config(foreground= yellow)
             error_pane.insert(constants.END, f'\nSemantic Errors:\n', error_tag)
             for serr in semantic_errors:
                 error_pane.insert(constants.END, f"{serr}\n", error_tag)
+            
             error_pane.config(state="disabled")
+            return
 
-    
 
         lex_table_pane.config(state="disabled")
         error_pane.config(state="disabled")
@@ -422,11 +442,11 @@ root.configure(bg=clr_bg)
 style = ttk.Style()
 style.theme_use("clam")  
 style.configure("Vertical.TScrollbar", troughcolor=clr_black, background=clr_black, gripcount=0, gripcolor=clr_black)
-
+sv_ttk.set_theme("dark")
 
 
 # setting main layout
-mainpane = Canvas(
+mainpane = Frame(
     root,
     bg=clr_black,
     height=700,
@@ -447,6 +467,7 @@ header_label.pack(side="top", fill="x")
 
 # setting editor section
 txt_editor_pane = Text(
+    mainpane,
     bd=0,
     bg="#282822",
     highlightthickness=0,
@@ -463,6 +484,7 @@ template()
 
 
 lex_table_pane = Text(
+    mainpane,
     bd=0,
     bg="#323232",
     highlightthickness=0,
@@ -478,7 +500,14 @@ lex_table_pane.place(
     width=300,
     height=660)
 
-error_pane = Text(
+# Create the notebook for the error and log panes
+notebook = ttk.Notebook(mainpane)
+notebook.place(x=0, y=440, width=900, height=260)
+
+# Error pane
+error_tab = tk.Frame(notebook)
+error_pane = tk.Text(
+    error_tab,
     bd=0,
     bg="#323232",
     highlightthickness=0,
@@ -486,10 +515,27 @@ error_pane = Text(
     padx=10,
     pady=10,
     font=('Open Sans', 10),
-    state = "disabled",)
+    state="disabled")
+error_pane.pack(fill="both", expand=True)
+notebook.add(error_tab, text="Errors")
+txt_editor_pane.focus_set()
+# # Log pane
+# log_tab = tk.Frame(notebook)
+# log_pane = tk.Text(
+#     log_tab,
+#     bd=0,
+#     bg="#323232",
+#     highlightthickness=0,
+#     fg=yellow,
+#     padx=10,
+#     pady=10,
+#     font=('Open Sans', 10),
+#     state="disabled")
+# log_pane.pack(fill="both", expand=True)
+# notebook.add(log_tab, text="Logs")
 
-error_pane.place(x=0,y=440,width=900,height=260)
-
+# menubar = main_winpty.run(log_pane)
+# root.config(menu=menubar)
 # input_pane=tk.StringVar()
 # user_input_entry=tk.Entry(error_pane, textvariable=input_pane, width=50)
 # user_input_entry.pack()
@@ -550,19 +596,19 @@ parse_btn = Button(
 )
 parse_btn.place(x=700,y=40,width=50,height=50)
 
-semantic_btn = Button(
-        image=run_sem_img,
-        compound=LEFT,
-        bg="#282822",
-        borderwidth=0,
-        highlightthickness=0,
-        activebackground="#AAAAAA",
-        fg="#079AD2",
-        activeforeground="#FFFFFF",
-        justify="center",
-        command=run_semantic,
-)
-semantic_btn.place(x=900,y=40,width=50,height=50)
+# semantic_btn = Button(
+#         image=run_sem_img,
+#         compound=LEFT,
+#         bg="#282822",
+#         borderwidth=0,
+#         highlightthickness=0,
+#         activebackground="#AAAAAA",
+#         fg="#079AD2",
+#         activeforeground="#FFFFFF",
+#         justify="center",
+#         command=run_semantic,
+# )
+# semantic_btn.place(x=900,y=40,width=50,height=50)
 
 
 compile_btn = Button(
@@ -614,5 +660,4 @@ def update_line_numbers_on_scroll(*args):
 
 txt_editor_pane.bind("<KeyRelease>", update_line_numbers)
 txt_editor_pane.bind_all("<MouseWheel>", multiple_yview_scroll)
-
 root.mainloop()
