@@ -58,29 +58,11 @@ class Compiler:
                     self.translate=Translator(self.parser.Tree, self.debug)
                     self.translate.generate()
                     if self.translate.errors:
-                        self.semantic_errors=self.translate.errors
+                        self.runtime_errors=self.translate.errors
                         return
                     else:
+                        self.output=self.translate.output
                         return
-                # self.semantic=SemanticAnalyzer(self.parser.Tree, self.debug)
-                # self.semantic.analyze()
-
-                # if not self.semantic.semantic_errors:
-                #     self.codegen=CodeGenerator(self.semantic, self.debug)
-                #     self.codegen.generate_code()
-
-                #     if self.codegen.runtime_errors:
-                #         self.runtime_errors=self.codegen.runtime_errors
-                #         return
-                    
-                #     else:
-                #         self.output=self.codegen.output_stream
-                #         return
-                    
-                # else:
-                #     self.semantic_errors=self.semantic.semantic_errors
-                #     return
-                
             else:
                 self.syntax_errors=self.parser.syntax_errors
                 return

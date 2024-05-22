@@ -186,6 +186,7 @@ class Translator:
                             if leaves[i+j].value==")" and leaves[i+j+1].value=="{":
                                 f.write(";"+ nearest_id+"+=1 )")
                                 self.appended.append(";"+ nearest_id+"+=1 )")
+                                j+=1
                                 break
                             else:
                                 f.write(leaves[i+j].value+" ")
