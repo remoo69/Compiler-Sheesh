@@ -290,34 +290,40 @@ def compile():
         # error_pane.config(foreground= yellow)
         error_pane.delete('1.0', constants.END)
         error_pane.insert(constants.END, "Can't Parse, Resolve Lexical Errors:\n", error_tag)
+        print_lex(remove_whitespace_type(remove_eol(compiler.lexer.tokens)))
         for err in lex_errors:
             error_pane.insert(constants.END, f'{err}\n', error_tag)
+        return
     else:
+        print_lex(remove_whitespace_type(remove_eol(compiler.lexer.tokens)))
+
         error_pane.config(state="disabled")
 
         error_pane.config(state="normal")
         error_pane.delete('1.0', constants.END)
 
 
-        if runtime_errors==[]:
+        # if runtime_errors==[]:
 
-            if output==[]:
-                # error_pane.config(foreground= yellow)
-                error_pane.insert(constants.END, "No Output\n", normal_tag)
-            else:
-                # error_pane.config(foreground= green)
-                error_pane.insert(constants.END, f'Output:\n', emphasis)
-                for out in output:
-                    repeat=output[out]
-                    for i in range(repeat):
-                        error_pane.insert(constants.END, f"{out}\n", emphasis)
-                # error_pane.config(state="disabled")
-        else:
-            # error_pane.config(foreground= yellow)
-            error_pane.insert(constants.END, f'\nRuntime Error:\n', error_tag)
-            for rerr in runtime_errors:
-                error_pane.insert(constants.END, f"{rerr}\n", error_tag)
-            error_pane.config(state="disabled")
+        #     if output==[]:
+        #         # error_pane.config(foreground= yellow)
+        #         error_pane.insert(constants.END, "No Output\n", normal_tag)
+        #     else:
+        #         # error_pane.config(foreground= green)
+        #         error_pane.insert(constants.END, f'Output:\n', emphasis)
+        #         for out in output:
+        #             repeat=output[out]
+        #             for i in range(repeat):
+        #                 error_pane.insert(constants.END, f"{out}\n", emphasis)
+        #             return
+        #         # error_pane.config(state="disabled")
+        # else:
+        #     # error_pane.config(foreground= yellow)
+        #     error_pane.insert(constants.END, f'\nRuntime Error:\n', error_tag)
+        #     for rerr in runtime_errors:
+        #         error_pane.insert(constants.END, f"{rerr}\n", error_tag)
+        #     return
+        #     error_pane.config(state="disabled")
 
         if syntax_errors==[] :
             # error_pane.config(foreground= green)
@@ -328,21 +334,27 @@ def compile():
             error_pane.insert(constants.END, f'\nSyntax Error:\n', error_tag)
             for error in syntax_errors:
                 error_pane.insert(constants.END, f"{error}\n", error_tag)
+            return
             # error_pane.config(state="disabled")
     
         if semantic_errors==[]:
             # error_pane.config(foreground= green)
             error_pane.insert(constants.END, "\nNo Semantic Errors\n", normal_tag) 
+            try:
+                main_winpty.run()
+            except TclError:
+                return
+    
+            
         else:
             # error_pane.config(foreground= yellow)
             error_pane.insert(constants.END, f'\nSemantic Errors:\n', error_tag)
             for serr in semantic_errors:
                 error_pane.insert(constants.END, f"{serr}\n", error_tag)
+            
             error_pane.config(state="disabled")
+            return
 
-        main_winpty.run()
-    
-    
 
         lex_table_pane.config(state="disabled")
         error_pane.config(state="disabled")
@@ -584,19 +596,19 @@ parse_btn = Button(
 )
 parse_btn.place(x=700,y=40,width=50,height=50)
 
-semantic_btn = Button(
-        image=run_sem_img,
-        compound=LEFT,
-        bg="#282822",
-        borderwidth=0,
-        highlightthickness=0,
-        activebackground="#AAAAAA",
-        fg="#079AD2",
-        activeforeground="#FFFFFF",
-        justify="center",
-        command=run_semantic,
-)
-semantic_btn.place(x=900,y=40,width=50,height=50)
+# semantic_btn = Button(
+#         image=run_sem_img,
+#         compound=LEFT,
+#         bg="#282822",
+#         borderwidth=0,
+#         highlightthickness=0,
+#         activebackground="#AAAAAA",
+#         fg="#079AD2",
+#         activeforeground="#FFFFFF",
+#         justify="center",
+#         command=run_semantic,
+# )
+# semantic_btn.place(x=900,y=40,width=50,height=50)
 
 
 compile_btn = Button(

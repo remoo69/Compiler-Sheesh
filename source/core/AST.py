@@ -8,7 +8,7 @@ sys.path.append('.')
 from graphviz import Digraph
 from source.core.symbol_table import Token
 
-debug=True
+debug=False
 
 class AST:
     created=0
@@ -216,7 +216,7 @@ class AST:
                 self.buffer=self.stack[-1]
                 AST.unended.pop(-1)
         except IndexError as e:
-            print(e)
+            print(e) if debug else None
             return
 
     

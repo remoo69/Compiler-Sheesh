@@ -6,7 +6,7 @@ from source.core.error_types import Semantic_Errors as se
 from source.core.AST import AST
 import source.core.constants as const
 from source.core.symbol_table import SymbolTable
-from copy import deepcopy
+# from copy import deepcopy
 
 
 class Context:
@@ -184,10 +184,10 @@ class SemanticAnalyzer:
     def all_symbols(self):
         
         all_symbs=SymbolTable()
-        print (self.all_contexts.values())
+        print (self.all_contexts.values())if self.debug else None
         for context in self.all_contexts.values():
             all_symbs.symbols.update(context.symbol_table.symbols)
-            print(context.symbol_table.symbols)
+            print(context.symbol_table.symbols)if self.debug else None
         return all_symbs
     
     def __repr__(self) -> str:
@@ -248,7 +248,7 @@ class SemanticAnalyzer:
 
     def body(self):
         if self.current_node.root in ["in_loop_body"] :
-            self.add_context(self.current_node.parent.children[0])
+            self.add_context(self.current_node.parent.children[0].value)
         else:
             if isinstance(self.current_node.children[0], AST):
                 pass
@@ -407,7 +407,7 @@ class SemanticAnalyzer:
 
             except KeyError as e:
                 e=str(e)[1:-1]
-                print(e)
+                print(e) if self.debug else None
                 self.semantic_error(error=getattr(se, e), token=items[1], expected=se.expected[e])
             
     def looping_statement(self):

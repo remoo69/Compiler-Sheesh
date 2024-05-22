@@ -30,8 +30,10 @@ class Translator:
             "def":"", #NOTE - ewan
             "felloff":"break", 
             "pass":"continue", 
+            
             "nocap":"true", 
             "cap":"false", 
+            
             "default":"default", 
             "up":"printf", 
             "pa_mine":"scanf",   
@@ -58,21 +60,44 @@ class Translator:
         self.errors=["test"]
         self.other_translations={}
         self.appended=[]
+        self.in_concat=False
         
     def concat(self, index, all):
         prev=all[index]
         next=all[index+2]
-        if prev.type=="Identifier":
-            prev="shs_"+prev.value
-        else:
-            prev=self.text_handle(prev.value)
-            
-        if next.type=="Identifier":
-            next="shs_"+next.value
-        else:
-            next=self.text_handle(next.value)
         
-        return f"concat(2, {prev}, {next})"
+        if self.in_concat==False:    
+            if prev.type=="Identifier":
+                prev="shs_"+prev.value
+            else:
+                prev=self.text_handle(prev.value)
+                
+            if next.type=="Identifier":
+                next="shs_"+next.value
+            else:
+                next=self.text_handle(next.value)
+                
+            self.in_concat=True
+            return f"concat({prev}, {next}"
+          
+        elif self.in_concat ==True:
+                
+            if next.type=="Identifier":
+                next="shs_"+next.value
+            else:
+                next=self.text_handle(next.value)
+                
+            
+              
+            if all[index+3].value in ["#", ")"] and self.in_concat==True:
+                self.in_concat=False
+                return f", {next} )"
+            else:
+                return f", {next}"
+            
+        
+        
+        
         
     # def to_(self, remaining):
     #     final=""
@@ -96,31 +121,44 @@ class Translator:
                     #include <stdarg.h>
                     """)
             f.write("""
-                    char* concat(int count, ...) {
+           
+                    char *concat(const char *str1, ...) {
                         va_list args;
-                        int len = 1; // for null terminator
-                        int i;
+                        char *result = NULL;
+                        int total_length = 0; // Start with 0 length
 
-                        va_start(args, count);
-                        for(i = 0; i < count; i++) {
-                            char *str = va_arg(args, char*);
-                            len += strlen(str);
+                        va_start(args, str1);
+
+                        // Iterate through arguments to calculate total length
+                        char *current_str = (char *)str1;
+                        while (current_str != NULL) {
+                            total_length += strlen(current_str) + 1; // Add string length + null terminator
+                            current_str = va_arg(args, char *);
                         }
+
                         va_end(args);
 
-                        char* result = malloc(len);
-                        result[0] = '\\0'; // initialize to empty string
-
-                        va_start(args, count);
-                        for(i = 0; i < count; i++) {
-                            char *str = va_arg(args, char*);
-                            strcat(result, str);
+                        if (total_length > 0) { // Allocate memory if there are strings
+                            result = malloc(total_length * sizeof(char));
+                            if (result == NULL) {
+                                return NULL; // Handle memory allocation failure
+                            }
                         }
+
+                        // Concatenate strings into the result
+                        va_start(args, str1);
+                        current_str = (char *)str1;
+                        int current_pos = 0;
+                        while (current_str != NULL) {
+                            strcpy(result + current_pos, current_str);
+                            current_pos += strlen(current_str) + 1; // Update position after copying and null terminator
+                            current_str = va_arg(args, char *);
+                        }
+
                         va_end(args);
 
                         return result;
                     }
-                    
                     
                     char* bool_to_string(int boolean){
                         return (boolean == 1) ? "nocap": "cap";
@@ -181,6 +219,9 @@ class Translator:
                     elif leaves[i].value=="charr":
                         f.write(self.sheesh_to_c[leaves[i].value]+" ")
                         i+=1
+                    elif leaves[i].type=="Sus" and in_print:
+                        f.write("bool_to_string("+nearest_id+")")
+                        self.appended.append("bool_to_string("+leaves[i].value+")")
                         
                     elif leaves[i].value=="to":
                         in_for=True
@@ -210,11 +251,13 @@ class Translator:
                     elif leaves[i].value in self.sheesh_to_c:
                         f.write(self.sheesh_to_c[leaves[i].value]+" ")
                         self.appended.append(self.sheesh_to_c[leaves[i].value]+" ")
-                    elif leaves[i].value==")" and in_print:
+                    elif leaves[i].value==")" and in_print and not self.in_concat:
                         in_print=False
                         f.write(leaves[i].value+" ")
                         self.appended.append(leaves[i].value+" ")
                     
+                    
+                        
                     elif leaves[i].type=="Identifier":
                         try:
                             val=self.symbol_table.find(leaves[i].value)
@@ -238,8 +281,8 @@ class Translator:
                                 nearest_id="shs_"+leaves[i].value
                                 i+=1 
                         elif leaves[i+1].value=="...":
-                            f.write(self.concat(i, leaves)+";")
-                            self.appended.append(self.concat(i, leaves)+";")
+                            f.write(self.concat(i, leaves))
+                            self.appended.append(self.concat(i, leaves))
                             i+=3
                         elif val.type=="sus" and in_print:
                                     f.write("bool_to_string("+nearest_id+")")
@@ -251,9 +294,13 @@ class Translator:
                     elif leaves[i].type=="Text":
                         
                         if leaves[i+1].value=="...":
-                            f.write(self.concat(i, leaves)+";")
-                            self.appended.append(self.concat(i, leaves)+";")
+                            f.write(self.concat(i, leaves))
+                            self.appended.append(self.concat(i, leaves))
                             i+=3
+                        elif leaves[i+1].value in ["#", ")"] and self.in_concat:
+                            f.write(self.concat(i-2, leaves))
+                            self.appended.append(self.concat(i, leaves))
+                            
                         else:
                             f.write(self.text_handle(leaves[i].value)+" ")
                             self.appended.append(self.text_handle(leaves[i].value)+" ")
@@ -305,3 +352,33 @@ class Translator:
     #                         raise Exception(f"Node {node} does not have a 'root' attribute")
     #     except IOError:
     #         raise Exception("Could not open 'output.c' for writing")
+    
+    
+    
+    """  
+    
+             char* concat(int count, ...) {
+                        va_list args;
+                        int len = 1; // for null terminator
+                        int i;
+
+                        va_start(args, count);
+                        for(i = 0; i < count; i++) {
+                            char *str = va_arg(args, char*);
+                            len += strlen(str);
+                        }
+                        va_end(args);
+
+                        char* result = malloc(len);
+                        result[0] = '\\0'; // initialize to empty string
+
+                        va_start(args, count);
+                        for(i = 0; i < count; i++) {
+                            char *str = va_arg(args, char*);
+                            strcat(result, str);
+                        }
+                        va_end(args);
+
+                        return result;
+                    }
+    """

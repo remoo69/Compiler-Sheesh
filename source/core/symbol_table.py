@@ -7,6 +7,7 @@ import source.core.constants as const
 from source.core.error_handler import SemanticError
 from source.core.error_types import Semantic_Errors as se
 # from source.core.AST import AST
+debug=False
 """ 
 Scope System:
     The scopes of the variables in the program will follow a scope system where the scope of the variable would be the id of the
@@ -75,8 +76,8 @@ class Variable:
         self.value=None
         
     def assign(self, op, value):
-        print(type(value))
-        print(const.types[self.type])
+        print(type(value))if debug else None
+        print(const.types[self.type])if debug else None
         if type(value)==const.types[self.type]:
             pass
         else:
@@ -259,7 +260,7 @@ class SymbolTable:
             if body:
                 self.symbols[id]=Function(id=id, return_type=return_type, parameters=parameters)
                 self.symbols[id].body(body)
-                print(self.symbols)
+                print(self.symbols)if debug else None
             else:
                 self.symbols[id]=Function(id=id, return_type=return_type, parameters=parameters)
         else:

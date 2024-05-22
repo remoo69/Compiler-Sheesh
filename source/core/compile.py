@@ -55,7 +55,7 @@ class Compiler:
                     self.semantic_errors=self.semantic.semantic_errors
                     return
                 else:
-                    self.translate=Translator(self.parser.Tree, self.debug)
+                    self.translate=Translator(self.parser.Tree, self.semantic,self.debug)
                     self.translate.generate()
                     if self.translate.errors:
                         self.runtime_errors=self.translate.errors
