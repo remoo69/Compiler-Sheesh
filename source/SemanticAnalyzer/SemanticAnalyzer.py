@@ -469,7 +469,7 @@ class SemanticAnalyzer:
                         
 
                 else: 
-                    var=self.symbol_table.find_var(id, self.current_scope)
+                    var=self.context.symbol_table.find(id) #NOTE - changed
                     # if var==None:
                     #     self.semantic_error(se.VAR_UNDEF, id_obj, se.expected["VAR_UNDEF"])
             except AttributeError as e:
