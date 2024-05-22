@@ -214,8 +214,8 @@ class Translator:
                             self.appended.append(self.concat(i, leaves)+";")
                             i+=3
                         else:
-                            f.write(leaves[i].value+" ")
-                            self.appended.append(leaves[i].value+" ")
+                            f.write(self.text_handle(leaves[i].value)+" ")
+                            self.appended.append(self.text_handle(leaves[i].value)+" ")
                     else:
                         f.write(leaves[i].value+" ")
                         self.appended.append(leaves[i].value+" ")
