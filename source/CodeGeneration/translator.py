@@ -1,7 +1,7 @@
 import sys
 sys.path.append(".")
 from source.core.AST import AST
-from source.core.symbol_table import SymbolTable, Token
+from source.core.symbol_table import SymbolTable, Token, Variable
 from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer
 from source.core.error_types import Semantic_Errors as se
 
@@ -237,8 +237,13 @@ class Translator:
                                 j+=1
                                 break
                             else:
-                                f.write(leaves[i+j].value+" ")
-                                self.appended.append(leaves[i+j].value+" ")
+                                if leaves[i+j].type=="Identifier":
+                                    f.write("shs_"+leaves[i+j].value+" ")
+                                    self.appended.append(leaves[i+j].value+" ")
+                                else:
+                                    f.write(leaves[i+j].value+" ")
+                                    self.appended.append(leaves[i+j].value+" ")
+                                
                             j+=1
                         i+=j-1
                         
@@ -284,13 +289,14 @@ class Translator:
                             f.write(self.concat(i, leaves))
                             self.appended.append(self.concat(i, leaves))
                             i+=3
-                        elif val.type=="sus" and in_print:
+                        elif isinstance(val, Variable) and val.type=="sus" and in_print:
                                     f.write("bool_to_string("+nearest_id+")")
                                     self.appended.append("bool_to_string("+leaves[i].value+")")
                             
                         else:
                             f.write("shs_"+leaves[i].value+" ") 
-                            self.appended.append("shs_"+leaves[i].value+" ")            
+                            self.appended.append("shs_"+leaves[i].value+" ")  
+                                      
                     elif leaves[i].type=="Text":
                         
                         if leaves[i+1].value=="...":
