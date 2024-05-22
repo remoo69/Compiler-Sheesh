@@ -114,7 +114,13 @@ class Translator:
                         va_end(args);
 
                         return result;
-                    }""")
+                    }
+                    
+                    
+                    char* bool_to_string(int boolean){
+                        return (boolean == 1) ? "nocap": "cap";
+                    }
+                    """)
         self.translate(self.tree)
         f.close()
         # return self.errors
@@ -162,7 +168,9 @@ class Translator:
                     #         f.write("shs_"+leaves[i].value+"[]")
                     #         self.appended.append("shs_"+leaves[i].value+"[]")
                     #         i+=1
-
+                    elif leaves[i].value=="charr":
+                        f.write(self.sheesh_to_c[leaves[i].value]+" ")
+                        i+=1
                     elif leaves[i].value=="::":
                         f.write(leaves[i].value+" ")
                         self.appended.append(leaves[i].value+" ")
@@ -195,11 +203,21 @@ class Translator:
                         f.write(self.sheesh_to_c[leaves[i].value]+" ")
                         self.appended.append(self.sheesh_to_c[leaves[i].value]+" ")
                     elif leaves[i].type=="Identifier":
+                        nearest_id="shs_"+leaves[i].value
                         if leaves[i+1].value=="=":
-                            f.write("shs_"+leaves[i].value+"=")
-                            self.appended.append("shs_"+leaves[i].value+"=")
-                            nearest_id="shs_"+leaves[i].value
-                            i+=1   
+                            if leaves[i+2].value=="pa_mine":
+                                if leaves[i-1].value in ["whole", "dec", "text", "sus", "charr"]:
+                                    f.write(nearest_id +";")
+                                    
+                                fs=leaves[i+4].value
+                                f.write(f"scanf("+self.text_handle(fs)+", &"+nearest_id+");")
+                                self.appended.append("scanf(\"%d\"," +"&"+nearest_id+");")
+                                i+=6
+                            else:
+                                f.write("shs_"+leaves[i].value+"=")
+                                self.appended.append("shs_"+leaves[i].value+"=")
+                                nearest_id="shs_"+leaves[i].value
+                                i+=1 
                         elif leaves[i+1].value=="...":
                             f.write(self.concat(i, leaves)+";")
                             self.appended.append(self.concat(i, leaves)+";")
