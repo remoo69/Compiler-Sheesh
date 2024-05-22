@@ -31,6 +31,13 @@ class Context:
 
 class SemanticAnalyzer:
     """  
+    TASKS:
+        1. Arr element sizes
+        2. Fix Scoping
+        3. Func Argument size
+        4. func argument type
+        5. func call in expr return
+    
     The semantic analyzer traverses the parse tree.
     The semantic analyzer will check the AST for any semantic errors.
     The SA must also assign identifiers to the symbol table.
@@ -97,7 +104,7 @@ class SemanticAnalyzer:
         self.semantic_errors: list[SemError]=[]
 
 
-
+        self.block_counter=1
 
         #for declarations
         self.req_type=None
@@ -118,6 +125,9 @@ class SemanticAnalyzer:
         self.in_arg=False
 
         self.reverse_types={v: k for k, v in const.types.items()}
+        
+        self.visited=[]
+        self.passed_tokens=[]
         
         self.routines={
 
@@ -178,17 +188,40 @@ class SemanticAnalyzer:
         
     def end_context(self):
         self.context=self.context.parent
+        
+    def traverse(self, node):
+        """ 
+        Traverse the tree in a depth-first manner
+
+        """
+        if node.children:
+            for child in node.children:
+                if isinstance(child, AST):  # Check if the child is an AST
+                    self.visited.append(child.root)
+                    return child
+                else:
+                    self.passed_tokens.append(child.value)
+                    if self.passed_tokens[-1]=="}" and self.passed_tokens[-2]=="#":
+                        self.end_context()
+        # If the node has no children or no AST children, go up the tree to find the next sibling
+        while node.parent:
+            sibling_index = node.parent.children.index(node) + 1
+            if sibling_index < len(node.parent.children):
+                for sibling in node.parent.children[sibling_index:]:
+                    if isinstance(sibling, AST):  # Check if the sibling is an AST
+                        return sibling
+            node = node.parent
 
     def analyze(self):
         print("Semantic Analysis...")
         while True:
             if self.current_node.root not in self.routines.keys():
                 self.previous_node=self.current_node
-                self.current_node = self.parse_tree.traverse(self.current_node)
+                self.current_node = self.traverse(self.current_node)
             else:
                 self.routines[self.current_node.root]()
                 self.previous_node=self.current_node
-                self.current_node = self.parse_tree.traverse(self.current_node)
+                self.current_node = self.traverse(self.current_node)
             if self.current_node is None:
                 # self.code_gen.generate_code()
                 print(self.context.symbol_table)
@@ -215,7 +248,7 @@ class SemanticAnalyzer:
                 param_id=parameter[i+1].value
                 params.append(param_id)
                 try:
-                    self.context.symbol_table.parameter(id=param_id, type=param_type, scope=self.current_scope, param_type="Variable")
+                    self.context.symbol_table.parameter(id=param_id, type=param_type, param_type="Variable")
                 except ValueError as e:
                     e=str(e)
                     self.semantic_error(error=getattr(se, e), token=param, expected=se.expected[str(e)])
@@ -242,7 +275,7 @@ class SemanticAnalyzer:
             else:
                 param_type=const.VAR
             try:
-                self.context.symbol_table.parameter(id=id, type=type, scope=self.current_scope, param_type=param_type)
+                self.context.symbol_table.parameter(id=id, type=type,param_type=param_type)
             except ValueError as e:
                 e=str(e)
                 self.semantic_error(error=getattr(se, e), token=id, expected=se.expected[str(e)])
@@ -252,7 +285,7 @@ class SemanticAnalyzer:
             type="charr"
             param_type=const.VAR
             try:
-                self.context.symbol_table.parameter(id=id, type=type, scope=self.current_scope, param_type=param_type)
+                self.context.symbol_table.parameter(id=id, type=type, param_type=param_type)
             except ValueError as e:
                 e=str(e)
                 self.semantic_error(error=getattr(se, e), token=id, expected=se.expected[str(e)])
@@ -268,7 +301,7 @@ class SemanticAnalyzer:
 
                 if items[1].type=="[":
                     try:
-                        self.context.symbol_table.find_seq(id, self.current_scope)
+                        self.context.symbol_table.find_seq(id)
                     except ValueError as e:
                         e=str(e)
                         self.semantic_error(error=getattr(se, e), token=id, expected=se.expected[str(e)])
@@ -280,7 +313,7 @@ class SemanticAnalyzer:
                         self.semantic_error(error=getattr(se, e), token=id, expected=se.expected[str(e)])
                 elif items[1].type in const.asop:
                     try:
-                        var=self.context.symbol_table.find_var(id, self.current_scope)
+                        var=self.context.symbol_table.find_var(id,)
                         self.req_type=var.type
                     except ValueError as e:
                         e=str(e)
@@ -329,16 +362,16 @@ class SemanticAnalyzer:
                                     else:
                                         cols=0
                                         
-                                self.context.symbol_table.sequence(id=items[1].value, type=self.req_type, scope=self.current_scope, rows=rows, cols=cols)
+                                self.context.symbol_table.sequence(id=items[1].value, type=self.req_type, rows=rows, cols=cols)
                             else:
                                 return
                         else:
-                            self.context.symbol_table.variable(id=items[1].value, type=self.req_type, scope=self.current_scope) 
+                            self.context.symbol_table.variable(id=items[1].value, type=self.req_type) 
                     except AttributeError:
-                        self.context.symbol_table.variable(id=items[2].value, type=self.req_type, scope=self.current_scope)
+                        self.context.symbol_table.variable(id=items[2].value, type=self.req_type, )
 
                 else:
-                    self.context.symbol_table.variable(id=items[1].value, type=self.req_type, scope=self.current_scope)
+                    self.context.symbol_table.variable(id=items[1].value, type=self.req_type, )
                     # return
 
             except KeyError as e:
@@ -350,7 +383,7 @@ class SemanticAnalyzer:
         try:
             if self.current_node.children[0].value=="for":
                 self.req_type=self.current_node.children[2].value
-                self.context.symbol_table.variable(id=self.current_node.children[3].value, type=self.req_type, scope=self.current_scope)
+                self.context.symbol_table.variable(id=self.current_node.children[3].value, type=self.req_type, )
         except KeyError as e:
             e=str(e)[1:-1]
             self.semantic_error(error=getattr(se, e), token=self.current_node.children[3], expected=se.expected[e])
@@ -387,7 +420,7 @@ class SemanticAnalyzer:
     def more_var(self):
         try:
             id=self.current_node.children[1].value
-            self.context.symbol_table.variable(id=id, type=self.req_type, scope=self.current_scope)
+            self.context.symbol_table.variable(id=id, type=self.req_type, )
 
         except KeyError as e:
             e=str(e)
@@ -404,7 +437,7 @@ class SemanticAnalyzer:
             id=self.current_node.children[1].value
 
         try:
-            self.context.symbol_table.variable(id=id, type=self.req_type, scope=self.current_scope)
+            self.context.symbol_table.variable(id=id, type=self.req_type, )
         except KeyError as e:
             e=str(e)[1:-1]
             self.semantic_error(error=getattr(se, e), token=id_obj, expected=se.expected[str(e)])
@@ -413,7 +446,7 @@ class SemanticAnalyzer:
     def more_chr_var(self):
         try:
             id=self.current_node.children[1].value
-            self.context.symbol_table.variable(id=id, type=self.req_type, scope=self.current_scope)
+            self.context.symbol_table.variable(id=id, type=self.req_type, )
 
         except KeyError as e:
             e=str(e)
@@ -426,7 +459,7 @@ class SemanticAnalyzer:
             if len(self.current_node.children)>1:
                 self.context.symbol_table.find_func(self.nearest_id)
             else:
-                self.context.symbol_table.find_var(self.nearest_id, self.current_scope)
+                self.context.symbol_table.find_var(self.nearest_id, )
 
 
     def const_type(self):
@@ -474,13 +507,13 @@ class SemanticAnalyzer:
         # try:
         leaves=self.current_node.leaves()
         if leaves[2].type=="Identifier" and leaves[0].value=="choose":
-            var=self.context.symbol_table.find_var(leaves[2].value, self.current_scope)
+            var=self.context.symbol_table.find_var(leaves[2].value, )
             if var.value==None:
                 self.semantic_error(se.VAR_UNDEF, var, se.expected[se.VAR_UNDEF])
             if var.type!=const.WHOLE:
                 self.semantic_error(se.WRONG_INDEX_TYPE, var, se.expected[se.WRONG_INDEX_TYPE].format(const.WHOLE))
             if var.scope !=self.current_scope:
-                self.semantic_error(se.VAR_SCOPE_INVALID, var, se.expected[se.VAR_SCOPE_INVALID].format(self.current_scope))
+                self.semantic_error(se.VAR_SCOPE_INVALID, var, se.expected[se.VAR_SCOPE_INVALID].format(self.context.name))
         # except AttributeError:
         #     print(f"Attribute Error sa {self.current_node.root}, had {self.current_node.children}")if self.debug else None
         #     pass
@@ -526,13 +559,13 @@ class SemanticAnalyzer:
             try:
                 if len(items)>1:
                     if items[1].type=="[":
-                        self.context.symbol_table.find_seq(id, self.current_scope)
+                        self.context.symbol_table.find_seq(id)
                     elif items[1].type=="(":
                         self.context.symbol_table.find_func(id)
                         
 
                 else: 
-                    var=self.context.symbol_table.find_var(id, self.current_scope)
+                    var=self.context.symbol_table.find_var(id)
                     # if var==None:
                     #     self.semantic_error(se.VAR_UNDEF, id_obj, se.expected["VAR_UNDEF"])
             except AttributeError as e:
@@ -586,6 +619,8 @@ class SemanticAnalyzer:
 
     def reg_body(self):
         if len(self.current_node.children)<=2:
+            self.add_context(f"{self.current_node.parent.children[0].value} {self.block_counter}")
+            self.block_counter+=1
             self.semantic_error(se.EMPTY_BODY, self.current_node.children[0], "Non-empty body")
 
 

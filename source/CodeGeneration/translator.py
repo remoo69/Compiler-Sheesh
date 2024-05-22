@@ -183,7 +183,7 @@ class Translator:
                                 f.write(leaves[i+j].value+" ")
                                 self.appended.append(leaves[i+j].value+" ")
                             j+=1
-                        i+=j
+                        i+=j-1
                         
                     elif leaves[i].value=="step":
                         f.write(";"+nearest_id+"+=")

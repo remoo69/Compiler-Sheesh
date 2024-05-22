@@ -69,8 +69,7 @@ class Token:
         return f"Token(\"{self.value}\", {self.type}, {self.dtype}, {self.numerical_value})"
 
 class Variable:
-    def __init__(self, id, type, scope) -> None:
-        self.set_scope(scope=scope)
+    def __init__(self, id, type) -> None:
         self.id=id
         self.type=type
         self.value=None
@@ -106,8 +105,8 @@ class Variable:
                 raise ValueError(se.VAR_UNDEF)
 
 
-    def set_scope(self, scope):
-        self.scope=scope
+    # def set_scope(self, scope):
+    #     self.scope=scope
     
     def get_val(self):
         if self.value!=None:
@@ -120,9 +119,10 @@ class Variable:
     
 
 class Sequence(Variable):
-    def __init__(self, id, type, scope, rows, cols) -> None:
-        super().__init__(id, type, scope=scope)
-        self.array=[[None]*cols for _ in range(int(rows))]
+    def __init__(self, id, type, rows, cols) -> None:
+        super().__init__(id, type, )
+        # self.array=[[None]*cols for _ in range(int(rows))]
+        self.array=[]
         self.rows=rows
         self.cols=cols
 
@@ -160,12 +160,12 @@ class Sequence(Variable):
 class Constant(Variable):
     def __init__(self, id, type) -> None:
         super().__init__(id, type)
-        self.set_scope=const.GBL
+        # self.set_scope=const.GBL
 
 class Constant(Sequence):
     def __init__(self, id, type) -> None:
         super().__init__(id, type)
-        self.set_scope=const.GBL
+        # self.set_scope=const.GBL
 
 class Function:
     def __init__(self, id, return_type, parameters) -> None:
@@ -210,20 +210,20 @@ class Function:
         return self.func_body #FIXME - di pa ayos to
     
 class Parameter(Variable):
-    def __init__(self, id, type, param_type, scope) -> None:
-        super().__init__(id, type, scope)
+    def __init__(self, id, type, param_type,) -> None:
+        super().__init__(id, type)
         #regular var or sequence
         self.param_type=param_type
     
     def __repr__(self):
         return f"Parameter({super().__repr__()})"
 
-class ScopeTree:
-    def __init__(self, root, children) -> None:
-        self.root=root
-        self.children:list=children
-    def __repr__(self) -> str:
-        return "Scope()" #FIXME - ayusin mo to
+# class ScopeTree:
+#     def __init__(self, root, children) -> None:
+#         self.root=root
+#         self.children:list=children
+#     def __repr__(self) -> str:
+#         return "Scope()" #FIXME - ayusin mo to
 
 class SymbolTable:
 
@@ -239,17 +239,17 @@ class SymbolTable:
     def keys(self):
         return self.symbols.keys()
 
-    def variable(self, id, type, scope):
+    def variable(self, id, type):
         if id not in self.symbols.keys():
-            self.symbols[id]=Variable(id=id,type=type, scope=scope)
+            self.symbols[id]=Variable(id=id,type=type)
         else:
             raise KeyError("VAR_REDECL_INSCOPE")
 
 
 #FIXME - IDK WHAT TO DO WITH THIS
-    def sequence(self, id, type, scope, rows, cols):
+    def sequence(self, id, type, rows, cols):
         if id not in self.symbols.keys():
-            self.symbols[id]=Sequence(id=id, type=type, scope=scope, rows=rows, cols=cols)
+            self.symbols[id]=Sequence(id=id, type=type, rows=rows, cols=cols)
         else:
             raise KeyError("SEQ_REDECL_INSCOPE")
         
@@ -273,28 +273,28 @@ class SymbolTable:
             raise KeyError("CONST_REDECL")
         
 
-    def parameter(self, id, type, param_type, scope, ):
-        if id in self.symbols.keys() and isinstance(self.symbols[id], Parameter) and self.symbols[id].scope==scope:
+    def parameter(self, id, type, param_type, ):
+        if id in self.symbols.keys() and isinstance(self.symbols[id], Parameter):
             raise KeyError("PARAM_REDECL_INSCOPE")
         else:
-            self.symbols[id]=Parameter(id=id, type=type, param_type=param_type, scope=scope)
+            self.symbols[id]=Parameter(id=id, type=type, param_type=param_type)
 
 
-    def find(self,id, scope):
-        if id in self.symbols.keys() and self.symbols[id].scope==scope:
+    def find(self,id):
+        if id in self.symbols.keys():
             return self.symbols[id]
         else:
             raise KeyError("VAR_UNDECL")
         
 
-    def find_var(self, id, scope)->Variable:
-        if id in self.symbols.keys() and type(self.symbols[id])==Variable and self.symbols[id].scope==scope:
+    def find_var(self, id)->Variable:
+        if id in self.symbols.keys() and type(self.symbols[id])==Variable :
             return self.symbols[id]
         else:
             raise AttributeError("VAR_UNDECL")
         
-    def find_seq(self, id, scope)->Sequence:
-        if id in self.symbols.keys() and type(self.symbols[id])==Sequence  and self.symbols[id].scope==scope:
+    def find_seq(self, id)->Sequence:
+        if id in self.symbols.keys() and type(self.symbols[id])==Sequence :
             return self.symbols[id]
         else:
             raise AttributeError("SEQ_UNDECL")
@@ -311,20 +311,20 @@ class SymbolTable:
         else:
             raise AttributeError("FUNC_UNDECL")
         
-    def find_param(self, id, scope)->Parameter:
-        if id in self.symbols.keys() and type(self.symbols[id])==Parameter and self.symbols[id].scope==scope:
+    def find_param(self, id)->Parameter:
+        if id in self.symbols.keys() and type(self.symbols[id])==Parameter :
             return self.symbols[id]
         else:
             raise AttributeError("PARAM_UNDECL_INSCOPE")
 
 #FIXME - UNIMPLEMENTED
-    def  get_var_inscope(self, scope)->dict:
-        vars={}
-        raise NotImplementedError
-        for key in self.symbols.keys():
-            if self.symbols[key].scope==scope:
-                vars.update(self.symbols[key])
-            elif self.symbols[3]:pass
+    # def  get_var_inscope(self, scope)->dict:
+    #     vars={}
+    #     raise NotImplementedError
+    #     for key in self.symbols.keys():
+    #         if self.symbols[key].scope==scope:
+    #             vars.update(self.symbols[key])
+    #         elif self.symbols[3]:pass
             
 
         
