@@ -174,7 +174,10 @@ class SemanticAnalyzer:
             "assign_op": self.assign_op,
             "looping_statement": self.looping_statement,
             "func_def":self.func_def,
-
+            "in_loop_body":self.body,
+            "control_flow_statement":self.body,   #choose
+            "loop_body_statement":self.body,   #choose
+            
             
             }
         
@@ -187,7 +190,10 @@ class SemanticAnalyzer:
         # self.context.symbol_table=self.context.symbol_table
         
     def end_context(self):
-        self.context=self.context.parent
+        if self.context.name!=const.GBL:
+            self.context=self.context.parent
+        else:
+            pass
         
     def traverse(self, node):
         """ 
@@ -210,6 +216,8 @@ class SemanticAnalyzer:
                 for sibling in node.parent.children[sibling_index:]:
                     if isinstance(sibling, AST):  # Check if the sibling is an AST
                         return sibling
+                    elif sibling.value=="}" and node.parent.children[sibling_index-1].leaves()[-1].value=="#":
+                        self.end_context()
             node = node.parent
 
     def analyze(self):
@@ -227,6 +235,17 @@ class SemanticAnalyzer:
                 print(self.context.symbol_table)
                 break  # Exit the loop if the tree has been fully traversed
 
+
+    def body(self):
+        if self.current_node.root in ["in_loop_body"] :
+            self.add_context(self.current_node.parent.children[0])
+        else:
+            if isinstance(self.current_node.children[0], AST):
+                pass
+            else:
+                if self.current_node.children[0].value in ["kung", "choose"]:
+                    self.add_context(self.current_node.children[0].value)
+
     def func_def(self):
         items=self.current_node.leaves()
         
@@ -237,6 +256,12 @@ class SemanticAnalyzer:
             id=items[2].value
 
         parameter=self.current_node.children[4].leaves()
+        
+        try:
+            self.context.symbol_table.function(id=id, return_type=type, parameters=parameter, body=None)
+        except ValueError as e:
+            e=str(e)
+            self.semantic_error(error=getattr(se, e), token=id, expected=se.expected[str(e)])
 
         params=[]
         
@@ -248,7 +273,7 @@ class SemanticAnalyzer:
                 param_id=parameter[i+1].value
                 params.append(param_id)
                 try:
-                    self.context.symbol_table.parameter(id=param_id, type=param_type, param_type="Variable")
+                    self.context.symbol_table.variable(id=param_id, type=param_type)
                 except ValueError as e:
                     e=str(e)
                     self.semantic_error(error=getattr(se, e), token=param, expected=se.expected[str(e)])
@@ -256,39 +281,35 @@ class SemanticAnalyzer:
                 break
 
         body=self.current_node.find_node("func_def_tail")
-        try:
-            self.context.symbol_table.function(id=id, return_type=type, parameters=params, body=body)
-        except ValueError as e:
-            e=str(e)
-            self.semantic_error(error=getattr(se, e), token=id, expected=se.expected[str(e)])
+        
             
-        self.end_context()
-
-    def in_param(self):
 
 
-        if self.current_node.children[1].type=="Identifier":
-            id=self.current_node.children[1]
-            type=self.current_node.children[0].children[0].value
-            if self.current_node.children[2].type=="[":
-                param_type=const.SEQ
-            else:
-                param_type=const.VAR
-            try:
-                self.context.symbol_table.parameter(id=id, type=type,param_type=param_type)
-            except ValueError as e:
-                e=str(e)
-                self.semantic_error(error=getattr(se, e), token=id, expected=se.expected[str(e)])
+    # def in_param(self):
 
-        elif self.current_node.children[2].type=="Identifier":
-            id=self.current_node.children[2]
-            type="charr"
-            param_type=const.VAR
-            try:
-                self.context.symbol_table.parameter(id=id, type=type, param_type=param_type)
-            except ValueError as e:
-                e=str(e)
-                self.semantic_error(error=getattr(se, e), token=id, expected=se.expected[str(e)])
+
+    #     if self.current_node.children[1].type=="Identifier":
+    #         id=self.current_node.children[1]
+    #         type=self.current_node.children[0].children[0].value
+    #         if self.current_node.children[2].type=="[":
+    #             param_type=const.SEQ
+    #         else:
+    #             param_type=const.VAR
+    #         try:
+    #             self.context.symbol_table.parameter(id=id, type=type,param_type=param_type)
+    #         except ValueError as e:
+    #             e=str(e)
+    #             self.semantic_error(error=getattr(se, e), token=id, expected=se.expected[str(e)])
+
+    #     elif self.current_node.children[2].type=="Identifier":
+    #         id=self.current_node.children[2]
+    #         type="charr"
+    #         param_type=const.VAR
+    #         try:
+    #             self.context.symbol_table.parameter(id=id, type=type, param_type=param_type)
+    #         except ValueError as e:
+    #             e=str(e)
+    #             self.semantic_error(error=getattr(se, e), token=id, expected=se.expected[str(e)])
 
 #FIXME - handle current scope
     def allowed_in_loop(self):
@@ -618,8 +639,13 @@ class SemanticAnalyzer:
             
 
     def reg_body(self):
-        if len(self.current_node.children)<=2:
+        if self.current_node.parent.root in ["func_def_tail", "sheesh_declaration"]:
+            # self.add_context(f"{self.current_node.parent.parent.children[2].value} {self.block_counter}")
+            pass
+        else:
             self.add_context(f"{self.current_node.parent.children[0].value} {self.block_counter}")
+        if len(self.current_node.children)<=2:
+            
             self.block_counter+=1
             self.semantic_error(se.EMPTY_BODY, self.current_node.children[0], "Non-empty body")
 
