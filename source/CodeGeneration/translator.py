@@ -34,6 +34,7 @@ class Translator:
             
             "whilst":"while",
             "#":";",
+            "::":":",
             
             "for":"for",
             # "to":"; {id}<=",
@@ -171,14 +172,11 @@ class Translator:
                     elif leaves[i].value=="charr":
                         f.write(self.sheesh_to_c[leaves[i].value]+" ")
                         i+=1
-                    elif leaves[i].value=="::":
-                        f.write(leaves[i].value+" ")
-                        self.appended.append(leaves[i].value+" ")
                         
                     elif leaves[i].value=="to":
                         in_for=True
                         found_to=True
-                        f.write("; "+nearest_id+"<=")
+                        f.write("; "+nearest_id+"!=")
                         self.appended.append("; "+nearest_id+"<=")
                         i+=1
                         j=0
