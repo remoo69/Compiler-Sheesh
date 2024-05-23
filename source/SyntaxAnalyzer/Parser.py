@@ -451,6 +451,7 @@ class SyntaxAnalyzer:
     def two_d_param(self):
         self.Tree.initialize_new()
         if self.match("[", True):
+            self.match("Whole")
             self.match("]")
             self.Tree.end_branch(); return self.success
         else:
@@ -1362,15 +1363,15 @@ class SyntaxAnalyzer:
 
     def charr_all_value(self):
         self.Tree.initialize_new()
-        if self.charr_value()==self.success:
-            self.Tree.end_branch(); return self.success
-        elif self.match("pa_mine", True):
+        if self.match("pa_mine", True):
             self.match("(")
             if self.match("Text") and '$c' in self.cur.value: #REVIEW - this might cause issue
                 self.match(")")
                 self.Tree.end_branch(); return self.success
             else:
                 return self.failed()
+        elif self.charr_value()==self.success:
+            self.Tree.end_branch(); return self.success
         else:
             return self.failed()
     
@@ -1378,7 +1379,7 @@ class SyntaxAnalyzer:
         self.Tree.initialize_new() 
         if self.match("Charr", True):
             self.Tree.end_branch(); return self.success
-        elif self.match("Identifier"):
+        elif self.match("Identifier", True):
             self.func_call()
             self.Tree.end_branch(); return self.success
         elif self.match("(", True):
