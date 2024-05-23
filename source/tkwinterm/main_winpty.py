@@ -3,7 +3,7 @@ import uuid
 import webbrowser
 
 import sv_ttk
-from tkinter import ttk, Menu
+from tkinter import Canvas, Frame, PanedWindow, ttk, Menu
 from tkwinterm.winterminal import Terminal
 from pprint import pprint as pp
 
@@ -21,7 +21,8 @@ class App(ttk.Frame):
         self.widget_to_uuid = {}
         # Create the menu bar
         self.menubar = Menu(parent)
-        parent.config(menu=self.menubar)
+        # parent.config(menu=self.menubar)
+        
 
         # Create the Sessions menu
         sessions_menu = Menu(self.menubar, tearoff=0)
@@ -48,7 +49,7 @@ class App(ttk.Frame):
         # Create the default SSH session tab
         self.create_terminal_tab()
 
-        self.parent.protocol("WM_DELETE_WINDOW", self.on_close)
+        self.parent.master.protocol("WM_DELETE_WINDOW", self.on_close)
         self.parent.mainloop()
 
     def open_file(self):
@@ -292,28 +293,50 @@ ui_config = {
 
 # Log File Configuration
 
-def run():
+def run(root):
+    
+    
+    
     log_file = "winpty_session.log"
-    root = tkinter.Tk()
+    root = root
+    
     sv_ttk.set_theme("dark")
 
     # Calculate x and y coordinates for the Tk root window
     ws = root.winfo_screenwidth()  # Width of the screen
     hs = root.winfo_screenheight()  # Height of the screen
 
-    w = 500  # Width for the window
-    h = 300  # Height for the window
+    w = 800  # Width for the window
+    h = 250  # Height for the window
 
     # Calculate x, y coordinates
     x = (ws / 2) - (w / 2)
     y = (hs / 2) - (h / 2)
+    
+    # terminal=Frame(root, width=w, height=h)
 
-    root.geometry('%dx%d+%d+%d' % (w, h, x, y))
+    # terminal.place(x=0, y=400)
+    # terminal.config(ma)
+
+    # # terminal.pack(x=x, y=y,)
+    # terminal.place(x=0, y=400)
+    
+                # terminal.geometry("900x220")
+                # terminal.resizable(False,False)
+                # terminal.iconbitmap("source/assets/sheesh_logo1.ico")
+                # terminal.title("Sheesh Terminal")
+    # terminal.focus()
+    # root.place(x=x, y=y,)
+    # root.geometry('%dx%d+%d+%d' % (w, h, x, y))
     # root = ThemedTk(theme="adapta")
-    root.title("Windows Terminal Emulator")
+    # root.title("Windows Terminal Emulator")
 
     app = App(root, ui_config, log_file)
-    app.pack(expand=True, fill="both")
+    # app.place(width=w, height=h)
+    app.pack(x=x, y=y,)   
+ 
+    app.focus()
+    
 
     root.mainloop()
 

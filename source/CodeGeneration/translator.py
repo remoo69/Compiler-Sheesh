@@ -45,7 +45,7 @@ class Translator:
             "for":"for",
             # "to":"; {id}<=",
             # "step":";{id}++{step}",
-            "text":"char *",
+            "text":"char ",
             }
         
         self.handling={
@@ -91,7 +91,7 @@ class Translator:
               
             if all[index+3].value in ["#", ")"] and self.in_concat==True:
                 self.in_concat=False
-                return f", {next} )"
+                return f", {next}, NULL );"
             else:
                 return f", {next}"
             
@@ -125,37 +125,43 @@ class Translator:
                     char *concat(const char *str1, ...) {
                         va_list args;
                         char *result = NULL;
-                        int total_length = 0; // Start with 0 length
+                        int total_length = 0;
 
                         va_start(args, str1);
 
-                        // Iterate through arguments to calculate total length
-                        char *current_str = (char *)str1;
+                        // First pass: Calculate total length of the resulting string
+                        const char *current_str = str1;
                         while (current_str != NULL) {
-                            total_length += strlen(current_str) + 1; // Add string length + null terminator
-                            current_str = va_arg(args, char *);
+                            total_length += strlen(current_str);
+                            current_str = va_arg(args, const char *);
                         }
 
                         va_end(args);
 
-                        if (total_length > 0) { // Allocate memory if there are strings
-                            result = malloc(total_length * sizeof(char));
+                        if (total_length > 0) {
+                            // Allocate memory for the resulting string plus the final null terminator
+                            result = malloc((total_length + 1) * sizeof(char));
                             if (result == NULL) {
                                 return NULL; // Handle memory allocation failure
                             }
+                        } else {
+                            return NULL; // No valid input strings
                         }
 
-                        // Concatenate strings into the result
+                        // Second pass: Concatenate the strings
                         va_start(args, str1);
-                        current_str = (char *)str1;
+                        current_str = str1;
                         int current_pos = 0;
                         while (current_str != NULL) {
                             strcpy(result + current_pos, current_str);
-                            current_pos += strlen(current_str) + 1; // Update position after copying and null terminator
-                            current_str = va_arg(args, char *);
+                            current_pos += strlen(current_str);
+                            current_str = va_arg(args, const char *);
                         }
 
                         va_end(args);
+
+                        // Ensure the final string is null-terminated
+                        result[total_length] = '\\0';
 
                         return result;
                     }
@@ -274,16 +280,25 @@ class Translator:
                         if leaves[i+1].value=="=":
                             if leaves[i+2].value=="pa_mine":
                                 if leaves[i-1].value in ["whole", "dec", "text", "sus", "charr"]:
-                                    f.write(nearest_id +";")
+                                    if leaves[i-1].value=="text":
+                                        f.write(nearest_id +"[]=\"\";")
+                                        self.appended.append(nearest_id +"[]=\"\";")
+                                    else:
+                                        f.write(nearest_id +";")
+                                        self.appended.append(nearest_id +";")   
                                     
                                 fs=leaves[i+4].value
                                 f.write(f"scanf("+self.text_handle(fs)+", &"+nearest_id+");")
                                 self.appended.append("scanf(\"%d\"," +"&"+nearest_id+");")
                                 i+=6
                             else:
-                                f.write("shs_"+leaves[i].value+"=")
-                                self.appended.append("shs_"+leaves[i].value+"=")
-                                nearest_id="shs_"+leaves[i].value
+                                if leaves[i-1].value=="text" and leaves[i-2].value !="charr":
+                                    f.write(nearest_id +"[]")
+                                    self.appended.append(nearest_id +"[]")
+                                else:
+                                    f.write("shs_"+leaves[i].value+"=")
+                                    self.appended.append("shs_"+leaves[i].value+"=")
+                                    nearest_id="shs_"+leaves[i].value
                                 i+=1 
                         elif leaves[i+1].value=="...":
                             f.write(self.concat(i, leaves))

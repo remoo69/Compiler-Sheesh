@@ -19,6 +19,8 @@ from tkinter import filedialog
 import cProfile
 from time import sleep
 
+global terminal
+terminal=None
 
 
 def highlight_reserve_word(*args):
@@ -263,8 +265,9 @@ def run_semantic():
 
     
 def compile():
-
-    
+    global terminal
+    if terminal is not None:
+        terminal.destroy()
     print("Compiling...")
     code = txt_editor_pane.get("1.0", END)
     compiler=Compiler(code, False)
@@ -341,7 +344,14 @@ def compile():
             # error_pane.config(foreground= green)
             error_pane.insert(constants.END, "\nNo Semantic Errors\n", normal_tag) 
             try:
-                main_winpty.run()
+                
+                terminal=Frame(root)
+                terminal.place(x=0,y=440,width=900,height=260)
+                main_winpty.run(terminal)
+                
+                
+                # terminal.destroy()
+                
             except TclError:
                 return
     
@@ -423,6 +433,11 @@ def multiple_yview_scroll(*args):
 
 
 root = Tk()
+
+
+
+
+
 
 root.geometry("1200x700")
 root.resizable(False,False)
@@ -517,8 +532,12 @@ error_pane = tk.Text(
     font=('Open Sans', 10),
     state="disabled")
 error_pane.pack(fill="both", expand=True)
+
 notebook.add(error_tab, text="Errors")
 txt_editor_pane.focus_set()
+
+
+terminal=Frame(root)
 # # Log pane
 # log_tab = tk.Frame(notebook)
 # log_pane = tk.Text(

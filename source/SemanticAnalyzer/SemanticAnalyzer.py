@@ -402,7 +402,7 @@ class SemanticAnalyzer:
                         self.context.symbol_table.variable(id=items[2].value, type=self.req_type, )
 
                 else:
-                    self.context.symbol_table.variable(id=items[1].value, type=self.req_type, )
+                    self.context.symbol_table.variable(id=items[2].value, type=self.req_type, )
                     # return
 
             except KeyError as e:
@@ -468,7 +468,8 @@ class SemanticAnalyzer:
             id=self.current_node.children[1].value
 
         try:
-            self.context.symbol_table.variable(id=id, type=self.req_type, )
+            # self.context.symbol_table.variable(id=id, type=self.req_type, )
+            pass #NOTE - eyo
         except KeyError as e:
             e=str(e)[1:-1]
             self.semantic_error(error=getattr(se, e), token=id_obj, expected=se.expected[str(e)])

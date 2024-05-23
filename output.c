@@ -9,37 +9,43 @@
                     char *concat(const char *str1, ...) {
                         va_list args;
                         char *result = NULL;
-                        int total_length = 0; // Start with 0 length
+                        int total_length = 0;
 
                         va_start(args, str1);
 
-                        // Iterate through arguments to calculate total length
-                        char *current_str = (char *)str1;
+                        // First pass: Calculate total length of the resulting string
+                        const char *current_str = str1;
                         while (current_str != NULL) {
-                            total_length += strlen(current_str) + 1; // Add string length + null terminator
-                            current_str = va_arg(args, char *);
+                            total_length += strlen(current_str);
+                            current_str = va_arg(args, const char *);
                         }
 
                         va_end(args);
 
-                        if (total_length > 0) { // Allocate memory if there are strings
-                            result = malloc(total_length * sizeof(char));
+                        if (total_length > 0) {
+                            // Allocate memory for the resulting string plus the final null terminator
+                            result = malloc((total_length + 1) * sizeof(char));
                             if (result == NULL) {
                                 return NULL; // Handle memory allocation failure
                             }
+                        } else {
+                            return NULL; // No valid input strings
                         }
 
-                        // Concatenate strings into the result
+                        // Second pass: Concatenate the strings
                         va_start(args, str1);
-                        current_str = (char *)str1;
+                        current_str = str1;
                         int current_pos = 0;
                         while (current_str != NULL) {
                             strcpy(result + current_pos, current_str);
-                            current_pos += strlen(current_str) + 1; // Update position after copying and null terminator
-                            current_str = va_arg(args, char *);
+                            current_pos += strlen(current_str);
+                            current_str = va_arg(args, const char *);
                         }
 
                         va_end(args);
+
+                        // Ensure the final string is null-terminated
+                        result[total_length] = '\0';
 
                         return result;
                     }
@@ -48,18 +54,10 @@
                         return (boolean == 1) ? "nocap": "cap";
                     }
                     int main ( ) {
-printf ( "Enter number: " ) ;
-int shs_input;scanf("%d", &shs_input);int shs_num1=0 ;
-printf ( "%d " , shs_num1 ) ;
-int shs_num2=1 ;
-printf ( "%d " , shs_num2 ) ;
-int shs_num3=shs_num1 + shs_num2 ;
-printf ( "%d " , shs_num3 ) ;
-for ( int shs_k=0 ; shs_k!=shs_input ;shs_k+=1 ){
-shs_num1=shs_num2 ;
-shs_num2=shs_num3 ;
-shs_num3=shs_num1 + shs_num2 ;
-printf ( " %d " , shs_num3 ) ;
+bool shs_a='a' == 'a' ;
+char shs_c='a' ;
+char shs_z=shs_c ;
+if ( 'a' == 'a' ) {
+printf ( "fsdfsdfd %c %c" , shs_c , shs_z ) ;
 }
 }
-
