@@ -57,7 +57,7 @@ class Translator:
             # "...":self.concat,
         }
         
-        self.errors=["test"]
+        self.errors=[]
         self.other_translations={}
         self.appended=[]
         self.in_concat=False
@@ -286,7 +286,8 @@ class Translator:
                         
                     elif leaves[i].type=="Identifier":
                         try:
-                            val=self.symbol_table.find(leaves[i].value)
+                            # val=self.symbol_table.find(leaves[i].value)
+                            pass
                         except KeyError as e:
                                 e=str(e)[1:-1]
                                 self.semantic.semantic_error(error=e, token=leaves[i], expected=se.expected[e])
@@ -319,10 +320,11 @@ class Translator:
                             f.write(self.concat(i, leaves))
                             self.appended.append(self.concat(i, leaves))
                             i+=3
-                        elif isinstance(val, Variable) and val.type=="sus" and in_print:
-                                    f.write("bool_to_string("+nearest_id+")")
-                                    self.appended.append("bool_to_string("+leaves[i].value+")")
-                        
+
+                        # elif isinstance(val, Variable) and val.type=="sus" and in_print:
+                        #             f.write("bool_to_string("+nearest_id+")")
+                        #             self.appended.append("bool_to_string("+leaves[i].value+")")
+                            
                         else:
                             f.write("shs_"+leaves[i].value+" ") 
                             self.appended.append("shs_"+leaves[i].value+" ")  
@@ -418,3 +420,12 @@ class Translator:
                         return result;
                     }
     """
+    
+if __name__=="__main__":
+    i=0
+    i+=-2 
+    pass
+    # tree=AST("sheesh")
+    # tree.add_child(AST("whole"))
+    # tree.add_child(AST("shs"))
+    # tree.add_child(AST("blank

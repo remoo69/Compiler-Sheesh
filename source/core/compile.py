@@ -7,7 +7,7 @@ from source.SyntaxAnalyzer.Parser import SyntaxAnalyzer
 from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer
 # from source.CodeGeneration.CodeGen import CodeGenerator
 from source.CodeGeneration.translator import Translator
-
+# from source.tkwinterm.winterminal import Runtime
 # from source.core.AST import AST
 # from source.core.symbol_table import Identifiers
 class Compiler:
@@ -61,7 +61,7 @@ class Compiler:
                         self.runtime_errors=self.translate.errors
                         return
                     else:
-                        self.output=self.translate.output
+                        # self.output=self.translate.output
                         return
             else:
                 self.syntax_errors=self.parser.syntax_errors

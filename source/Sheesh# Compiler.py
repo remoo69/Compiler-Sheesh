@@ -1,4 +1,5 @@
 # import source.helper as helper
+import json
 import sys
 import sv_ttk
 sys.path.append( '.' )
@@ -17,7 +18,9 @@ from tkwinterm import main_winpty
 # import source.LexicalAnalyzer.prepare as prep
 from tkinter import filedialog
 import cProfile
-from time import sleep
+import time
+from source.core.error_handler import RuntimeError as RError
+
 
 global terminal
 terminal=None
@@ -270,7 +273,7 @@ def compile():
         terminal.destroy()
     print("Compiling...")
     code = txt_editor_pane.get("1.0", END)
-    compiler=Compiler(code, False)
+    compiler=Compiler(code, 1)
     compiler.compile()
     # print_lex(remove_eol(tokens))
     lex_errors=compiler.lex_errors
@@ -344,12 +347,42 @@ def compile():
             # error_pane.config(foreground= green)
             error_pane.insert(constants.END, "\nNo Semantic Errors\n", normal_tag) 
             try:
-            
-                terminal=Frame(root)
-                terminal.place(x=0,y=440,width=900,height=260)
-                main_winpty.run(terminal)
-            # terminal.destroy()
-            except TclError:
+
+                from tkwinterm.winpty_handler import WinPtyHandler
+                # with open("output.c.gcc.json", 'w') as g:
+                #     g.close()
+
+                
+                winpty = WinPtyHandler( initial_command='gcc -fdiagnostics-format=json-file output.c'+'\r')
+                if winpty:
+                    time.sleep(0.5)
+                with open("output.c.gcc.json", 'r') as f:
+                    errors=json.load(f)
+                    if errors:
+                        for error in errors:
+                            print(error["message"][:5])
+                            if error["message"][:5]=="'shs_":
+                                compiler.runtime_errors.append(RError(error="'"+error["message"][5:], line=(error["locations"][0]["caret"]["line"])-55))
+                            else:
+                                compiler.runtime_errors.append(RError(error=error["message"], line=(error["locations"][0]["caret"]["line"])-55))
+                    else:
+                        terminal=Frame(root)
+                        terminal.place(x=0,y=440,width=900,height=260)
+                        
+                        main_winpty.run(terminal, compiler)
+                
+                if compiler.runtime_errors:
+                    error_pane.config(state="normal")
+                    error_pane.insert(constants.END, f'\nRuntime Error:\n', error_tag)
+                    for rerr in runtime_errors:
+                        error_pane.insert(constants.END, f"{rerr}\n", error_tag)
+                    return
+                
+                
+                # terminal.destroy()
+                
+            except TclError as e:
+                print(e) 
                 return
         else:
             # error_pane.config(foreground= yellow)

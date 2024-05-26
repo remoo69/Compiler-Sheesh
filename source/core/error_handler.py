@@ -421,12 +421,12 @@ class SemanticError:
     
 
 class RuntimeError:
-    def __init__(self, *, error,  token, expected) -> None:
+    def __init__(self, *, error,   line) -> None:
         self.error=error
-        self.line=token.line
-        self.toknum=token.position
-        self.expected=expected
+        self.line=line
+        # self.toknum=token.position
+        # self.expected=expected
 
 
     def __repr__(self) -> str:
-            return f"Line {self.line}, Token {self.toknum}: {self.error}, expected -> {self.expected}"
+            return f"Line {self.line}: {self.error}"
