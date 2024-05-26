@@ -8,8 +8,9 @@ from tkwinterm.winterminal import Terminal
 from pprint import pprint as pp
 
 class App(ttk.Frame):
-    def __init__(self, parent, ui_config, log_file):
+    def __init__(self, compiler,parent, ui_config, log_file):
         super().__init__(parent)
+        self.compiler=compiler
         self.terminal_count = 0  # Initialize terminal count
 
         self.parent = parent
@@ -108,12 +109,13 @@ class App(ttk.Frame):
         self.tab_control.add(tab_frame, text=tab_name, image=tab_id)
 
         # Create Terminal instance without SSH configuration
-        term = Terminal(tab_frame, log_file=self.log_file, **self.ui_config)
+        term = Terminal(self.compiler,tab_frame, log_file=self.log_file, **self.ui_config)
         term.uuid = tab_id
         term.pack(expand=1, fill='both')
 
         # Store the session
         self.sessions[str(tab_id)] = term
+        
     def show_tab_menu(self, event):
         """Shows the context menu on right-click on a tab."""
         clicked_tab_index = self.tab_control.tk.call(self.tab_control._w, "identify", "tab", event.x, event.y)
@@ -293,7 +295,7 @@ ui_config = {
 
 # Log File Configuration
 
-def run(root):
+def run(root, compiler):
     
     
     
@@ -331,7 +333,7 @@ def run(root):
     # root = ThemedTk(theme="adapta")
     # root.title("Windows Terminal Emulator")
 
-    app = App(root, ui_config, log_file)
+    app = App(compiler,root, ui_config, log_file)
     # app.place(width=w, height=h)
     app.pack(x=x, y=y,)   
  

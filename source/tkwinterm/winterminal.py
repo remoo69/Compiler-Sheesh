@@ -1,3 +1,4 @@
+import json
 import threading
 import tkinter
 import tkinter as tk
@@ -10,6 +11,9 @@ import pyte.graphics
 # Placeholder for KeyHandler - You need to provide the actual implementation
 from tkwinterm.winpty_handler import WinPtyHandler
 from tkwinterm.winkey_handler import KeyHandler
+import sys
+sys.path.append(".")
+from source.core.compile import Compiler
 
 COLOR_MAPPINGS = {
     "black": "black",
@@ -22,11 +26,20 @@ COLOR_MAPPINGS = {
     "white": "white",
     # Add more mappings for bright colors or other color names used by Pyte
 }
+# global runtime_errors
+
+# class Runtime:
+#     def __init__(self, compiler:Compiler) -> None:
+#         self.runtime_errors=compiler.runtime_errors
+#         self.output=compiler.output
+#         global runtime_errors
+#         runtime_errors=self.runtime_errors
+
 
 class Terminal(Frame):
-    def __init__(self, master=None, log_file=None, font_size=10, *args, **kwargs):
+    def __init__(self,compiler,master=None, log_file=None, font_size=10, *args, **kwargs):
         super().__init__(master)
-
+        self.compiler=compiler
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.rows = 0
@@ -45,8 +58,11 @@ class Terminal(Frame):
         self.stream.attach(self.screen)
 
 
-        self.winpty = WinPtyHandler(log_file, initial_command='gcc output.c -o sheesh.exe' + '\r'+"cls \r" + 'sheesh.exe' + '\r')
-       
+        # self.winpty = WinPtyHandler(log_file, initial_command='gcc output.c -o sheesh.exe' + '\r'+"cls \r" + 'sheesh.exe' + '\r')
+        
+
+        self.winpty = WinPtyHandler(log_file, initial_command='gcc output.c -o sheesh.exe' + '\r' + 'sheesh.exe' + '\r')
+         
 
         self.after_id = None
         self.bind("<Configure>", self.on_resize)
