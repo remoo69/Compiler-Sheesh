@@ -54,10 +54,6 @@
                         return (boolean == 1) ? "nocap": "cap";
                     }
                     int main ( ) {
-int shs_x [ 2 ] = {
-1 , 2 }
-;
-for ( int shs_i=0 ; shs_i!=shs_x [ 1 ] ;shs_i+=1 ){
-printf ( "hello\n" ) ;
-}
+char shs_c='2' ;
+printf ( "%c" , shs_c ) ;
 }

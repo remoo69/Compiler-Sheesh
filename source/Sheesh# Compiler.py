@@ -344,18 +344,13 @@ def compile():
             # error_pane.config(foreground= green)
             error_pane.insert(constants.END, "\nNo Semantic Errors\n", normal_tag) 
             try:
-                
+            
                 terminal=Frame(root)
                 terminal.place(x=0,y=440,width=900,height=260)
                 main_winpty.run(terminal)
-                
-                
-                # terminal.destroy()
-                
+            # terminal.destroy()
             except TclError:
                 return
-    
-            
         else:
             # error_pane.config(foreground= yellow)
             error_pane.insert(constants.END, f'\nSemantic Errors:\n', error_tag)
@@ -364,7 +359,7 @@ def compile():
             
             error_pane.config(state="disabled")
             return
-
+        
 
         lex_table_pane.config(state="disabled")
         error_pane.config(state="disabled")
