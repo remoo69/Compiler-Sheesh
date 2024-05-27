@@ -834,6 +834,7 @@ class SyntaxAnalyzer:
     def w_seq_init(self):
         self.Tree.initialize_new()
         if self.match("{", True): #NOTE - Might be error cause
+            self.eat_endl()
             self.w_elem_init()
             self.enforce()
             self.match("}")
@@ -1000,6 +1001,7 @@ class SyntaxAnalyzer:
     def d_seq_init(self):
         self.Tree.initialize_new()
         if self.match("{", True): #NOTE - Might be error cause
+            self.eat_endl()
             self.d_elem_init()
             self.enforce()
             self.match("}")
@@ -1137,6 +1139,7 @@ class SyntaxAnalyzer:
     def s_seq_init(self):
         self.Tree.initialize_new()
         if self.match("{", True): #NOTE - Might be error cause
+            self.eat_endl()
             self.s_elem_init()
             self.enforce()
             self.match("}")
@@ -1299,6 +1302,7 @@ class SyntaxAnalyzer:
     def t_seq_init(self):
         self.Tree.initialize_new()
         if self.match("{", True): #NOTE - Might be error cause
+            self.eat_endl()
             self.t_elem_init()
             self.enforce()
             self.match("}")
