@@ -42,6 +42,8 @@ class Translator:
             "whilst":"while",
             "#":";",
             "::": ":",
+            "&":"&&",
+            "|":"||",
             
             "for":"for",
     
@@ -210,7 +212,7 @@ class Translator:
                                 break
                             elif leaves[ctr].value == 'step':
                                 if int(eval(leaves[ctr + 1].value)) < 0:
-                                    for_relop = '>'
+                                    for_relop = '<'
                                     break
                             ctr += 1
 
@@ -264,16 +266,21 @@ class Translator:
                             if leaves[i+2].value=="pa_mine":
                                 if leaves[i-1].value in ["whole", "dec", "text", "sus", "charr"]:
                                     if leaves[i-1].value=="text" and leaves[i-2].value != 'charr': # change no.1
-                                        f.write(nearest_id +"=\"\";")
-                                        self.appended.append(nearest_id +"=\"\";")
+                                        f.write(nearest_id +";")
+                                        self.appended.append(nearest_id +";")
+                                        fs=leaves[i+4].value
+                                        f.write(f"scanf("+self.text_handle(fs)+", "+nearest_id+");")
+                                        self.appended.append("scanf(\"%d\"," +""+nearest_id+");")
+                                        i+=6
                                     else:
                                         f.write(nearest_id +";")
                                         self.appended.append(nearest_id +";")   
+                                        fs=leaves[i+4].value
+                                        f.write(f"scanf("+self.text_handle(fs)+", &"+nearest_id+");")
+                                        self.appended.append("scanf(\"%d\"," +"&"+nearest_id+");")
+                                        i+=6
                                     
-                                fs=leaves[i+4].value
-                                f.write(f"scanf("+self.text_handle(fs)+", &"+nearest_id+");")
-                                self.appended.append("scanf(\"%d\"," +"&"+nearest_id+");")
-                                i+=6
+                                
                             else:
                                 if leaves[i-1].value=="text" and leaves[i-2].value !="charr":
                                     # f.write(nearest_id +"[]=")
@@ -293,9 +300,9 @@ class Translator:
                                 if val.type=="sus":
                                     f.write("bool_to_string("+nearest_id+")")
                                     self.appended.append("bool_to_string("+leaves[i].value+")")
-                                elif val.type=="text":
-                                    f.write("&"+nearest_id)
-                                    self.appended.append("&" + nearest_id)
+                                # elif val.type=="text":
+                                #     f.write("&"+nearest_id)
+                                #     self.appended.append("&" + nearest_id)
                                 else:
                                     f.write(nearest_id)
                             
