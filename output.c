@@ -54,6 +54,5 @@
                         return (boolean == 1) ? "nocap": "cap";
                     }
                     int main ( ) {
-char shs_c='2' ;
-printf ( "%c" , shs_c ) ;
+printf ( "hello, world" , shs_a ) ;
 }

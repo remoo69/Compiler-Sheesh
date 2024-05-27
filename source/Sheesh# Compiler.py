@@ -353,18 +353,18 @@ def compile():
                 #     g.close()
 
                 
-                winpty = WinPtyHandler( initial_command='gcc -fdiagnostics-format=json-file output.c'+'\r')
+                winpty = WinPtyHandler( initial_command='gcc -fdiagnostics-format=json-file output.c'+'\r'+"cls")
                 if winpty:
-                    time.sleep(0.5)
+                    time.sleep(0.7)
                 with open("output.c.gcc.json", 'r') as f:
                     errors=json.load(f)
                     if errors:
                         for error in errors:
                             print(error["message"][:5])
                             if error["message"][:5]=="'shs_":
-                                compiler.runtime_errors.append(RError(error="'"+error["message"][5:], line=(error["locations"][0]["caret"]["line"])-55))
+                                compiler.runtime_errors.append(RError(error="'"+error["message"][5:]))
                             else:
-                                compiler.runtime_errors.append(RError(error=error["message"], line=(error["locations"][0]["caret"]["line"])-55))
+                                compiler.runtime_errors.append(RError(error=error["message"]))
                     else:
                         terminal=Frame(root)
                         terminal.place(x=0,y=440,width=900,height=260)

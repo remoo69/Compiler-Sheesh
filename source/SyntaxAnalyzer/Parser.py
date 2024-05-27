@@ -191,6 +191,12 @@ class SyntaxAnalyzer:
             return "EOF"
         else:
             self.expectset = list(set(self.expectset))
+            while self.Tree.stack != []:
+                self.Tree.end_branch()
+                if len(self.Tree.stack)==1:
+                    self.Tree.end_tree()
+                    break
+            print(self.Tree)
             self.syntax_errors.append(
                 Error(
                     expected=self.expectset,
@@ -540,7 +546,7 @@ class SyntaxAnalyzer:
         if (self.var_or_seq_dec() == self.success) or (self.looping_statement() == self.success) or (self.yeet_statement() == self.success):
             self.Tree.end_branch(); return self.success
         elif self.match("Identifier", True):
-
+            self.enforce() #NOTE - added
             self.id_tail()
             self.Tree.end_branch(); return self.success
         elif self.match("up", True):
@@ -569,23 +575,25 @@ class SyntaxAnalyzer:
             self.enforce()
             self.match("#")
             self.Tree.end_branch(); return self.success
+        
+        
         else:
             return self.failed()
 
     def id_next_tail(self):
-        self.Tree.initialize_new()
-        if self.match("=", True):
-            self.enforce()
-            self.assign_value()
-            self.enforce()
-            self.Tree.end_branch(); return self.success
-        elif self.assign_op() == self.success:
-            self.enforce()
-            self.literal_or_expr()
-            self.enforce()
-            self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
+            self.Tree.initialize_new()
+            if self.match("=", True):
+                self.enforce()
+                self.assign_value()
+                self.enforce()
+                self.Tree.end_branch(); return self.success
+            elif self.assign_op() == self.success:
+                self.enforce()
+                self.literal_or_expr()
+                self.enforce()
+                self.Tree.end_branch(); return self.success
+            else:
+                return self.failed()
 
     @nullable
     def more_statement(self):
@@ -844,6 +852,7 @@ class SyntaxAnalyzer:
     def w_two_d_init(self):
         self.Tree.initialize_new()
         if self.match(",", True):
+            self.eat_endl()
             self.w_seq_init()
             self.w_more_two_d()
             self.Tree.end_branch(); return self.success
@@ -862,6 +871,7 @@ class SyntaxAnalyzer:
     def next_whl_init(self):
         self.Tree.initialize_new()
         if self.match(",", True):
+            self.eat_endl()
             self.w_elem_init()
             self.Tree.end_branch(); return self.success
         else:
@@ -1008,6 +1018,7 @@ class SyntaxAnalyzer:
     def d_two_d_init(self):
         self.Tree.initialize_new()
         if self.match(",", True):
+            self.eat_endl()
             self.d_seq_init()
             self.d_more_two_d()
             self.Tree.end_branch(); return self.success
@@ -1144,6 +1155,7 @@ class SyntaxAnalyzer:
     def s_two_d_init(self):
         self.Tree.initialize_new()
         if self.match(",", True):
+            self.eat_endl()
             self.s_seq_init()
             self.s_more_two_d()
             self.Tree.end_branch(); return self.success
@@ -1162,6 +1174,7 @@ class SyntaxAnalyzer:
     def next_sus_init(self):
         self.Tree.initialize_new()
         if self.match(",", True):
+            self.eat_endl()
             self.s_elem_init()
             self.Tree.end_branch(); return self.success
         else:
@@ -1304,6 +1317,7 @@ class SyntaxAnalyzer:
     def t_two_d_init(self):
         self.Tree.initialize_new()
         if self.match(",", True):
+            self.eat_endl()
             self.t_seq_init()
             self.t_more_two_d()
             self.Tree.end_branch(); return self.success
@@ -1322,6 +1336,7 @@ class SyntaxAnalyzer:
     def next_txt_init(self):
         self.Tree.initialize_new()
         if self.match(",", True):
+            self.eat_endl()
             self.t_elem_init()
             self.Tree.end_branch(); return self.success
         else:
@@ -1407,12 +1422,15 @@ class SyntaxAnalyzer:
             return self.failed()
 
     def one_dim(self):
-        self.Tree.initialize_new()
-        if self.index() == self.success:
-            self.two_dim()
-            self.Tree.end_branch(); return self.success
-        else:
-            return self.failed()
+        print(self.peek())
+        if self.peek()=="[":
+            
+            self.Tree.initialize_new()
+            if self.index() == self.success:
+                self.two_dim()
+                self.Tree.end_branch(); return self.success
+            else:
+                return self.failed()
         
     @nullable
     def two_dim(self):
@@ -1713,12 +1731,13 @@ class SyntaxAnalyzer:
 #endregion
 
     def assign_op(self):
-        self.Tree.initialize_new()  # issue
+        self.Tree.initialize_new()  
         aops = ["=", "+=", "-=", "*=", "/=", "%="]
         for op in aops:
             if self.match(op, True):
                 self.Tree.end_branch(); return self.success
-        return self.failed()
+        else:
+            return self.failed()
 
 
     @nullable
@@ -2181,7 +2200,7 @@ class SyntaxAnalyzer:
     def l_expr_withparen(self):
         self.Tree.initialize_new()
         if self.match("(", True):
-            if self.match("Whole", True) or self.match("Dec", True) == self.success:
+            if self.match("Whole", True) or self.match("Dec", True):
                 self.num_math_op()
                 if self.rel_expr() == self.success:
                     self.match(")")

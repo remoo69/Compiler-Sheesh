@@ -6,6 +6,7 @@ from source.SemanticAnalyzer.SemanticAnalyzer import SemanticAnalyzer
 from source.core.error_types import Semantic_Errors as se
 
 
+
 class Translator:
     def __init__(self, tree:AST,semantic:SemanticAnalyzer, debugMode) -> None:
         self.tree=tree
@@ -43,9 +44,8 @@ class Translator:
             "::": ":",
             
             "for":"for",
-            # "to":"; {id}<=",
-            # "step":";{id}++{step}",
-            "text":"char ",
+    
+            "text":"char *",
             }
         
         self.handling={
@@ -95,21 +95,6 @@ class Translator:
             else:
                 return f", {next}"
             
-        
-        
-        
-        
-    # def to_(self, remaining):
-    #     final=""
-    #     while remaining[0].value!=")":
-    #         if remaining [0].value=="to":
-    #             final+="; {}"
-    #             remaining=remaining[1:]
-    #         else:
-    #             final+=remaining[0].value+" "
-    #             remaining=remaining[1:]
-    #         final+=remaining[0].value+" "
-    #         remaining=remaining[1:]
         
     def generate(self):
         with open("output.c", "w") as f:
@@ -172,25 +157,7 @@ class Translator:
                     """)
         self.translate(self.tree)
         f.close()
-        # return self.errors
-    
-    # def translate(self, node):
-    #     """ 
-    #     Traverse the tree in a depth-first manners
-    
-    #     """
-    #     with open("output.c", "a") as f:
-    #         if node.children:
-    #             for child in node.children:
-    #                 if isinstance(child, AST):  # Check if the child is an AST
-    #                     if child.root in self.other_translations:
-    #                         self.other_translations[child.root](child, f)
-    #                     else:
-    #                          self.translate(child)
-    #                 if isinstance(child, Token):
-    #                     token_value = child.value 
-    #                     translated_value = self.sheesh_to_c.get(token_value, token_value)
-    #                     f.write(translated_value + ' ')
+
     
     def translate(self, node):
         """ 
@@ -286,7 +253,7 @@ class Translator:
                         
                     elif leaves[i].type=="Identifier":
                         try:
-                            # val=self.symbol_table.find(leaves[i].value)
+                            val=self.symbol_table.find(leaves[i].value)
                             pass
                         except KeyError as e:
                                 e=str(e)[1:-1]
@@ -297,8 +264,8 @@ class Translator:
                             if leaves[i+2].value=="pa_mine":
                                 if leaves[i-1].value in ["whole", "dec", "text", "sus", "charr"]:
                                     if leaves[i-1].value=="text" and leaves[i-2].value != 'charr': # change no.1
-                                        f.write(nearest_id +"[]=\"\";")
-                                        self.appended.append(nearest_id +"[]=\"\";")
+                                        f.write(nearest_id +"=\"\";")
+                                        self.appended.append(nearest_id +"=\"\";")
                                     else:
                                         f.write(nearest_id +";")
                                         self.appended.append(nearest_id +";")   
@@ -309,8 +276,10 @@ class Translator:
                                 i+=6
                             else:
                                 if leaves[i-1].value=="text" and leaves[i-2].value !="charr":
-                                    f.write(nearest_id +"[]=")
-                                    self.appended.append(nearest_id +"[]")
+                                    # f.write(nearest_id +"[]=")
+                                    # self.appended.append(nearest_id +"[]")
+                                    f.write(nearest_id +"=")
+                                    self.appended.append(nearest_id +"")
                                 else:
                                     f.write("shs_"+leaves[i].value+"=")
                                     self.appended.append("shs_"+leaves[i].value+"=")
@@ -320,10 +289,15 @@ class Translator:
                             f.write(self.concat(i, leaves))
                             self.appended.append(self.concat(i, leaves))
                             i+=3
-
-                        # elif isinstance(val, Variable) and val.type=="sus" and in_print:
-                        #             f.write("bool_to_string("+nearest_id+")")
-                        #             self.appended.append("bool_to_string("+leaves[i].value+")")
+                        elif isinstance(val, Variable)  and in_print:
+                                if val.type=="sus":
+                                    f.write("bool_to_string("+nearest_id+")")
+                                    self.appended.append("bool_to_string("+leaves[i].value+")")
+                                elif val.type=="text":
+                                    f.write("&"+nearest_id)
+                                    self.appended.append("&" + nearest_id)
+                                else:
+                                    f.write(nearest_id)
                             
                         else:
                             f.write("shs_"+leaves[i].value+" ") 

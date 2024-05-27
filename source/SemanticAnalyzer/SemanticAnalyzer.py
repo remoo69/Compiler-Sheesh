@@ -194,8 +194,12 @@ class SemanticAnalyzer:
         return f"SemanticAnalyzer({self.parse_tree})"
     
     def add_context(self, name):
-        self.context=Context(name, self.context)
-        self.all_contexts[self.context.name]=self.context
+        pass
+        if name==const.GBL:
+            self.context=Context(name, self.context)
+            self.all_contexts[self.context.name]=self.context
+        else:
+            pass
         # self.context.symbol_table=self.context.symbol_table
         
     def end_context(self):
@@ -283,7 +287,13 @@ class SemanticAnalyzer:
                 param_id=parameter[i+1].value
                 params.append(param_id)
                 try:
-                    self.context.symbol_table.variable(id=param_id, type=param_type)
+                    try:
+                        if parameter[i+2].type=="[":
+                            self.context.symbol_table.sequence(id=param_id, type=param_type, rows=const.rows, cols=const.cols)
+                        else:
+                            self.context.symbol_table.variable(id=param_id, type=param_type)
+                    except IndexError:
+                        self.context.symbol_table.variable(id=param_id, type=param_type)
                 except ValueError as e:
                     e=str(e)
                     self.semantic_error(error=getattr(se, e), token=param, expected=se.expected[str(e)])
@@ -379,11 +389,11 @@ class SemanticAnalyzer:
                         if len(self.current_node.children[2].children)>1 or self.current_node.children[2].children[0].root=="index":
                             if self.current_node.children[2].children[0].root=="index":
                                 # ind=self.current_node.children[2].children[0].leaves()
-                                # rows=self.current_node.children[2].children[0].leaves()
+                                rows=self.current_node.children[2].children[0].leaves()
                                 try:
                                     rows=self.current_node.children[2].children[0].leaves()[1].numerical_value
-                                    if isinstance(self.current_node.children[2].children[1].children[0], AST):
-                                        cols=self.current_node.children[2].children[1].children[0].children[1].numerical_value
+                                    if isinstance(self.current_node.children[2].children[0].children[1], AST):
+                                        cols=self.current_node.children[2].children[0].children[1].children[0].numerical_value
                                     else:
                                         cols=0
                                 except AttributeError:
@@ -591,7 +601,7 @@ class SemanticAnalyzer:
             try:
                 if len(items)>1:
                     if items[1].type=="[":
-                        self.context.symbol_table.find_seq(id)
+                        self.context.symbol_table.find(id)
                     elif items[1].type=="(":
                         self.context.symbol_table.find_func(id)
                         
@@ -651,9 +661,11 @@ class SemanticAnalyzer:
                     if operand.value != None:
                         if (operand.value<1 and operand.value >-1) and operand.value%1 == 0:
                             self.semantic_error(se.ZERO_DIV, operand, "Non-zero value")
+                            
                 except KeyError as e:
                     e=str(e)[1:-1]
                     self.semantic_error(error=e, token=id, expected=se.expected[e])
+            
             
 
     def reg_body(self):
