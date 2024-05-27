@@ -644,9 +644,16 @@ class SemanticAnalyzer:
 
     def math_op(self):
         if self.current_node.children[0].type=="/":
-            operand=self.current_node.parent.children[1].leaves()[0]
-            if (operand.numerical_value<1 and operand.numerical_value >-1) and operand.numerical_value%1 == 0:
-                self.semantic_error(se.ZERO_DIV, operand, "Non-zero value")
+            if self.current_node.parent.children[1].leaves()[0].type=="Identifier":
+                id=self.current_node.parent.children[1].leaves()[0]
+                try:
+                    operand=self.context.symbol_table.find(self.current_node.parent.children[1].leaves()[0].value)
+                    if operand.value != None:
+                        if (operand.value<1 and operand.value >-1) and operand.value%1 == 0:
+                            self.semantic_error(se.ZERO_DIV, operand, "Non-zero value")
+                except KeyError as e:
+                    e=str(e)[1:-1]
+                    self.semantic_error(error=e, token=id, expected=se.expected[e])
             
 
     def reg_body(self):
