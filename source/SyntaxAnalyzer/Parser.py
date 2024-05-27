@@ -9,7 +9,7 @@ from source.core.AST import AST
 class SyntaxAnalyzer:
 
     
-    def __init__(self, tokens:list[Token], debugMode=True) -> None:
+    def __init__(self, tokens:list[Token], debugMode=False) -> None:
 
         
 
@@ -489,11 +489,11 @@ class SyntaxAnalyzer:
             
     def yeet_type(self): 
         self.Tree.initialize_new()
-        if self.match("blank", True) or self.seq_dtype() == self.success:
-            self.Tree.end_branch(); return self.success
-        elif self.match("charr", True):
+        if self.match("charr", True):
             self.enforce()
             self.match("text")
+            self.Tree.end_branch(); return self.success
+        elif self.match("blank", True) or self.seq_dtype() == self.success:
             self.Tree.end_branch(); return self.success
         else:
             return self.failed()

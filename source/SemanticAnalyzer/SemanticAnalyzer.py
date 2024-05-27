@@ -355,6 +355,8 @@ class SemanticAnalyzer:
     def var_or_seq_dec(self):
             items=self.current_node.leaves()
             self.req_type=items[0].value
+            rows = 0
+            cols = 0
             try:
                 if len(self.current_node.children)>3 and self.current_node.children[0].value!="charr":
                     try:
