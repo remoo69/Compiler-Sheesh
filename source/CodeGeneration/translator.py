@@ -179,14 +179,6 @@ class Translator:
                     if leaves[i].value =="#":
                         f.write(self.sheesh_to_c[leaves[i].value]+"\n")
                         self.appended.append(self.sheesh_to_c[leaves[i].value]+"\n")
-                    # if leaves[i].value=="text":
-                    #     f.write("char"+" ")
-
-                    #     if leaves[i+1].type=="Identifier":
-                    #         nearest_id="shs_"+leaves[i].value
-                    #         f.write("shs_"+leaves[i].value+"[]")
-                    #         self.appended.append("shs_"+leaves[i].value+"[]")
-                    #         i+=1
                     elif leaves[i].value=="up":
                         in_print=True
                         f.write(self.sheesh_to_c[leaves[i].value]+" ")
@@ -212,7 +204,7 @@ class Translator:
                                 break
                             elif leaves[ctr].value == 'step':
                                 if int(eval(leaves[ctr + 1].value)) < 0:
-                                    for_relop = '<'
+                                    for_relop = '>'
                                     break
                             ctr += 1
 
@@ -250,9 +242,6 @@ class Translator:
                         in_print=False
                         f.write(leaves[i].value+" ")
                         self.appended.append(leaves[i].value+" ")
-                    
-                    
-                        
                     elif leaves[i].type=="Identifier":
                         try:
                             val=self.symbol_table.find(leaves[i].value)
@@ -285,9 +274,7 @@ class Translator:
                                     f.write(f"scanf({self.text_handle(fs)}, &{nearest_id});")
                                     i+=6
                             else:
-                                if leaves[i-1].value=="text" and leaves[i-2].value !="charr":
-                                    # f.write(nearest_id +"[]=")
-                                    # self.appended.append(nearest_id +"[]")
+                                if leaves[i-1].value=="text" and leaves[i-2].value !="charr": 
                                     f.write(nearest_id +"=")
                                     self.appended.append(nearest_id +"")
                                 else:
@@ -344,38 +331,6 @@ class Translator:
             text = text.replace(spec, replacement)
     
         return text
-            # If the node has no children or no AST children, go up the tree to find the next sibling
-            # while node.parent:
-            #     sibling_index = node.parent.children.index(node) + 1
-            #     if sibling_index < len(node.parent.children):
-            #         for sibling in node.parent.children[sibling_index:]:
-            #             if isinstance(sibling, AST):  # Check if the sibling is an AST
-            #                 return sibling
-            #     node = node.parent
-            # # If we've reached the root and there are no more siblings, the tree has been fully traversed
-            # return None
-      
-    
-    
-    # def translate(self):
-
-    #     if not hasattr(self, 'sheesh_to_c'):
-    #         raise Exception("Translation dictionary 'sheesh_to_c' not found")
-
-    #     try:
-    #         with open("output.c", "w") as f:
-    #             for node in self.traverse(self.tree):
-    #                 if node is not None:
-    #                     if hasattr(node, 'root'):
-    #                         token_value = node.root
-    #                         translated_value = self.sheesh_to_c.get(token_value, token_value)
-    #                         f.write(translated_value + ' ')
-    #                     else:
-    #                         raise Exception(f"Node {node} does not have a 'root' attribute")
-    #     except IOError:
-    #         raise Exception("Could not open 'output.c' for writing")
-    
-    
     
     """  
     

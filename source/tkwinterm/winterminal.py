@@ -58,10 +58,10 @@ class Terminal(Frame):
         self.stream.attach(self.screen)
 
 
-        # self.winpty = WinPtyHandler(log_file, initial_command='gcc output.c -o sheesh.exe' + '\r'+"cls \r" + 'sheesh.exe' + '\r')
+        self.winpty = WinPtyHandler(log_file, initial_command='gcc output.c -o sheesh.exe' + '\r'+"cls \r" + 'sheesh.exe' + '\r')
         
 
-        self.winpty = WinPtyHandler(log_file, initial_command='gcc output.c -o sheesh.exe' + '\r' + 'sheesh.exe' + '\r')
+        # self.winpty = WinPtyHandler(log_file, initial_command='gcc output.c -o sheesh.exe' + '\r' + 'sheesh.exe' + '\r')
          
 
         self.after_id = None
