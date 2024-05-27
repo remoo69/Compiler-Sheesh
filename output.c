@@ -54,10 +54,6 @@
                         return (boolean == 1) ? "nocap": "cap";
                     }
                     int main ( ) {
-bool shs_a='a' == 'a' ;
-char shs_c='a' ;
-char shs_z=shs_c ;
-if ( 'a' == 'a' ) {
-printf ( "fsdfsdfd %c %c" , shs_c , shs_z ) ;
-}
+char shs_c='2' ;
+printf ( "%c" , shs_c ) ;
 }

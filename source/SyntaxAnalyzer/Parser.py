@@ -9,7 +9,7 @@ from source.core.AST import AST
 class SyntaxAnalyzer:
 
     
-    def __init__(self, tokens:list[Token], debugMode=False) -> None:
+    def __init__(self, tokens:list[Token], debugMode=True) -> None:
 
         
 
@@ -20,6 +20,9 @@ class SyntaxAnalyzer:
         self.success = "Success"
         self.expected = None
         self.isnullable = True
+        self.has_relop = False
+        self.allow_logic_op = False
+        self.in_math_op = False
         self.expectset = []
 
         self.cur=None
@@ -451,6 +454,7 @@ class SyntaxAnalyzer:
     def two_d_param(self):
         self.Tree.initialize_new()
         if self.match("[", True):
+            self.match("Whole")
             self.match("]")
             self.Tree.end_branch(); return self.success
         else:
@@ -1060,7 +1064,7 @@ class SyntaxAnalyzer:
         self.Tree.initialize_new()
         if self.match("=", True):
             self.enforce()
-            if self.logic_value()==self.success:
+            if self.sus_all_value()==self.success:
                 self.Tree.end_branch(); return self.success
             else:
                 return self.failed()
@@ -1362,15 +1366,15 @@ class SyntaxAnalyzer:
 
     def charr_all_value(self):
         self.Tree.initialize_new()
-        if self.charr_value()==self.success:
-            self.Tree.end_branch(); return self.success
-        elif self.match("pa_mine", True):
+        if self.match("pa_mine", True):
             self.match("(")
             if self.match("Text") and '$c' in self.cur.value: #REVIEW - this might cause issue
                 self.match(")")
                 self.Tree.end_branch(); return self.success
             else:
                 return self.failed()
+        elif self.charr_value()==self.success:
+            self.Tree.end_branch(); return self.success
         else:
             return self.failed()
     
@@ -1378,7 +1382,7 @@ class SyntaxAnalyzer:
         self.Tree.initialize_new() 
         if self.match("Charr", True):
             self.Tree.end_branch(); return self.success
-        elif self.match("Identifier"):
+        elif self.match("Identifier", True):
             self.func_call()
             self.Tree.end_branch(); return self.success
         elif self.match("(", True):
@@ -1904,10 +1908,11 @@ class SyntaxAnalyzer:
     @nullable
     def step_statement(self):
         self.Tree.initialize_new()
-        if self.match("step", True):
-            self.enforce()
-            self.whl_value()
-            self.Tree.end_branch(); return self.success
+        if self.match("step", True): # changed again bruh
+            if self.match("Whole") == self.success:
+                self.Tree.end_branch(); return self.success
+            else:
+                return self.failed()
         else:
             return self.failed()
 
@@ -1934,7 +1939,7 @@ class SyntaxAnalyzer:
         elif self.match("kung", True):
             self.enforce()
             self.match("(")
-            self.condition()
+            self.logic_value()
             self.enforce()
             self.match(")")
             self.in_loop_body()
@@ -2305,31 +2310,55 @@ class SyntaxAnalyzer:
             self.Tree.initialize_new()
             if self.match("Sus", True):
                 self.logic_expr()
+                self.allow_logic_op = True
                 self.Tree.end_branch(); return self.success
             elif self.match("Charr", True):
                 self.charr_op()
                 self.charr_value()
                 self.logic_expr()
+                self.allow_logic_op = True
                 self.Tree.end_branch(); return self.success
-            elif self.logic_id() == self.success:
-                self.Tree.end_branch(); return self.success
-            elif self.logic_not_expr() == self.success:
-                self.logic_expr()
-                self.Tree.end_branch(); return self.success
-            elif self.numeric_value() == self.success:
+            elif self.id_as_val() == self.success:
                 if self.num_math_op() == self.success:
-                    self.enforce()
-                    self.relop()
+                    self.in_math_op = True
+                    if self.relop() == self.success:
+                        self.has_relop = True
+                        self.enforce()
+                        self.rel_val()
+                        self.logic_expr()
+                        self.Tree.end_branch(); return self.success
+                    self.Tree.end_branch(); return self.success
+                elif self.relop() == self.success:
+                    self.allow_logic_op = True
+                    self.has_relop = True
                     self.enforce()
                     self.rel_val()
                     self.logic_expr()
                     self.Tree.end_branch(); return self.success
-                self.enforce()
-                self.relop()
-                self.enforce()
-                self.rel_val()
+                self.allow_logic_op = True
+                self.Tree.end_branch(); return self.success
+            elif self.logic_not_expr() == self.success:
+                self.allow_logic_op = True
                 self.logic_expr()
                 self.Tree.end_branch(); return self.success
+            elif self.numeric_value() == self.success:
+                self.in_math_op = True
+                if self.num_math_op() == self.success:
+                    if self.relop() == self.success: 
+                        self.has_relop = True
+                        self.enforce()
+                        self.rel_val()
+                        self.logic_expr()
+                        self.Tree.end_branch(); return self.success
+                    self.Tree.end_branch(); return self.success
+                elif self.relop() == self.success:
+                    self.allow_logic_op = True
+                    self.has_relop = True
+                    self.enforce()
+                    self.rel_val()
+                    self.logic_expr()
+                else:
+                    self.Tree.end_branch(); return self.success
             elif self.l_val_withparen() == self.success:
                 self.Tree.end_branch(); return self.success
             else:
@@ -2340,8 +2369,26 @@ class SyntaxAnalyzer:
         if self.match("(", True):
             self.logic_value()
             self.match(")")
-            self.logic_expr()
-            self.Tree.end_branch(); return self.success
+            if self.num_math_op() == self.success and not (self.has_relop):
+                self.enforce()
+                self.relop()
+                self.rel_val()
+                self.logic_expr()
+                self.Tree.end_branch(); return self.success
+            elif self.relop() == self.success and not (self.has_relop):
+                self.enforce()
+                self.rel_val()
+                self.logic_expr()
+                self.Tree.end_branch(); return self.success
+            elif self.allow_logic_op:
+                self.logic_expr()
+                self.Tree.end_branch(); return self.success
+            elif self.in_math_op and self.has_relop:
+                self.logic_expr()
+                self.Tree.end_branch(); return self.success
+            else:
+                self.isnullable = False
+                return self.failed()
         else:
             return self.failed()
     
@@ -2383,7 +2430,6 @@ class SyntaxAnalyzer:
     def logic_id_tail(self):
         self.Tree.initialize_new()
         if self.num_math_op() == self.success:
-            self.num_arithm()
             self.enforce()
             self.relop()
             self.rel_val()
@@ -2487,10 +2533,28 @@ class SyntaxAnalyzer:
         
     def rel_val(self):
         self.Tree.initialize_new()
-        if self.num_or_arithmexpr() == self.success:
-            self.Tree.end_branch(); return self.success
+        if self.match("(", True):
+            if self.id_as_val() == self.success:
+                self.num_math_op()
+                self.match(")", False)
+                self.Tree.end_branch(); return self.success
+            elif self.numeric_value() == self.success:
+                self.num_math_op()
+                self.match(")", False)
+                self.Tree.end_branch(); return self.success
+            # if self.num_or_arithmexpr(required = False) == self.success:
+            #     self.Tree.end_branch(); return self.success
+            elif self.match("Charr", True):
+                self.match(")", False)
+                self.Tree.end_branch(); return self.success
+        elif self.id_as_val() == self.success:
+                self.num_math_op()
+                self.Tree.end_branch(); return self.success
+        elif self.numeric_value_or_id() == self.success:
+                self.num_math_op()
+                self.Tree.end_branch(); return self.success
         elif self.match("Charr", True):
-            self.Tree.end_branch(); return self.success
+                self.Tree.end_branch(); return self.success
         else:
             return self.failed()
     
@@ -2599,6 +2663,3 @@ class SyntaxAnalyzer:
             self.Tree.end_branch(); return self.success
         else:
             return self.failed()
-        
-    
-    

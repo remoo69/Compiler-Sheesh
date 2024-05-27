@@ -414,6 +414,10 @@ def get_symbol(token):
             return token, token.replace(token, '', 1)
         elif token[i]==")" and len(token)==1:
             return token, token.replace(token, '', 1)
+        # elif token[i]=="," and len(token)==1:
+        #     return token, token.replace(token, '', 1)
+        # elif token[i]=="{" and len(token)==1:
+        #     return token, token.replace(token, '', 1)
         elif token[i] in const.all_symbols_nonop and token[i+1] in const.symbols_delims[token[i]]:
             symbol_buffer+=token[i]
             return token[i], token.replace(token[i], '', 1)

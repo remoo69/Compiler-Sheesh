@@ -347,6 +347,7 @@ def compile():
             # error_pane.config(foreground= green)
             error_pane.insert(constants.END, "\nNo Semantic Errors\n", normal_tag) 
             try:
+
                 from tkwinterm.winpty_handler import WinPtyHandler
                 # with open("output.c.gcc.json", 'w') as g:
                 #     g.close()
@@ -383,8 +384,6 @@ def compile():
             except TclError as e:
                 print(e) 
                 return
-    
-            
         else:
             # error_pane.config(foreground= yellow)
             error_pane.insert(constants.END, f'\nSemantic Errors:\n', error_tag)
@@ -393,7 +392,7 @@ def compile():
             
             error_pane.config(state="disabled")
             return
-
+        
 
         lex_table_pane.config(state="disabled")
         error_pane.config(state="disabled")

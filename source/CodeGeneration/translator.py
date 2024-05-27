@@ -228,18 +228,33 @@ class Translator:
                     elif leaves[i].type=="Sus" and in_print:
                         f.write("bool_to_string("+nearest_id+")")
                         self.appended.append("bool_to_string("+leaves[i].value+")")
-                        
+
+                    elif leaves[i].value == 'for': #changed no.3
+                        f.write(self.sheesh_to_c[leaves[i].value]+" ")
+                        self.appended.append(self.sheesh_to_c[leaves[i].value]+" ")
+                        id_for = "shs_"+leaves[i+3].value
                     elif leaves[i].value=="to":
                         in_for=True
                         found_to=True
-                        f.write("; "+nearest_id+"!=")
-                        self.appended.append("; "+nearest_id+"<=")
+                        ctr = i
+                        for_relop = '<'
+                        while True:
+                            if leaves[ctr].value == ')' and leaves[ctr+1].value == '{':
+                                break
+                            elif leaves[ctr].value == 'step':
+                                if int(eval(leaves[ctr + 1].value)) < 0:
+                                    for_relop = '>'
+                                    break
+                            ctr += 1
+
+                        f.write("; "+id_for+for_relop) 
+                        self.appended.append("; "+id_for+for_relop)
                         i+=1
                         j=0
                         while leaves[i+j].value !="step":
                             if leaves[i+j].value==")" and leaves[i+j+1].value=="{":
-                                f.write(";"+ nearest_id+"+=1 )")
-                                self.appended.append(";"+ nearest_id+"+=1 )")
+                                f.write(";"+ id_for+"+=1 )")
+                                self.appended.append(";"+ id_for+"+=1 )")
                                 j+=1
                                 break
                             else:
@@ -254,8 +269,8 @@ class Translator:
                         i+=j-1
                         
                     elif leaves[i].value=="step":
-                        f.write(";"+nearest_id+"+=")
-                        self.appended.append(";"+nearest_id+"+=")
+                        f.write(";"+id_for+"+=") # change no.4
+                        self.appended.append(";"+id_for+"+=")
                     elif leaves[i].value in ["{", "}"]:
                         f.write(leaves[i].value+"\n")
                         self.appended.append(leaves[i].value+"\n")
@@ -281,7 +296,7 @@ class Translator:
                         if leaves[i+1].value=="=":
                             if leaves[i+2].value=="pa_mine":
                                 if leaves[i-1].value in ["whole", "dec", "text", "sus", "charr"]:
-                                    if leaves[i-1].value=="text":
+                                    if leaves[i-1].value=="text" and leaves[i-2].value != 'charr': # change no.1
                                         f.write(nearest_id +"[]=\"\";")
                                         self.appended.append(nearest_id +"[]=\"\";")
                                     else:
@@ -294,7 +309,7 @@ class Translator:
                                 i+=6
                             else:
                                 if leaves[i-1].value=="text" and leaves[i-2].value !="charr":
-                                    f.write(nearest_id +"[]")
+                                    f.write(nearest_id +"[]=")
                                     self.appended.append(nearest_id +"[]")
                                 else:
                                     f.write("shs_"+leaves[i].value+"=")
@@ -305,6 +320,7 @@ class Translator:
                             f.write(self.concat(i, leaves))
                             self.appended.append(self.concat(i, leaves))
                             i+=3
+
                         # elif isinstance(val, Variable) and val.type=="sus" and in_print:
                         #             f.write("bool_to_string("+nearest_id+")")
                         #             self.appended.append("bool_to_string("+leaves[i].value+")")
