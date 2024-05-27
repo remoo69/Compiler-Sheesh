@@ -280,7 +280,10 @@ class Translator:
                                         self.appended.append("scanf(\"%d\"," +"&"+nearest_id+");")
                                         i+=6
                                     
-                                
+                                else:
+                                    fs=leaves[i+4].value
+                                    f.write(f"scanf({self.text_handle(fs)}, &{nearest_id});")
+                                    i+=6
                             else:
                                 if leaves[i-1].value=="text" and leaves[i-2].value !="charr":
                                     # f.write(nearest_id +"[]=")

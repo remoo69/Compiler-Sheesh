@@ -360,10 +360,18 @@ class SemanticAnalyzer:
                         e=str(e)
                         self.semantic_error(error=getattr(se, e), token=id, expected=se.expected[str(e)])
                     try:
+                        in_pamine=False
                         for item in items:
+                            
                             if item.type=="#":
                                 break
-                            if item.type in ["Whole", "Dec", "Sus", "Text", "Charr"]:
+                            elif item.type=="pa_mine":
+                                in_pamine=True
+                            elif item.type=="Text" and in_pamine:
+                                pass
+                            elif item.type==")" and  in_pamine:
+                                in_pamine=False
+                            elif item.type in ["Whole", "Dec", "Sus", "Text", "Charr"] and not in_pamine:
                                 if str(item.type).lower()!=str(self.req_type).lower():
                                     self.semantic_error(se.VAR_OPERAND_INVALID, item, f"Variable of Type {self.req_type}, Got {item.type}")
                     except AttributeError:
@@ -410,9 +418,10 @@ class SemanticAnalyzer:
                             self.context.symbol_table.variable(id=items[1].value, type=self.req_type) 
                     except AttributeError:
                         self.context.symbol_table.variable(id=items[2].value, type=self.req_type, )
-
+                elif self.current_node.children[0].value=="charr":
+                    self.context.symbol_table.variable(id=items[2].value, type=self.req_type)
                 else:
-                    self.context.symbol_table.variable(id=items[2].value, type=self.req_type, )
+                    self.context.symbol_table.variable(id=items[1].value, type=self.req_type, )
                     # return
 
             except KeyError as e:
@@ -607,7 +616,11 @@ class SemanticAnalyzer:
                         
 
                 else: 
-                    var=self.context.symbol_table.find(id) #NOTE - changed
+                    try:
+                        var=self.context.symbol_table.find(id) #NOTE - changed
+                    except KeyError as e:
+                        e=str(e)[1:-1]
+                        self.semantic_error(error=e, token=id_obj, expected=se.expected[e])
                     # if var==None:
                     #     self.semantic_error(se.VAR_UNDEF, id_obj, se.expected["VAR_UNDEF"])
             except AttributeError as e:
