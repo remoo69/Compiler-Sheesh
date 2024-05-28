@@ -53,24 +53,12 @@
                     char* bool_to_string(int boolean){
                         return (boolean == 1) ? "nocap": "cap";
                     }
-                     void shs_print_avg ( int shs_avg ) {
-printf ( "%d" , shs_avg) ;
+                    int main ( ) {
+printf ( "User: " ) ;
+char * shs_user_input;scanf("%s", shs_user_input);if ( shs_user_input [ 0 ] == 'H' || shs_user_input [ 1 ] == 'i' ) {
+printf ( "Chatbot: Hello!\n" ) ;
 }
- void shs_get_avg_seq ( int shs_size , int shs_w_seq [ ] ) {
-printf ( "\nEntered Sequence: \n" ) ;
-int shs_sum=0 ;
-for ( int shs_k=0 ; shs_k<shs_size ;shs_k+=1 ){
-printf ( "%d " , shs_w_seq[ shs_k] ) ;
-shs_sum += shs_w_seq [ shs_k ] ;
+else {
+printf ( "Chatbot: I'm not sure how to respond to that.\n" ) ;
 }
-shs_print_avg ( shs_sum / shs_size ) ;
-}
-int main ( ) {
-printf ( "Enter n: " ) ;
-int shs_n;scanf("%d", &shs_n);int shs_seq [ shs_n ] ;
-for ( int shs_i=0 ; shs_i<shs_n ;shs_i+=1 ){
-printf ( "Enter value %d: " , shs_i+ 1 ) ;
-int shs_temp;scanf("%d", &shs_temp);shs_seq [ shs_i ] = shs_temp ;
-}
-shs_get_avg_seq ( shs_n , shs_seq ) ;
 }

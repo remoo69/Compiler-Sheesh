@@ -2359,6 +2359,7 @@ class SyntaxAnalyzer:
                     self.logic_expr()
                     self.Tree.end_branch(); return self.success
                 self.allow_logic_op = True
+                self.logic_expr()
                 self.Tree.end_branch(); return self.success
             elif self.logic_not_expr() == self.success:
                 self.allow_logic_op = True

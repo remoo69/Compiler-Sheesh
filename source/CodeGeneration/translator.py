@@ -187,8 +187,12 @@ class Translator:
                         f.write(self.sheesh_to_c[leaves[i].value]+" ")
                         i+=1
                     elif leaves[i].type=="Sus" and in_print:
-                        f.write("bool_to_string("+nearest_id+")")
-                        self.appended.append("bool_to_string("+leaves[i].value+")")
+                        if(leaves[i].value == "nocap"):
+                            f.write("bool_to_string("+"true"+")")
+                            self.appended.append("bool_to_string("+"true"+")")
+                        else:
+                            f.write("bool_to_string("+"false"+")")
+                            self.appended.append("bool_to_string("+"false"+")")
 
                     elif leaves[i].value == 'for': #changed no.3
                         f.write(self.sheesh_to_c[leaves[i].value]+" ")
@@ -288,8 +292,27 @@ class Translator:
                             i+=3
                         elif isinstance(val, Variable)  and in_print:
                                 if val.type=="sus":
-                                    f.write("bool_to_string("+nearest_id+")")
-                                    self.appended.append("bool_to_string("+leaves[i].value+")")
+                                    ctr_i = i
+                                    if(leaves[i+1].value == "["):
+                                        f.write("bool_to_string("+nearest_id)
+                                        self.appended.append("bool_to_string("+nearest_id)
+                                        ctr_i += 1
+                                        while(leaves[ctr_i].value != "]" and leaves[ctr_i+1].value != "["):
+                                            print(leaves[ctr_i].value)
+                                            if(leaves[ctr_i].type == "Identifier"):
+                                                f.write("shs_" + leaves[ctr_i].value)
+                                                self.appended.append("shs_" + leaves[ctr_i].value)
+                                                ctr_i += 1
+                                            else:
+                                                f.write(leaves[ctr_i].value)
+                                                self.appended.append(leaves[ctr_i].value)
+                                                ctr_i += 1
+                                        i = ctr_i
+                                        f.write("])")
+                                        self.appended.append("])")
+                                    else:
+                                        f.write("bool_to_string("+nearest_id+")")
+                                        self.appended.append("bool_to_string("+leaves[i].value+")")
                                 # elif val.type=="text":
                                 #     f.write("&"+nearest_id)
                                 #     self.appended.append("&" + nearest_id)
