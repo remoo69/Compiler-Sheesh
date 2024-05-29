@@ -17,7 +17,7 @@ To use the compiler:
 2. Open the project folder in an IDE that supports Python like VScode.
 3. Open the Sheesh# Compiler.py file in the source folder.
 4. Run the File.
-5. Install dependencies by running <b>pip install -r requirements.txt<\b>
+5. Install dependencies by running **pip install -r requirements.txt**
 6. Please ensure that you have a valid C Compiler Installed.
 7. Congrats! You are now testing the Compiler!
 ___________________________________________________________________________________
@@ -47,17 +47,17 @@ Automata Theory and Formal Languages & Compiler Design as part of the programs i
          <span>Member</span>
       </td>
       <td align="center" valign="top" width="14%"><a href="https://github.com/remoo69/Compiler-Sheesh">
-         <img src="https://i.stack.imgur.com/frlIf.png" width="100px;" alt="Pat Linghon"/>
+         <img src="https://i.sstatic.net/frlIf.png" width="100px;" alt="Pat Linghon"/>
          <br /><sub><b>Pat Linghon</b></sub></a><br />
          <span>Member</span>
       </td>
       <td align="center" valign="top" width="14%"><a href="https://github.com/remoo69/Compiler-Sheesh">
-         <img src="https://i.stack.imgur.com/frlIf.png" width="100px;" alt="Vanessa Vallar"/>
+         <img src="https://i.sstatic.net/frlIf.png" width="100px;" alt="Vanessa Vallar"/>
          <br /><sub><b>Vanessa Vallar</b></sub></a><br />
          <span>Member</span>
       </td>
       <td align="center" valign="top" width="14%"><a href="https://github.com/remoo69/Compiler-Sheesh">
-         <img src="https://i.stack.imgur.com/frlIf.png" width="100px;" alt="Kaye Pascual"/>
+         <img src="https://i.sstatic.net/frlIf.png" width="100px;" alt="Kaye Pascual"/>
          <br /><sub><b>Kaye Pascual</b></sub></a><br />
          <span>Member</span>
       </td>
