@@ -259,7 +259,7 @@ class Translator:
                             if leaves[i+2].value=="pa_mine":
                                 if leaves[i-1].value in ["whole", "dec", "text", "sus", "charr"]:
                                     if leaves[i-1].value=="text" and leaves[i-2].value != 'charr': # change no.1
-                                        f.write(nearest_id +";")
+                                        f.write(nearest_id+'= (char *)malloc(100 * sizeof(char))' +";")
                                         self.appended.append(nearest_id +";")
                                         fs=leaves[i+4].value
                                         f.write(f"scanf("+self.text_handle(fs)+", "+nearest_id+");")

@@ -53,12 +53,30 @@
                     char* bool_to_string(int boolean){
                         return (boolean == 1) ? "nocap": "cap";
                     }
-                    int main ( ) {
-printf ( "User: " ) ;
-char * shs_user_input;scanf("%s", shs_user_input);if ( shs_user_input [ 0 ] == 'H' || shs_user_input [ 1 ] == 'i' ) {
-printf ( "Chatbot: Hello!\n" ) ;
+                     int shs_compareStrings ( char * shs_role , char * shs_requiredRole ) {
+int shs_i=0 ;
+do {
+if ( shs_role [ shs_i ] != shs_requiredRole [ shs_i ] ) {
+return (-1) ;
+}
+shs_i += 1 ;
+}
+while ( shs_role [ shs_i ] == '\0' || shs_requiredRole [ shs_i ] == '\0' ) ;
+if ( shs_role [ shs_i ] == '\0' && shs_requiredRole [ shs_i ] == '\0' ) {
+return (-1) ;
+}
+return 0 ;
+}
+int main ( ) {
+int shs_performanceScore , shs_yearsOfService ;
+printf ( "Enter your performance score: " ) ;
+scanf("%d", &shs_performanceScore);printf ( "Enter your years of service: " ) ;
+scanf("%d", &shs_yearsOfService);printf ( "Enter your role: " ) ;
+char * shs_lcl_role= (char *)malloc(100 * sizeof(char));scanf("%s", shs_lcl_role);if ( shs_performanceScore >= 80 && shs_yearsOfService >= 5 && shs_compareStrings ( shs_lcl_role , "Manager" ) == 0 ) {
+printf ( "Congratulations! You are eligible for a promotion.\n" ) ;
 }
 else {
-printf ( "Chatbot: I'm not sure how to respond to that.\n" ) ;
+printf ( "Sorry, you are not eligible for a promotion based on the current criteria.\n" ) ;
 }
+return 0 ;
 }
