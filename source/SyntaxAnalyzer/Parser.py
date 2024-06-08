@@ -648,7 +648,8 @@ class SyntaxAnalyzer:
         self.eat_endl()
         if self.match("{", True): #NOTE - Might be error cause
             self.eat_endl()
-            self.loop_body()
+            self.loop_body_statement(is_required = True)
+            self.more_loop_body()
             self.eat_endl()
             self.match("}")
             self.eat_endl()
@@ -1947,7 +1948,7 @@ class SyntaxAnalyzer:
         else:
             return self.failed()
 
-    def loop_body_statement(self):
+    def loop_body_statement(self, is_required = False):
         self.Tree.initialize_new()
         if (self.allowed_in_loop() == self.success):
             self.Tree.end_branch(); return self.success
@@ -1982,6 +1983,9 @@ class SyntaxAnalyzer:
             self.eat_endl()
             self.Tree.end_branch(); return self.success
         else:
+            if is_required:
+                self.isnullable=False
+                return self.failed() 
             return self.failed()
 
     @nullable
