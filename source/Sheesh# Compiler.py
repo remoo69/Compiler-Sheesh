@@ -376,6 +376,7 @@ def compile():
                     error_pane.insert(constants.END, f'\nRuntime Error:\n', error_tag)
                     for rerr in runtime_errors:
                         error_pane.insert(constants.END, f"{rerr}\n", error_tag)
+                    error_pane.config(state="disabled")
                     return
                 
                 
@@ -461,15 +462,9 @@ def multiple_yview_scroll(*args):
 
 
 root = Tk()
-
-
-
-
-
-
 root.geometry("1200x700")
 root.resizable(False,False)
-root.iconbitmap("source/assets/sheesh_logo1.ico")
+root.iconbitmap("source/assets/sheesh_icon.ico")
 root.title("Sheesh Compiler")
 
 # config color collection
@@ -587,9 +582,6 @@ terminal=Frame(root)
 # user_input_entry=tk.Entry(error_pane, textvariable=input_pane, width=50)
 # user_input_entry.pack()
 
-
-
-
 # run lexer function button
 run_lex_img = PhotoImage(file="source/assets/run_lex.png") 
 run_syn_img = PhotoImage(file="source/assets/run_syntax.png") 
@@ -610,8 +602,6 @@ lex_btn = Button(
         command=run_lex,
 )
 
-lex_btn.place(x=750,y=40,width=50,height=50)
-
 load_btn=Button(
     image=load_img,
         compound=LEFT,
@@ -626,9 +616,6 @@ load_btn=Button(
 
 )
 
-load_btn.place(x=850,y=40,width=50,height=50)
-
-
 parse_btn = Button(
         image=run_syn_img,
         compound=LEFT,
@@ -641,7 +628,6 @@ parse_btn = Button(
         justify="center",
         command=run_parser,
 )
-parse_btn.place(x=700,y=40,width=50,height=50)
 
 # semantic_btn = Button(
 #         image=run_sem_img,
@@ -670,11 +656,11 @@ compile_btn = Button(
         justify="center",
         command=compile,
 )
-compile_btn.place(x=800,y=40,width=50,height=50)
 
-
-
-
+parse_btn.place(x=665,y=40,width=50,height=50)
+lex_btn.place(x=715,y=40,width=50,height=50)
+compile_btn.place(x=765,y=40,width=50,height=50)
+load_btn.place(x=810,y=40,width=50,height=50)
 
 line_numbers = Text(bd=0, bg=clr_black, fg="#FFFFFF", font=('Open Sans', 12), width=4, wrap="none", state="disabled")
 line_numbers.place(x=5,y=50,width=20,height=390)

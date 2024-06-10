@@ -2689,6 +2689,3 @@ class SyntaxAnalyzer:
             self.Tree.end_branch(); return self.success
         else:
             return self.failed()
-        
-    
-    

@@ -54,10 +54,8 @@
                         return (boolean == 1) ? "nocap": "cap";
                     }
                     int main ( ) {
-for ( int shs_i=0 ; shs_i<5 ;shs_i+=1 ){
-if ( shs_i == 2 ) {
-continue ;
-}
-printf ( "hello\n" ) ;
-}
+int shs_w_seq [ 3 ] = {
+1 , 2 , 3 }
+;
+int shs_x=shs_w_seq [ (-1) + 1 ] ;
 }
