@@ -64,7 +64,7 @@ Automata Theory and Formal Languages & Compiler Design as part of the programs i
        <td align="center" valign="top" width="14%"><a href="https://github.com/jldav1d">
          <img src="https://avatars.githubusercontent.com/u/92510338?v=4" width="100px;" alt="Jed David"/>
          <br /><sub><b>Jed David</b></sub></a><br />
-         <span>Documenter</span>
+         <span>Programmer & Documenter</span>
       </td>
     </tr>
 </tbody>
